@@ -45,18 +45,3 @@ die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 ppEventType :: EventType -> String
 ppEventType et = printf "%4d: %s (size %s)" (Log.num et) (Log.desc et) 
    (case Log.size et of Nothing -> "variable"; Just x -> show x)
-
-ppEvent :: IntMap EventType -> CapEvent -> String
-ppEvent imap (CapEvent cap (Event time spec)) =
-  printf "%9d: " time ++
-  (case cap of
-    Nothing -> ""
-    Just c  -> printf "cap %d: " c) ++
-  case spec of
-    UnknownEvent{ ref=ref } ->
-      printf (Log.desc (fromJust (M.lookup (fromIntegral ref) imap)))
-
-    Message msg -> msg
-    UserMessage msg -> msg
-
-    other -> showEventTypeSpecificInfo spec
