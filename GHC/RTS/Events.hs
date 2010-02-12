@@ -25,7 +25,7 @@ module GHC.RTS.Events (
        CapEvent(..), sortEvents, groupEvents, sortGroups,
 
        -- * Printing
-       showEventTypeSpecificInfo, showThreadStopStatus
+       showEventTypeSpecificInfo, showThreadStopStatus, ppEvent
   ) where
 
 {- Libraries. -}
@@ -42,6 +42,7 @@ import Data.Char
 import Data.Function
 import Data.List
 import Data.Either
+import Data.Maybe
 import Text.Printf
 import Data.Array
 
@@ -741,17 +742,3 @@ showThreadStopStatus ThreadYielding = "thread yielding"
 showThreadStopStatus ThreadBlocked  = "thread blocked"
 showThreadStopStatus ThreadFinished = "thread finished"
 showThreadStopStatus ForeignCall    = "making a foreign call"
-showThreadStopStatus BlockedOnMVar  = "blocked on an MVar"
-showThreadStopStatus BlockedOnBlackHole = "blocked on a black hole"
-showThreadStopStatus BlockedOnRead = "blocked on I/O read"
-showThreadStopStatus BlockedOnWrite = "blocked on I/O write"
-showThreadStopStatus BlockedOnDelay = "blocked on threadDelay"
-showThreadStopStatus BlockedOnSTM = "blocked in STM retry"
-showThreadStopStatus BlockedOnDoProc = "blocked on asyncDoProc"
-showThreadStopStatus BlockedOnCCall = "blocked in a foreign call"
-showThreadStopStatus BlockedOnCCall_NoUnblockExc = "blocked in a foreign call"
-showThreadStopStatus BlockedOnMsgThrowTo = "blocked in throwTo"
-showThreadStopStatus ThreadMigrating = "thread migrating"
-showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
-showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
-          "blocked on black hole owned by thread " ++ show target
