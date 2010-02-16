@@ -23,6 +23,7 @@ module GHC.RTS.Events (
 
        -- * Utilities
        CapEvent(..), sortEvents, groupEvents, sortGroups,
+       buildEventTypeMap,
 
        -- * Printing
        showEventTypeSpecificInfo, showThreadStopStatus, ppEvent
@@ -686,6 +687,10 @@ merge cmp (x:xs) (y:ys)
  = case x `cmp` y of
         GT -> y : merge cmp (x:xs)   ys
         _  -> x : merge cmp    xs (y:ys)
+
+
+buildEventTypeMap :: [EventType] -> IntMap EventType
+buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
 
 -----------------------------------------------------------------------------
 -- Some pretty-printing support
