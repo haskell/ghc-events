@@ -24,7 +24,7 @@ main = do
   let etypes = Log.eventTypes (Log.header log)
   putStrLn (unlines (map ppEventType etypes))
 
-  let imap = M.fromList [ (fromIntegral (Log.num t),t) | t <- etypes ]
+  let imap = buildEventTypeMap etypes
 
   let pes = Log.events (Log.dat log)
       sorted = sortEvents pes
