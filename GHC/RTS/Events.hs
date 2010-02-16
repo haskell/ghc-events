@@ -736,9 +736,12 @@ showEventTypeSpecificInfo spec =
           printf "GC idle"
         GCDone ->
           printf "GC done"
-	_ ->
-          printf "unknown event type"
-
+        Message msg ->
+          msg
+        UserMessage msg ->
+          msg
+        UnknownEvent _ ->
+          "Unknown event type"
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
