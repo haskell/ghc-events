@@ -97,7 +97,7 @@ data EventType =
     num  :: EventTypeNum,
     desc :: EventTypeDesc,
     size :: Maybe EventTypeSize -- ^ 'Nothing' indicates variable size
-  } deriving Show
+  } deriving (Show, Eq)
 
 data Event = 
   Event {
