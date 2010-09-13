@@ -66,6 +66,8 @@ type Marker = Word32
 sz_cap  = 2
 sz_time = 8
 sz_tid  = 4
+sz_old_tid  = 8 -- GHC 6.12 was using 8 for ThreadID when declaring the size
+                -- of events, but was actually using 32 bits for ThreadIDs
 
 {-
  - Data type delcarations to build the GHC RTS data format,
@@ -154,7 +156,20 @@ data ThreadStopStatus
  | ThreadBlocked
  | ThreadFinished
  | ForeignCall
- deriving (Enum, Show)
+ | BlockedOnMVar
+ | BlockedOnBlackHole
+ | BlockedOnRead
+ | BlockedOnWrite
+ | BlockedOnDelay
+ | BlockedOnSTM
+ | BlockedOnDoProc
+ | BlockedOnCCall
+ | BlockedOnCCall_NoUnblockExc
+ | BlockedOnMsgThrowTo
+ | ThreadMigrating
+ | BlockedOnMsgGlobalise
+
+ deriving (Enum, Show, Bounded)
 
 -- reader/Get monad that passes around the event types
 type GetEvents a = ReaderT EventParsers (ErrorT String Get) a
@@ -293,13 +308,6 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       return Startup{ n_caps = fromIntegral c }
    )),
 
- (EVENT_STARTUP, 
-  (0, do -- BUG in GHC 6.12: the startup event was incorrectly 
-         -- declared as size 0, so we accept it here.
-      c <- getE :: GetEvents CapNo
-      return Startup{ n_caps = fromIntegral c }
-   )),
-
  (EVENT_BLOCK_MARKER,
   (4 + sz_time + sz_cap, do -- (size, end_time, cap)
       block_size <- getE :: GetEvents Word32
@@ -331,7 +339,10 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
   (sz_tid + 2, do  -- (thread, status)
       t <- getE
       s <- getE :: GetEvents Word16
-      return StopThread{thread=t, status= toEnum (fromIntegral s)}
+      let stat = fromIntegral s
+      return StopThread{thread=t, status = if stat > maxBound
+                                              then NoStatus
+                                              else toEnum stat}
    )),
 
  (EVENT_THREAD_RUNNABLE,
@@ -387,7 +398,81 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
 
  (EVENT_GC_DONE, (0, return GCDone)),
 
- (EVENT_GC_END, (0, return EndGC))
+ (EVENT_GC_END, (0, return EndGC)),
+
+ -----------------------
+ -- GHC 6.12 compat: GHC 6.12 reported the wrong sizes for some events,
+ -- so we have to recognise those wrong sizes here for backwards 
+ -- compatibility.
+
+ (EVENT_STARTUP, 
+  (0, do -- BUG in GHC 6.12: the startup event was incorrectly 
+         -- declared as size 0, so we accept it here.
+      c <- getE :: GetEvents CapNo
+      return Startup{ n_caps = fromIntegral c }
+   )),
+
+ (EVENT_CREATE_THREAD,
+  (sz_old_tid, do  -- (thread)
+      t <- getE
+      return CreateThread{thread=t}
+   )),
+
+ (EVENT_RUN_THREAD,
+  (sz_old_tid, do  --  (thread)
+      t <- getE
+      return RunThread{thread=t}
+   )),
+
+ (EVENT_STOP_THREAD,
+  (sz_old_tid + 2, do  -- (thread, status)
+      t <- getE
+      s <- getE :: GetEvents Word16
+      let stat = fromIntegral s
+      return StopThread{thread=t, status = if stat > maxBound
+                                              then NoStatus
+                                              else toEnum stat}
+   )),
+
+ (EVENT_THREAD_RUNNABLE,
+  (sz_old_tid, do  -- (thread)
+      t <- getE
+      return ThreadRunnable{thread=t}
+   )),
+
+ (EVENT_MIGRATE_THREAD,
+  (sz_old_tid + sz_cap, do  --  (thread, newCap)
+      t  <- getE
+      nc <- getE :: GetEvents CapNo
+      return MigrateThread{thread=t,newCap=fromIntegral nc}
+   )),
+
+ (EVENT_RUN_SPARK,
+  (sz_old_tid, do  -- (thread)
+      t <- getE
+      return RunSpark{thread=t}
+   )),
+
+ (EVENT_STEAL_SPARK,
+  (sz_old_tid + sz_cap, do  -- (thread, victimCap)
+      t  <- getE
+      vc <- getE :: GetEvents CapNo
+      return StealSpark{thread=t,victimCap=fromIntegral vc}
+   )),
+
+ (EVENT_CREATE_SPARK_THREAD,
+  (sz_old_tid, do  -- (sparkThread)
+      st <- getE :: GetEvents ThreadId
+      return CreateSparkThread{sparkThread=st}
+   )),
+
+ (EVENT_THREAD_WAKEUP,
+  (sz_old_tid + sz_cap, do  -- (thread, other_cap)
+      t <- getE
+      oc <- getE :: GetEvents CapNo
+      return WakeupThread{thread=t,otherCap=fromIntegral oc}
+   ))
+
  ]
 
 variableEventTypeParsers :: IntMap (GetEvents EventTypeSpecificInfo)
@@ -583,3 +668,15 @@ showThreadStopStatus ThreadYielding = "thread yielding"
 showThreadStopStatus ThreadBlocked  = "thread blocked"
 showThreadStopStatus ThreadFinished = "thread finished"
 showThreadStopStatus ForeignCall    = "making a foreign call"
+showThreadStopStatus BlockedOnMVar  = "blocked on an MVar"
+showThreadStopStatus BlockedOnBlackHole = "blocked on a black hole"
+showThreadStopStatus BlockedOnRead = "blocked on I/O read"
+showThreadStopStatus BlockedOnWrite = "blocked on I/O write"
+showThreadStopStatus BlockedOnDelay = "blocked on threadDelay"
+showThreadStopStatus BlockedOnSTM = "blocked in STM retry"
+showThreadStopStatus BlockedOnDoProc = "blocked on asyncDoProc"
+showThreadStopStatus BlockedOnCCall = "blocked in a foreign call"
+showThreadStopStatus BlockedOnCCall_NoUnblockExc = "blocked in a foreign call"
+showThreadStopStatus BlockedOnMsgThrowTo = "blocked in throwTo"
+showThreadStopStatus ThreadMigrating = "thread migrating"
+showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
