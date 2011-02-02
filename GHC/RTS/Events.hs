@@ -168,8 +168,34 @@ data ThreadStopStatus
  | BlockedOnMsgThrowTo
  | ThreadMigrating
  | BlockedOnMsgGlobalise
+ | BlockedOnBlackHoleOwnedBy {-# UNPACK #-}!ThreadId
+ deriving (Show)
 
- deriving (Enum, Show, Bounded)
+mkStat :: Int -> ThreadStopStatus
+mkStat n = case n of
+ 0  ->  NoStatus
+ 1  ->  HeapOverflow
+ 2  ->  StackOverflow
+ 3  ->  ThreadYielding
+ 4  ->  ThreadBlocked
+ 5  ->  ThreadFinished
+ 6  ->  ForeignCall
+ 7  ->  BlockedOnMVar
+ 8  ->  BlockedOnBlackHole
+ 9  ->  BlockedOnRead
+ 10 ->  BlockedOnWrite
+ 11 ->  BlockedOnDelay
+ 12 ->  BlockedOnSTM
+ 13 ->  BlockedOnDoProc
+ 14 ->  BlockedOnCCall
+ 15 ->  BlockedOnCCall_NoUnblockExc
+ 16 ->  BlockedOnMsgThrowTo
+ 17 ->  ThreadMigrating
+ 18 ->  BlockedOnMsgGlobalise
+ _  ->  error "mkStat"
+
+maxStat :: Int
+maxStat = 18
 
 -- reader/Get monad that passes around the event types
 type GetEvents a = ReaderT EventParsers (ErrorT String Get) a
@@ -342,7 +368,23 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       let stat = fromIntegral s
       return StopThread{thread=t, status = if stat > maxBound
                                               then NoStatus
-                                              else toEnum stat}
+                                              else mkStat stat}
+   )),
+
+ (EVENT_STOP_THREAD,
+  (sz_tid + 2 + sz_tid, do  -- (thread, status, info)
+      t <- getE
+      s <- getE :: GetEvents Word16
+      i <- getE :: GetEvents ThreadId
+      let stat = fromIntegral s
+      return StopThread{thread = t,
+                        status = case () of
+                                  _ | stat > maxStat
+                                    -> NoStatus
+                                    | stat == 8 {- XXX yeuch -}
+                                    -> BlockedOnBlackHoleOwnedBy i
+                                    | otherwise
+                                    -> mkStat stat}
    )),
 
  (EVENT_THREAD_RUNNABLE,
@@ -431,7 +473,7 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       let stat = fromIntegral s
       return StopThread{thread=t, status = if stat > maxBound
                                               then NoStatus
-                                              else toEnum stat}
+                                              else mkStat stat}
    )),
 
  (EVENT_THREAD_RUNNABLE,
@@ -680,3 +722,5 @@ showThreadStopStatus BlockedOnCCall_NoUnblockExc = "blocked in a foreign call"
 showThreadStopStatus BlockedOnMsgThrowTo = "blocked in throwTo"
 showThreadStopStatus ThreadMigrating = "thread migrating"
 showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
+showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
+          "blocked on black hole owned by thread " ++ show target
