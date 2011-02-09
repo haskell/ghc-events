@@ -15,7 +15,11 @@ tested-with:      GHC == 6.10.2, GHC == 6.11.20090221
 cabal-version:    >= 1.6
 extra-source-files: GHC/RTS/EventLogFormat.h
 
-library {
+source-repository head
+  type: darcs
+  location: http://code.haskell.org/ghc-events/
+
+library
   build-depends:    base       == 4.*,
                     mtl        == 1.1.*,
                     containers >= 0.2 && < 0.4,
@@ -24,10 +28,7 @@ library {
                     array      == 0.3.*
   exposed-modules:  GHC.RTS.Events
   extensions:	    CPP
-}
 
-executable show-ghc-events {
+executable show-ghc-events
   main-is:          ShowGhcEvents.hs
-}
-
 
