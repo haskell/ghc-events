@@ -313,6 +313,30 @@ mkEventTypeParsers etypes
            Nothing -> case M.lookup num variableEventTypeParsers of
                         Nothing -> noEventTypeParser num mb_et_size
                         Just p  -> p
+
+           -- special case for GHC 6.12 EVENT_STOP_THREAD.  GHC 6.12
+           -- was mis-reporting the event sizes (ThreadIds were
+           -- counted as 8 instead of 4), and when we expanded the
+           -- EVENT_STOP_THREAD to include an extra field, the new
+           -- size is the same as that reported by 6.12, so we can't
+           -- tell them apart by size.  Hence the special case here
+           -- checks the size of the EVENT_CREATE_THREAD event to see
+           -- whether we should be parsing the 6.12 STOP_THREAD or the
+           -- 7.2 STOP_THREAD.  If the CREATE_THREAD extended in the
+           -- future this might go wrong.
+
+           Just (sz_old_tid + 2)
+             | num == EVENT_STOP_THREAD,
+                Just et <- M.lookup EVENT_CREATE_THREAD etypes,
+                size et == Just sz_old_tid ->
+                do  -- (thread, status)
+                  t <- getE
+                  s <- getE :: GetEvents Word16
+                  let stat = fromIntegral s
+                  return StopThread{thread=t, status = if stat > maxBound
+                                                          then NoStatus
+                                                          else mkStat stat}
+
            Just et_size ->
              case [ (sz,p) | (sz,p) <- possible, sz <= et_size ] of
                [] -> noEventTypeParser num mb_et_size
@@ -324,6 +348,7 @@ mkEventTypeParsers etypes
                                       replicateM_ (fromIntegral (et_size - sz))
                                                 getWord8
                                     return r
+
 
 eventTypeParsers :: Array Int [(EventTypeSize, GetEvents EventTypeSpecificInfo)]
 eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
@@ -466,6 +491,8 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       return RunThread{thread=t}
    )),
 
+ {-
+ -- XXX this one doesn't work; see mkEventTypeParsers above
  (EVENT_STOP_THREAD,
   (sz_old_tid + 2, do  -- (thread, status)
       t <- getE
@@ -475,6 +502,7 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
                                               then NoStatus
                                               else mkStat stat}
    )),
+ -}
 
  (EVENT_THREAD_RUNNABLE,
   (sz_old_tid, do  -- (thread)
