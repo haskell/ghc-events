@@ -298,15 +298,18 @@ getEvent (EventParsers parsers) = do
 mkEventTypeParsers :: IntMap EventType
                    -> Array Int (GetEvents EventTypeSpecificInfo)
 mkEventTypeParsers etypes 
- = accumArray (flip const) undefined (0, NUM_EVENT_TAGS)
-    ([ (num, undeclared_etype num) | num <- [0..NUM_EVENT_TAGS] ] ++
+ = accumArray (flip const) undefined (0, max_event_num)
+    ([ (num, undeclared_etype num) | num <- [0..max_event_num] ] ++
      [ (num, parser num etype) | (num, etype) <- M.toList etypes ])
   where
+    max_event_num = maximum (M.keys etypes)
     undeclared_etype num = throwError ("undeclared event type: " ++ show num)
 
     parser num etype =
-         let 
-             possible = eventTypeParsers ! num
+         let
+             possible
+               | not (inRange (bounds eventTypeParsers) num) = []
+               | otherwise = eventTypeParsers ! num
              mb_et_size = size etype
          in
          case mb_et_size of
