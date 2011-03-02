@@ -316,6 +316,11 @@ getEvent (EventParsers parsers) = do
              spec <- parsers ! fromIntegral etRef
              return (Just (Event ts spec))
 
+getString :: Integral a => a -> GetEvents String
+getString len = do
+    bytes <- replicateM (fromIntegral len) getE
+    return $ map (chr . fromIntegral) (bytes :: [Word8])
+
 -- Our event log format allows new fields to be added to events over
 -- time.  This means that our parser must be able to handle:
 --
@@ -637,34 +642,13 @@ variableEventTypeParsers = M.fromList [
  (EVENT_LOG_MSG, do -- (msg)
       num <- getE :: GetEvents Word16
       bytes <- replicateM (fromIntegral num) getE 
-      return Message{ msg = bytesToString bytes }
+      return Message{ msg = map (chr . fromIntegral) (bytes :: [Word8]) }
    ),
 
  (EVENT_USER_MSG, do -- (msg)
       num <- getE :: GetEvents Word16
       bytes <- replicateM (fromIntegral num) getE 
-      return UserMessage{ msg = bytesToString bytes }
-   ),
- (EVENT_PROGRAM_ARGS, do -- (capset, [arg])
-      num <- getE :: GetEvents Word16
-      cs <- getE
-      bytes <- replicateM (fromIntegral num - 4) getE
-      return ProgramArgs{ capset = cs
-                        , args = splitNull $ bytesToString bytes }
-   ),
- (EVENT_PROGRAM_ENV, do -- (capset, [arg])
-      num <- getE :: GetEvents Word16
-      cs <- getE
-      bytes <- replicateM (fromIntegral num - 4) getE
-      return ProgramEnv{ capset = cs
-                       , env = splitNull $ bytesToString bytes }
-   ),
- (EVENT_RTS_IDENTIFIER, do -- (capset, str)
-      num <- getE :: GetEvents Word16
-      cs <- getE
-      bytes <- replicateM (fromIntegral num - 4) getE
-      return RtsIdentifier{ capset = cs
-                          , rtsident = bytesToString bytes }
+      return UserMessage{ msg = map (chr . fromIntegral) (bytes :: [Word8]) }
    )
  ]
  where
