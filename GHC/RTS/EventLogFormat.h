@@ -157,6 +157,18 @@
 #define EVENT_PROGRAM_INVOCATION  24 /* (commandline_string) */
 #endif
 
+
+/*
+ * These event types are Mercury specific, Mercury may use up to event number
+ * 139
+ */
+#define EVENT_FIRST_MER_EVENT       100
+#define NUM_MER_EVENTS              3
+
+#define EVENT_MER_START_PAR_CONJUNCTION 100 /* (dyn id, static id) */
+#define EVENT_MER_STOP_PAR_CONJUNCTION  101 /* (dyn id) */
+#define EVENT_MER_STOP_PAR_CONJUNCT     102 /* (dyn id) */
+
 /*
  * Status values for EVENT_STOP_THREAD
  *
