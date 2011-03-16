@@ -70,6 +70,8 @@ sz_time = 8
 sz_tid  = 4
 sz_old_tid  = 8 -- GHC 6.12 was using 8 for ThreadID when declaring the size
                 -- of events, but was actually using 32 bits for ThreadIDs
+sz_capset = 4
+sz_capset_type = 2
 
 {-
  - Data type delcarations to build the GHC RTS data format,
@@ -142,6 +144,17 @@ data EventTypeSpecificInfo
   | GCIdle             { }
   | GCDone             { }
   | EndGC              { }
+  | CapsetCreate       { capset     :: {-# UNPACK #-}!Word32
+                       , capsetType :: CapsetType
+                       }
+  | CapsetDelete       { capset :: {-# UNPACK #-}!Word32
+                       }
+  | CapsetAssignCap    { capset :: {-# UNPACK #-}!Word32
+                       , cap    :: {-# UNPACK #-}!Int
+                       }
+  | CapsetRemoveCap    { capset :: {-# UNPACK #-}!Word32
+                       , cap    :: {-# UNPACK #-}!Int
+                       }
   | Message            { msg :: String }
   | UserMessage        { msg :: String }
   | UnknownEvent       { ref  :: {-# UNPACK #-}!EventTypeNum }
@@ -198,6 +211,20 @@ mkStat n = case n of
 
 maxStat :: Int
 maxStat = 18
+
+data CapsetType
+ = CapsetCustom
+ | CapsetOsProcess
+ | CapsetClockDomain
+ | CapsetUnknown
+ deriving Show
+
+mkCapsetType :: Word16 -> CapsetType
+mkCapsetType n = case n of
+ 1 -> CapsetCustom
+ 2 -> CapsetOsProcess
+ 3 -> CapsetClockDomain
+ _ -> CapsetUnknown
 
 -- reader/Get monad that passes around the event types
 type GetEvents a = ReaderT EventParsers (ErrorT String Get) a
@@ -546,6 +573,29 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       t <- getE
       oc <- getE :: GetEvents CapNo
       return WakeupThread{thread=t,otherCap=fromIntegral oc}
+   )),
+ (EVENT_CAPSET_CREATE,
+  (sz_capset + sz_capset_type, do -- (capset, capset_type)
+      cs <- getE
+      ct <- fmap mkCapsetType getE
+      return CapsetCreate{capset=cs,capsetType=ct}
+   )),
+ (EVENT_CAPSET_DELETE,
+  (sz_capset, do -- (capset)
+      cs <- getE
+      return CapsetDelete{capset=cs}
+   )),
+ (EVENT_CAPSET_ASSIGN_CAP,
+  (sz_capset + sz_cap, do -- (capset, cap)
+      cs <- getE
+      cp <- getE :: GetEvents CapNo
+      return CapsetAssignCap{capset=cs,cap=fromIntegral cp}
+   )),
+ (EVENT_CAPSET_REMOVE_CAP,
+  (sz_capset + sz_cap, do -- (capset, cap)
+      cs <- getE
+      cp <- getE :: GetEvents CapNo
+      return CapsetRemoveCap{capset=cs,cap=fromIntegral cp}
    ))
 
  ]
@@ -740,6 +790,14 @@ showEventTypeSpecificInfo spec =
           msg
         UserMessage msg ->
           msg
+        CapsetCreate cs ct ->
+          printf "created capset %d of type %s" cs (show ct)
+        CapsetDelete cs ->
+          printf "deleted capset %d" cs
+        CapsetAssignCap cs cp ->
+          printf "assigned cap %d to capset %d" cs cp
+        CapsetRemoveCap cs cp ->
+          printf "removed cap %d from capset %d" cs cp
         UnknownEvent _ ->
           "Unknown event type"
 
