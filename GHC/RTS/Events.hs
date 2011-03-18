@@ -155,6 +155,18 @@ data EventTypeSpecificInfo
   | CapsetRemoveCap    { capset :: {-# UNPACK #-}!Word32
                        , cap    :: {-# UNPACK #-}!Int
                        }
+  | RtsIdentifier      { capset :: {-# UNPACK #-}!Word32
+                       , rtsident :: String
+                       }
+  | ProgramArgs        { capset :: {-# UNPACK #-}!Word32
+                       , args   :: [String]
+                       }
+  | ProgramEnv         { capset :: {-# UNPACK #-}!Word32
+                       , env    :: [String]
+                       }
+  | OsProcessPid       { capset :: {-# UNPACK #-}!Word32
+                       , pid, ppid :: {-# UNPACK #-}!Word32
+                       }
   | Message            { msg :: String }
   | UserMessage        { msg :: String }
   | UnknownEvent       { ref  :: {-# UNPACK #-}!EventTypeNum }
@@ -596,6 +608,13 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       cs <- getE
       cp <- getE :: GetEvents CapNo
       return CapsetRemoveCap{capset=cs,cap=fromIntegral cp}
+   )),
+ (EVENT_OSPROCESS_PID,
+  (sz_capset + 2*4, do -- (capset, pid, ppid)
+      cs <- getE
+      x <- getE
+      y <- getE
+      return OsProcessPid{capset=cs,pid=x,ppid=y}
    ))
 
  ]
@@ -606,15 +625,44 @@ variableEventTypeParsers = M.fromList [
  (EVENT_LOG_MSG, do -- (msg)
       num <- getE :: GetEvents Word16
       bytes <- replicateM (fromIntegral num) getE 
-      return Message{ msg = map (chr . fromIntegral) (bytes :: [Word8]) }
+      return Message{ msg = bytesToString bytes }
    ),
 
  (EVENT_USER_MSG, do -- (msg)
       num <- getE :: GetEvents Word16
       bytes <- replicateM (fromIntegral num) getE 
-      return UserMessage{ msg = map (chr . fromIntegral) (bytes :: [Word8]) }
+      return UserMessage{ msg = bytesToString bytes }
+   ),
+ (EVENT_PROGRAM_ARGS, do -- (capset, [arg])
+      num <- getE :: GetEvents Word16
+      cs <- getE
+      bytes <- replicateM (fromIntegral num - 4) getE
+      return ProgramArgs{ capset = cs
+                        , args = splitNull $ bytesToString bytes }
+   ),
+ (EVENT_PROGRAM_ENV, do -- (capset, [arg])
+      num <- getE :: GetEvents Word16
+      cs <- getE
+      bytes <- replicateM (fromIntegral num - 4) getE
+      return ProgramEnv{ capset = cs
+                       , env = splitNull $ bytesToString bytes }
+   ),
+ (EVENT_RTS_IDENTIFIER, do -- (capset, str)
+      num <- getE :: GetEvents Word16
+      cs <- getE
+      bytes <- replicateM (fromIntegral num - 4) getE
+      return RtsIdentifier{ capset = cs
+                          , rtsident = bytesToString bytes }
    )
  ]
+ where
+    bytesToString :: [Word8] -> String
+    bytesToString = map (chr . fromIntegral)
+
+    splitNull [] = []
+    splitNull xs = case span (/= '\0') xs of
+                    (x, xs') -> x : splitNull (drop 1 xs')
+
 
 noEventTypeParser :: Int -> Maybe EventTypeSize
                   -> GetEvents EventTypeSpecificInfo
@@ -798,6 +846,14 @@ showEventTypeSpecificInfo spec =
           printf "assigned cap %d to capset %d" cs cp
         CapsetRemoveCap cs cp ->
           printf "removed cap %d from capset %d" cs cp
+        OsProcessPid cs x y ->
+          printf "capset %d pid %d parent %d" cs x y
+        RtsIdentifier cs i ->
+          printf "cap %d, RTS version %s" cs i
+        ProgramArgs cs args ->
+          printf "cap %d, args: %s" cs (show args)
+        ProgramEnv cs env ->
+          printf "cap %d, env: %s" cs (show env)
         UnknownEvent _ ->
           "Unknown event type"
 
