@@ -126,8 +126,15 @@
 #define EVENT_CAPSET_DELETE       26 /* (capset)               */
 #define EVENT_CAPSET_ASSIGN_CAP   27 /* (capset, cap)          */
 #define EVENT_CAPSET_REMOVE_CAP   28 /* (capset, cap)          */
+/* the RTS identifier is in the form of "GHC-version rts_way"  */
+#define EVENT_RTS_IDENTIFIER      29 /* (capset, name_version_string) */
+/* the vectors in these events are null separated strings             */
+#define EVENT_PROGRAM_ARGS        30 /* (capset, commandline_vector)  */
+#define EVENT_PROGRAM_ENV         31 /* (capset, environment_vector)  */
+#define EVENT_OSPROCESS_PID       32 /* (capset, pid, parent_pid)     */
 
-/* Range 29 - 59 is available for new events */
+
+/* Range 33 - 59 is available for new events */
 
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/
@@ -138,7 +145,7 @@
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_EVENT_TAGS            29
+#define NUM_EVENT_TAGS            33
 
 #if 0  /* DEPRECATED EVENTS: */
 /* ghc changed how it handles sparks so these are no longer applicable */
