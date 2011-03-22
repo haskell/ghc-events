@@ -15,11 +15,13 @@ module GHC.RTS.Events (
        ThreadStopStatus(..),
        Header(..),
        Data(..),
+       CapsetType(..),
        Timestamp,
        ThreadId,
 
-       -- * Reading an event log from a file
+       -- * Reading and writing event logs
        readEventLogFromFile,
+       writeEventLogToFile,
 
        -- * Utilities
        CapEvent(..), sortEvents, groupEvents, sortGroups,
@@ -33,6 +35,7 @@ module GHC.RTS.Events (
 import Data.Word (Word16, Word32, Word64)
 import Data.Binary
 import Data.Binary.Get
+import Data.Binary.Put
 import Control.Monad
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
@@ -894,3 +897,233 @@ ppEvent imap (CapEvent cap (Event time spec)) =
 
     other -> showEventTypeSpecificInfo spec
 
+type PutEvents a = PutM a
+
+putE :: Binary a => a -> PutEvents ()
+putE = put
+
+runPutEBS :: PutEvents () -> L.ByteString
+runPutEBS = runPut
+
+writeEventLogToFile f el = L.writeFile f $ runPutEBS $ putEventLog el
+
+putType :: EventTypeNum -> PutEvents ()
+putType = putE
+
+putCap :: Int -> PutEvents ()
+putCap c = putE (fromIntegral c :: CapNo)
+
+putMarker :: Word32 -> PutEvents ()
+putMarker = putE
+
+putEventLog :: EventLog -> PutEvents ()
+putEventLog (EventLog hdr es) = do
+    putHeader hdr
+    putData es
+
+putHeader :: Header -> PutEvents ()
+putHeader (Header ets) = do
+    putMarker EVENT_HEADER_BEGIN
+    putMarker EVENT_HET_BEGIN
+    mapM_ putEventType ets
+    putMarker EVENT_HET_END
+    putMarker EVENT_HEADER_END
+ where
+    putEventType (EventType n d msz) = do
+        putMarker EVENT_ET_BEGIN
+        putType n
+        putE $ fromMaybe 0xffff msz
+        putE (fromIntegral $ length d :: EventTypeDescLen)
+        mapM_ put d
+        -- the event type header allows for extra data, which we don't use:
+        putE (0 :: Word32)
+        putMarker EVENT_ET_END
+
+putData :: Data -> PutEvents ()
+putData (Data es) = do
+    putMarker EVENT_DATA_BEGIN -- Word32
+    mapM_ putEvent es
+    putType EVENT_DATA_END -- Word16
+
+eventTypeNum :: EventTypeSpecificInfo -> EventTypeNum
+eventTypeNum e = case e of
+    CreateThread {} -> EVENT_CREATE_THREAD
+    RunThread {} -> EVENT_RUN_THREAD
+    StopThread {} -> EVENT_STOP_THREAD
+    ThreadRunnable {} -> EVENT_THREAD_RUNNABLE
+    MigrateThread {} -> EVENT_MIGRATE_THREAD
+    RunSpark {} -> EVENT_RUN_SPARK
+    StealSpark {} -> EVENT_STEAL_SPARK
+    Shutdown {} -> EVENT_SHUTDOWN
+    WakeupThread {} -> EVENT_THREAD_WAKEUP
+    StartGC {} -> EVENT_GC_START
+    EndGC {} -> EVENT_GC_END
+    RequestSeqGC {} -> EVENT_REQUEST_SEQ_GC
+    RequestParGC {} -> EVENT_REQUEST_PAR_GC
+    CreateSparkThread {} -> EVENT_CREATE_SPARK_THREAD
+    Message {} -> EVENT_LOG_MSG
+    Startup {} -> EVENT_STARTUP
+    EventBlock {} -> EVENT_BLOCK_MARKER
+    UserMessage {} -> EVENT_USER_MSG
+    GCIdle {} -> EVENT_GC_IDLE
+    GCWork {} -> EVENT_GC_WORK
+    GCDone {} -> EVENT_GC_DONE
+    CapsetCreate {} -> EVENT_CAPSET_CREATE
+    CapsetDelete {} -> EVENT_CAPSET_DELETE
+    CapsetAssignCap {} -> EVENT_CAPSET_ASSIGN_CAP
+    CapsetRemoveCap {} -> EVENT_CAPSET_REMOVE_CAP
+    RtsIdentifier {} -> EVENT_RTS_IDENTIFIER
+    ProgramArgs {} -> EVENT_PROGRAM_ARGS
+    ProgramEnv {} -> EVENT_PROGRAM_ENV
+    OsProcessPid {} -> EVENT_OSPROCESS_PID
+
+putEvent :: Event -> PutEvents ()
+putEvent (Event t spec) = do
+    putType (eventTypeNum spec)
+    put t
+    putEventSpec spec
+
+putEventSpec (Startup caps) = do
+    putCap (fromIntegral caps)
+
+putEventSpec (EventBlock end cap es) = do
+    let block = runPutEBS (mapM_ putEvent es)
+    put (fromIntegral (L.length block) + 24 :: Word32)
+    putE end
+    putE (fromIntegral cap :: CapNo)
+    putLazyByteString block
+
+putEventSpec (CreateThread t) = do
+    putE t
+
+putEventSpec (RunThread t) = do
+    putE t
+
+-- here we assume that ThreadStopStatus fromEnum matches the definitions in
+-- EventLogFormat.h
+putEventSpec (StopThread t s) = do
+    putE t
+    putE $ case s of
+            NoStatus -> 0 :: Word16
+            HeapOverflow -> 1
+            StackOverflow -> 2
+            ThreadYielding -> 3
+            ThreadBlocked -> 4
+            ThreadFinished -> 5
+            ForeignCall -> 6
+            BlockedOnMVar -> 7
+            BlockedOnBlackHole -> 8
+            BlockedOnBlackHoleOwnedBy _ -> 8
+            BlockedOnRead -> 9
+            BlockedOnWrite -> 10
+            BlockedOnDelay -> 11
+            BlockedOnSTM -> 12
+            BlockedOnDoProc -> 13
+            BlockedOnCCall -> 14
+            BlockedOnCCall_NoUnblockExc -> 15
+            BlockedOnMsgThrowTo -> 16
+            ThreadMigrating -> 17
+            BlockedOnMsgGlobalise -> 18
+    putE $ case s of
+            BlockedOnBlackHoleOwnedBy i -> i
+            _                           -> 0
+
+putEventSpec (ThreadRunnable t) = do
+    putE t
+
+putEventSpec (MigrateThread t c) = do
+    putE t
+    putCap c
+
+putEventSpec (RunSpark t) = do
+    putE t
+
+putEventSpec (StealSpark t c) = do
+    putE t
+    putCap c
+
+putEventSpec (CreateSparkThread t) = do
+    putE t
+
+putEventSpec (WakeupThread t c) = do
+    putE t
+    putCap c
+
+putEventSpec Shutdown = do
+    return ()
+
+putEventSpec RequestSeqGC = do
+    return ()
+
+putEventSpec RequestParGC = do
+    return ()
+
+putEventSpec StartGC = do
+    return ()
+
+putEventSpec GCWork = do
+    return ()
+
+putEventSpec GCIdle = do
+    return ()
+
+putEventSpec GCDone = do
+    return ()
+
+putEventSpec EndGC = do
+    return ()
+
+putEventSpec (CapsetCreate cs ct) = do
+    putE cs
+    putE $ case ct of
+            CapsetCustom -> 1 :: Word16
+            CapsetOsProcess -> 2
+            CapsetClockDomain -> 3
+            CapsetUnknown -> 0
+
+putEventSpec (CapsetDelete cs) = do
+    putE cs
+
+putEventSpec (CapsetAssignCap cs cp) = do
+    putE cs
+    putCap cp
+
+putEventSpec (CapsetRemoveCap cs cp) = do
+    putE cs
+    putCap cp
+
+putEventSpec (RtsIdentifier cs rts) = do
+    putE (fromIntegral (length rts) + 4 :: Word16)
+    putE cs
+    mapM_ putE rts
+
+putEventSpec (ProgramArgs cs as) = do
+    let as' = unsep as
+    putE (fromIntegral (length as') + 4 :: Word16)
+    putE cs
+    mapM_ putE as'
+
+putEventSpec (ProgramEnv cs es) = do
+    let es' = unsep es
+    putE (fromIntegral (length es') + 4 :: Word16)
+    putE cs
+    mapM_ putE es'
+
+putEventSpec (OsProcessPid cs pid ppid) = do
+    putE cs
+    putE pid
+    putE ppid
+
+putEventSpec (Message s) = do
+    putE (fromIntegral (length s) :: Word16)
+    mapM_ putE s
+
+putEventSpec (UserMessage s) = do
+    putE (fromIntegral (length s) :: Word16)
+    mapM_ putE s
+
+-- [] == []
+-- [x] == x\0
+-- [x, y, z] == x\0y\0
+unsep :: [String] -> String
+unsep = concatMap (++"\0") -- not the most efficient, but should be ok
