@@ -765,8 +765,9 @@ groupEvents es = (Nothing, n_events) :
      -- There are two sources of events without a capability: events
      -- in the raw stream not inside an EventBlock, and EventBlocks
      -- with cap == -1.  We have to merge those two streams.
-   n_events = merge (compare `on` time) anon_events 
-                 (concatMap block_events gbl_blocks)
+     -- In light of merged logs, global blocks may have overlapping
+     -- time spans, thus the blocks are mergesorted
+   n_events = mergesort' (compare `on` time) (anon_events : map block_events gbl_blocks)
 
 mergesort' :: (a -> a -> Ordering) -> [[a]] -> [a]
 mergesort' _   [] = []
