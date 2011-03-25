@@ -853,11 +853,11 @@ showEventTypeSpecificInfo spec =
         OsProcessPid cs x y ->
           printf "capset %d pid %d parent %d" cs x y
         RtsIdentifier cs i ->
-          printf "cap %d, RTS version %s" cs i
+          printf "capset %d, RTS version %s" cs i
         ProgramArgs cs args ->
-          printf "cap %d, args: %s" cs (show args)
+          printf "capset %d, args: %s" cs (show args)
         ProgramEnv cs env ->
-          printf "cap %d, env: %s" cs (show env)
+          printf "capset %d, env: %s" cs (show env)
         UnknownEvent _ ->
           "Unknown event type"
 
