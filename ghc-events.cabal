@@ -13,7 +13,9 @@ maintainer:       Simon Marlow <marlowsd@gmail.com>
 build-type:       Simple
 tested-with:      GHC == 6.10.2, GHC == 6.11.20090221
 cabal-version:    >= 1.6
-extra-source-files: GHC/RTS/EventLogFormat.h
+extra-source-files: GHC/RTS/EventLogFormat.h,
+                    AUTHORS,
+                    test/*.eventlog
 
 source-repository head
   type: darcs
@@ -32,3 +34,6 @@ library
 executable show-ghc-events
   main-is:          ShowGhcEvents.hs
 
+test-suite test-versions
+  type:             exitcode-stdio-1.0
+  main-is:          test/TestVersions.hs
