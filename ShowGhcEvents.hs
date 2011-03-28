@@ -20,28 +20,6 @@ main = do
                Left  s   -> die ("Failed to parse " ++ file ++ ": " ++ s)
                Right log -> return log
     
-  printf "Event Types:\n"
-  let etypes = Log.eventTypes (Log.header log)
-  putStrLn (unlines (map ppEventType etypes))
-
-  let imap = buildEventTypeMap etypes
-
-  let pes = Log.events (Log.dat log)
-      sorted = sortEvents pes
-              -- the events come out reversed, and we want a stable sort
-
-  printf "Events:\n"
-  putStrLn $ unlines $ map (ppEvent imap) $ sorted
---  putStrLn $ show $ length $ sorted
-
-unsortEvents :: [Event] -> [(Int,Event)]
-unsortEvents es = ess
- where 
-   blocks = [ b | b@EventBlock{} <- map spec es ]
-   ess    = [ (cap block, e) | block <- blocks, e <- block_events block ]
+  putStrLn $ ppEventLog log
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
-
-ppEventType :: EventType -> String
-ppEventType et = printf "%4d: %s (size %s)" (Log.num et) (Log.desc et) 
-   (case Log.size et of Nothing -> "variable"; Just x -> show x)

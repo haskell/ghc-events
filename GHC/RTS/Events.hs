@@ -28,7 +28,8 @@ module GHC.RTS.Events (
        buildEventTypeMap,
 
        -- * Printing
-       showEventTypeSpecificInfo, showThreadStopStatus, ppEvent
+       showEventTypeSpecificInfo, showThreadStopStatus,
+       ppEventLog, ppEventType, ppEvent
   ) where
 
 {- Libraries. -}
@@ -882,6 +883,22 @@ showThreadStopStatus ThreadMigrating = "thread migrating"
 showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
 showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
+
+ppEventLog :: EventLog -> String
+ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
+    [ ["Event Types:"]
+    , map ppEventType ets
+    , [""] -- newline
+    , ["Events:"]
+    , map (ppEvent imap) sorted
+    , [""] ]) -- extra trailing newline
+ where
+    imap = buildEventTypeMap ets
+    sorted = sortEvents es
+
+ppEventType :: EventType -> String
+ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
+   (case msz of Nothing -> "variable"; Just x -> show x)
 
 ppEvent :: IntMap EventType -> CapEvent -> String
 ppEvent imap (CapEvent cap (Event time spec)) =
