@@ -92,7 +92,7 @@ data EventLog =
 
 newtype Header = Header {
      eventTypes :: [EventType]
-  } deriving Show
+  } deriving (Show, Eq)
 
 data Data = Data {
      events :: [Event]
