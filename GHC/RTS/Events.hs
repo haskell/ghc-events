@@ -848,9 +848,9 @@ showEventTypeSpecificInfo spec =
         CapsetDelete cs ->
           printf "deleted capset %d" cs
         CapsetAssignCap cs cp ->
-          printf "assigned cap %d to capset %d" cs cp
+          printf "assigned cap %d to capset %d" cp cs
         CapsetRemoveCap cs cp ->
-          printf "removed cap %d from capset %d" cs cp
+          printf "removed cap %d from capset %d" cp cs
         OsProcessPid cs x y ->
           printf "capset %d pid %d parent %d" cs x y
         RtsIdentifier cs i ->
