@@ -373,8 +373,9 @@ mkEventTypeParsers etypes
            -- 7.2 STOP_THREAD.  If the CREATE_THREAD extended in the
            -- future this might go wrong.
 
-           Just (sz_old_tid + 2)
-             | num == EVENT_STOP_THREAD,
+           Just et_size
+             | et_size == sz_old_tid + 2,
+               num == EVENT_STOP_THREAD,
                 Just et <- M.lookup EVENT_CREATE_THREAD etypes,
                 size et == Just sz_old_tid ->
                 do  -- (thread, status)
