@@ -169,7 +169,10 @@ data EventTypeSpecificInfo
                        , env    :: [String]
                        }
   | OsProcessPid       { capset :: {-# UNPACK #-}!Word32
-                       , pid, ppid :: {-# UNPACK #-}!Word32
+                       , pid    :: {-# UNPACK #-}!Word32
+                       }
+  | OsProcessParentPid { capset :: {-# UNPACK #-}!Word32
+                       , ppid   :: {-# UNPACK #-}!Word32
                        }
   | Message            { msg :: String }
   | UserMessage        { msg :: String }
@@ -615,13 +618,17 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       return CapsetRemoveCap{capset=cs,cap=fromIntegral cp}
    )),
  (EVENT_OSPROCESS_PID,
-  (sz_capset + 2*4, do -- (capset, pid, ppid)
+  (sz_capset + 4, do -- (capset, pid)
       cs <- getE
-      x <- getE
-      y <- getE
-      return OsProcessPid{capset=cs,pid=x,ppid=y}
-   ))
-
+      pd <- getE
+      return OsProcessPid{capset=cs,pid=pd}
+   )),
+ (EVENT_OSPROCESS_PPID,
+  (sz_capset + 4, do -- (capset, ppid)
+      cs <- getE
+      pd <- getE
+      return OsProcessParentPid{capset=cs,ppid=pd}
+  ))
  ]
 
 variableEventTypeParsers :: IntMap (GetEvents EventTypeSpecificInfo)
@@ -852,14 +859,16 @@ showEventTypeSpecificInfo spec =
           printf "assigned cap %d to capset %d" cp cs
         CapsetRemoveCap cs cp ->
           printf "removed cap %d from capset %d" cp cs
-        OsProcessPid cs x y ->
-          printf "capset %d pid %d parent %d" cs x y
+        OsProcessPid cs pid ->
+          printf "capset %d: pid %d" cs pid
+        OsProcessParentPid cs ppid ->
+          printf "capset %d: parent pid %d" cs ppid
         RtsIdentifier cs i ->
-          printf "capset %d, RTS version %s" cs i
+          printf "capset %d: RTS version %s" cs i
         ProgramArgs cs args ->
-          printf "capset %d, args: %s" cs (show args)
+          printf "capset %d: args: %s" cs (show args)
         ProgramEnv cs env ->
-          printf "capset %d, env: %s" cs (show env)
+          printf "capset %d: env: %s" cs (show env)
         UnknownEvent _ ->
           "Unknown event type"
 
@@ -995,6 +1004,7 @@ eventTypeNum e = case e of
     ProgramArgs {} -> EVENT_PROGRAM_ARGS
     ProgramEnv {} -> EVENT_PROGRAM_ENV
     OsProcessPid {} -> EVENT_OSPROCESS_PID
+    OsProcessParentPid{} -> EVENT_OSPROCESS_PPID
 
 putEvent :: Event -> PutEvents ()
 putEvent (Event t spec) = do
@@ -1128,9 +1138,12 @@ putEventSpec (ProgramEnv cs es) = do
     putE cs
     mapM_ putE es'
 
-putEventSpec (OsProcessPid cs pid ppid) = do
+putEventSpec (OsProcessPid cs pid) = do
     putE cs
     putE pid
+
+putEventSpec (OsProcessParentPid cs ppid) = do
+    putE cs
     putE ppid
 
 putEventSpec (Message s) = do

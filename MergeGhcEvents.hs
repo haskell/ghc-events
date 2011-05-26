@@ -85,5 +85,6 @@ shift mv@(MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
     shift' (RtsIdentifier cs rts) = RtsIdentifier (sh mcs cs) rts
     shift' (ProgramArgs cs as) = ProgramArgs (sh mcs cs) as
     shift' (ProgramEnv cs es) = ProgramEnv (sh mcs cs) es
-    shift' (OsProcessPid cs pid ppid) = OsProcessPid (sh mcs cs) pid ppid
+    shift' (OsProcessPid cs pid) = OsProcessPid (sh mcs cs) pid
+    shift' (OsProcessParentPid cs ppid) = OsProcessParentPid (sh mcs cs) ppid
     shift' x = x
