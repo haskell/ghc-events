@@ -202,7 +202,7 @@ mkEventTypeParsers etypes
                   let stat = fromIntegral s
                   return StopThread{thread=t, status = if stat > maxBound
                                                           then NoStatus
-                                                          else mkStat stat}
+                                                          else mkStopStatus stat}
 
            Just et_size ->
              case [ (sz,p) | (sz,p) <- possible, sz <= et_size ] of
@@ -260,7 +260,7 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
       let stat = fromIntegral s
       return StopThread{thread=t, status = if stat > maxBound
                                               then NoStatus
-                                              else mkStat stat}
+                                              else mkStopStatus stat}
    )),
 
  (EVENT_STOP_THREAD,
@@ -276,7 +276,7 @@ eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
                                     | stat == 8 {- XXX yeuch -}
                                     -> BlockedOnBlackHoleOwnedBy i
                                     | otherwise
-                                    -> mkStat stat}
+                                    -> mkStopStatus stat}
    )),
 
  (EVENT_THREAD_RUNNABLE,
