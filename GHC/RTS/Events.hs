@@ -543,15 +543,6 @@ readEventLogFromFile f = do
 -- -----------------------------------------------------------------------------
 -- Utilities
 
--- | An event annotated with the Capability that generated it, if any
-data CapEvent 
-  = CapEvent { ce_cap   :: Maybe Int,
-               ce_event :: Event
-               -- we could UNPACK ce_event, but the Event constructor
-               -- might be shared, in which case we could end up
-               -- increasing the space usage.
-             }
-
 sortEvents :: [Event] -> [CapEvent]
 sortEvents = sortGroups . groupEvents
 
