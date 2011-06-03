@@ -159,8 +159,8 @@ data ThreadStopStatus
  | BlockedOnBlackHoleOwnedBy {-# UNPACK #-}!ThreadId
  deriving (Show)
 
-mkStat :: Int -> ThreadStopStatus
-mkStat n = case n of
+mkStopStatus :: Int -> ThreadStopStatus
+mkStopStatus n = case n of
  0  ->  NoStatus
  1  ->  HeapOverflow
  2  ->  StackOverflow
