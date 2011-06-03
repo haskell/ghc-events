@@ -641,20 +641,38 @@ variableEventTypeParsers = M.fromList [
 
  (EVENT_LOG_MSG, do -- (msg)
       num <- getE :: GetEvents Word16
-      bytes <- replicateM (fromIntegral num) getE 
-      return Message{ msg = map (chr . fromIntegral) (bytes :: [Word8]) }
+      string <- getString num
+      return Message{ msg = string }
    ),
 
  (EVENT_USER_MSG, do -- (msg)
       num <- getE :: GetEvents Word16
-      bytes <- replicateM (fromIntegral num) getE 
-      return UserMessage{ msg = map (chr . fromIntegral) (bytes :: [Word8]) }
+      string <- getString num
+      return UserMessage{ msg = string }
+   ),
+ (EVENT_PROGRAM_ARGS, do -- (capset, [arg])
+      num <- getE :: GetEvents Word16
+      cs <- getE
+      string <- getString (num - 4)
+      return ProgramArgs{ capset = cs
+                        , args = splitNull string }
+   ),
+ (EVENT_PROGRAM_ENV, do -- (capset, [arg])
+      num <- getE :: GetEvents Word16
+      cs <- getE
+      string <- getString (num - 4)
+      return ProgramEnv{ capset = cs
+                       , env = splitNull string }
+   ),
+ (EVENT_RTS_IDENTIFIER, do -- (capset, str)
+      num <- getE :: GetEvents Word16
+      cs <- getE
+      string <- getString (num - 4)
+      return RtsIdentifier{ capset = cs
+                          , rtsident = string }
    )
  ]
  where
-    bytesToString :: [Word8] -> String
-    bytesToString = map (chr . fromIntegral)
-
     splitNull [] = []
     splitNull xs = case span (/= '\0') xs of
                     (x, xs') -> x : splitNull (drop 1 xs')
