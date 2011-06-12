@@ -6,7 +6,8 @@ module GHC.RTS.EventParserUtils (
 
         getH,
         getE,
-        getString
+        getString,
+        skip
     ) where
 
 import Control.Monad
@@ -14,7 +15,8 @@ import Control.Monad.Error
 import Control.Monad.Reader
 import Data.Array
 import Data.Binary
-import Data.Binary.Get
+import Data.Binary.Get hiding (skip)
+import qualified Data.Binary.Get as G
 import Data.Binary.Put
 import Data.Char
 
@@ -33,8 +35,14 @@ getH = lift get
 getE :: Binary a => GetEvents a
 getE = lift $ lift get
 
+nBytes :: Integral a => a -> GetEvents [Word8]
+nBytes n = replicateM (fromIntegral n) getE
+
 getString :: Integral a => a -> GetEvents String
 getString len = do
-    bytes <- replicateM (fromIntegral len) getE
-    return $ map (chr . fromIntegral) (bytes :: [Word8])
+    bytes <- nBytes len
+    return $ map (chr . fromIntegral) bytes
+
+skip :: Integral a => a -> GetEvents ()
+skip n = lift $ lift $ G.skip (fromIntegral n)
 
