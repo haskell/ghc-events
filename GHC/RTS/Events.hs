@@ -34,7 +34,8 @@ module GHC.RTS.Events (
 
 {- Libraries. -}
 import Data.Binary
-import Data.Binary.Get
+import Data.Binary.Get hiding (skip)
+import qualified Data.Binary.Get as G
 import Data.Binary.Put
 import Control.Monad
 import Data.IntMap (IntMap)
@@ -67,7 +68,7 @@ getEventType = do
            etDescLen <- getH :: GetHeader EventTypeDescLen
            etDesc <- getEtDesc (fromIntegral etDescLen) 
            etExtraLen <- getH :: GetHeader Word32
-           _skip  <- replicateM_ (fromIntegral etExtraLen) (lift getWord8)
+           lift $ G.skip (fromIntegral etExtraLen)
            ete <- getH :: GetHeader Marker
            when (ete /= EVENT_ET_END) $
               throwError ("Event Type end marker not found.")
@@ -193,11 +194,8 @@ mkEventTypeParsers etypes
                      in  if sz == et_size
                             then best
                             else do r <- best
-                                    lift . lift $ 
-                                      replicateM_ (fromIntegral (et_size - sz))
-                                                getWord8
+                                    skip (et_size - sz)
                                     return r
-
 
 eventTypeParsers :: Array Int [(EventTypeSize, GetEvents EventTypeSpecificInfo)]
 eventTypeParsers = accumArray (flip (:)) [] (0,NUM_EVENT_TAGS) [
@@ -476,7 +474,7 @@ noEventTypeParser num mb_size = do
   bytes <- case mb_size of
              Just n  -> return n
              Nothing -> getE :: GetEvents Word16
-  skip  <- lift . lift $ replicateM_ (fromIntegral bytes) getWord8
+  skip bytes
   return UnknownEvent{ ref = fromIntegral num }
 
 
