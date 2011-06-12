@@ -42,7 +42,6 @@ import qualified Data.IntMap as M
 import Control.Monad.Reader
 import Control.Monad.Error
 import qualified Data.ByteString.Lazy as L
-import Data.Char
 import Data.Function
 import Data.List
 import Data.Either
@@ -51,22 +50,10 @@ import Text.Printf
 import Data.Array
 
 import GHC.RTS.EventTypes
+import GHC.RTS.EventParserUtils
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
-
--- reader/Get monad that passes around the event types
-type GetEvents a = ReaderT EventParsers (ErrorT String Get) a
-  
-newtype EventParsers = EventParsers (Array Int (GetEvents EventTypeSpecificInfo))
-
-type GetHeader a = ErrorT String Get a
-
-getH :: Binary a => GetHeader a
-getH = lift get
-
-getE :: Binary a => GetEvents a
-getE = lift $ lift get
 
 ------------------------------------------------------------------------------
 -- Binary instances
@@ -125,11 +112,6 @@ getEvent (EventParsers parsers) = do
              -- trace ("event: " ++ show etRef) $ do
              spec <- parsers ! fromIntegral etRef
              return (Just (Event ts spec))
-
-getString :: Integral a => a -> GetEvents String
-getString len = do
-    bytes <- replicateM (fromIntegral len) getE
-    return $ map (chr . fromIntegral) (bytes :: [Word8])
 
 -- Our event log format allows new fields to be added to events over
 -- time.  This means that our parser must be able to handle:
