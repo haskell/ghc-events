@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP,BangPatterns,PatternGuards #-}
-{-# OPTIONS_GHC -funbox-strict-fields #-}
+{-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
 {-
  - Author: Donnie Jones, Simon Marlow
  - Events.hs
@@ -584,6 +584,7 @@ showThreadStopStatus ThreadMigrating = "thread migrating"
 showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
 showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
+showThreadStopStatus NoStatus = "No stop thread status"
 
 ppEventLog :: EventLog -> String
 ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
@@ -696,6 +697,7 @@ eventTypeNum e = case e of
     ProgramEnv {} -> EVENT_PROGRAM_ENV
     OsProcessPid {} -> EVENT_OSPROCESS_PID
     OsProcessParentPid{} -> EVENT_OSPROCESS_PPID
+    UnknownEvent {} -> error "eventTypeNum UnknownEvent"
 
 putEvent :: Event -> PutEvents ()
 putEvent (Event t spec) = do
@@ -844,6 +846,8 @@ putEventSpec (Message s) = do
 putEventSpec (UserMessage s) = do
     putE (fromIntegral (length s) :: Word16)
     mapM_ putE s
+
+putEventSpec (UnknownEvent {}) = error "putEventSpec UnknownEvent"
 
 -- [] == []
 -- [x] == x\0
