@@ -18,7 +18,11 @@ type Timestamp = Word64
 type ThreadId = Word32
 type CapNo = Word16
 type Marker = Word32
+type BlockSize = Word32
+type RawThreadStopStatus = Word16
 
+sz_event_type_num :: EventTypeSize
+sz_event_type_num = 2
 sz_cap :: EventTypeSize
 sz_cap  = 2
 sz_time :: EventTypeSize
@@ -32,6 +36,15 @@ sz_capset :: EventTypeSize
 sz_capset = 4
 sz_capset_type :: EventTypeSize
 sz_capset_type = 2
+sz_block_size :: EventTypeSize
+sz_block_size = 4
+sz_block_event :: EventTypeSize
+sz_block_event = fromIntegral (sz_event_type_num + sz_time + sz_block_size
+    + sz_time + sz_cap) 
+sz_pid :: EventTypeSize
+sz_pid = 4
+sz_th_stop_status :: EventTypeSize
+sz_th_stop_status = 2
 
 {-
  - Data type delcarations to build the GHC RTS data format,
@@ -160,7 +173,7 @@ data ThreadStopStatus
  | BlockedOnBlackHoleOwnedBy {-# UNPACK #-}!ThreadId
  deriving (Show)
 
-mkStopStatus :: Int -> ThreadStopStatus
+mkStopStatus :: RawThreadStopStatus -> ThreadStopStatus
 mkStopStatus n = case n of
  0  ->  NoStatus
  1  ->  HeapOverflow
@@ -183,8 +196,8 @@ mkStopStatus n = case n of
  18 ->  BlockedOnMsgGlobalise
  _  ->  error "mkStat"
 
-maxStat :: Int
-maxStat = 18
+maxThreadStopStatus :: RawThreadStopStatus 
+maxThreadStopStatus = 18
 
 data CapsetType
  = CapsetCustom

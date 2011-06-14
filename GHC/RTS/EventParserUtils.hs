@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 
 module GHC.RTS.EventParserUtils (
+        EventParser(..),
         EventParsers(..),
         GetEvents,
         GetHeader,
@@ -10,6 +11,7 @@ module GHC.RTS.EventParserUtils (
         getH,
         getString,
         mkEventTypeParsers,
+        simpleEvent,
         skip,
     ) where
 
@@ -60,6 +62,32 @@ skip n = lift $ lift $ G.skip (fromIntegral n)
 -- Code to build the event parser table.
 --
 
+--
+-- Event parser data.  Parsers are either fixed or vairable size.
+--
+data EventParser 
+    = FixedSizeParser {
+        fsp_type        :: Int,
+        fsp_size        :: EventTypeSize,
+        fsp_parser      :: GetEvents EventTypeSpecificInfo
+    }
+    | VariableSizeParser {
+        vsp_type        :: Int,
+        vsp_parser      :: GetEvents EventTypeSpecificInfo
+    }
+
+get_parser (FixedSizeParser _ _ p) = p
+get_parser (VariableSizeParser _ p) = p
+
+get_type (FixedSizeParser t _ _) = t
+get_type (VariableSizeParser t _) = t
+
+isFixedSize (FixedSizeParser {}) = True
+isFixedSize (VariableSizeParser {}) = False
+
+simpleEvent :: Int -> EventTypeSpecificInfo -> EventParser
+simpleEvent t p = FixedSizeParser t 0 (return p)
+
 -- Our event log format allows new fields to be added to events over
 -- time.  This means that our parser must be able to handle:
 --
@@ -87,65 +115,78 @@ skip n = lift $ lift $ G.skip (fromIntegral n)
 --   if size is too big:
 --     parse the bits we understand and discard the rest
 
-type VariableEventParsers = IntMap (GetEvents EventTypeSpecificInfo)
-
 mkEventTypeParsers :: IntMap EventType
-                   -> Array Int [(EventTypeSize, GetEvents EventTypeSpecificInfo)]
-                   -> VariableEventParsers
+                   -> [EventParser]
                    -> Array Int (GetEvents EventTypeSpecificInfo)
-mkEventTypeParsers etypes eventTypeParsers variableEventTypeParsers
+mkEventTypeParsers etypes event_parsers
  = accumArray (flip const) undefined (0, max_event_num)
-    ([ (num, undeclared_etype num) | num <- [0..max_event_num] ] ++
-     [ (num, parser num etype) | (num, etype) <- M.toList etypes ])
+    [ (num, parser num) | num <- [0..max_event_num] ]
+    --([ (num, undeclared_etype num) | num <- [0..max_event_num] ] ++
+    -- [ (num, parser num etype) | (num, etype) <- M.toList etypes ])
   where
     max_event_num = maximum (M.keys etypes)
     undeclared_etype num = throwError ("undeclared event type: " ++ show num)
+    parser_map = makeParserMap event_parsers
+    parser num =
+            -- Get the event's size from the header,
+            -- the first Maybe describes whether the event was declared in the header.
+            -- the second Maybe selects between variable and fixed size events.
+        let mb_mb_et_size = do et <- M.lookup num etypes
+                               return $ size et
+            -- Find a parser for the event with the given size.
+            maybe_parser mb_et_size = do possible <- M.lookup num parser_map
+                                         best_parser <- case mb_et_size of
+                                            Nothing -> getVariableParser possible
+                                            Just et_size -> getFixedParser et_size possible
+                                         return $ get_parser best_parser
+            in case mb_mb_et_size of
+                -- This event is declared in the log file's header
+                Just mb_et_size -> case maybe_parser mb_et_size of
+                    -- And we have a valid parser for it.
+                    Just p -> p
+                    -- But we don't have a valid parser for it.
+                    Nothing -> noEventTypeParser num mb_et_size
+                -- This event is not declared in the log file's header
+                Nothing -> undeclared_etype num
 
-    parser num etype =
-         let
-             possible
-               | not (inRange (bounds eventTypeParsers) num) = []
-               | otherwise = eventTypeParsers ! num
-             mb_et_size = size etype
-         in
-         case mb_et_size of
-           Nothing -> case M.lookup num variableEventTypeParsers of
-                        Nothing -> noEventTypeParser num mb_et_size
-                        Just p  -> p
+-- Find the first variable length parser.
+getVariableParser :: [EventParser] -> Maybe EventParser
+getVariableParser [] = Nothing
+getVariableParser (x:xs) = case x of
+    FixedSizeParser _ _ _ -> getVariableParser xs
+    VariableSizeParser _ _ -> Just x
 
-           -- special case for GHC 6.12 EVENT_STOP_THREAD.  GHC 6.12
-           -- was mis-reporting the event sizes (ThreadIds were
-           -- counted as 8 instead of 4), and when we expanded the
-           -- EVENT_STOP_THREAD to include an extra field, the new
-           -- size is the same as that reported by 6.12, so we can't
-           -- tell them apart by size.  Hence the special case here
-           -- checks the size of the EVENT_CREATE_THREAD event to see
-           -- whether we should be parsing the 6.12 STOP_THREAD or the
-           -- 7.2 STOP_THREAD.  If the CREATE_THREAD extended in the
-           -- future this might go wrong.
+-- Find the best fixed size parser, that is to say, the parser for the largest
+-- event that does not exceed the size of the event as declared in the log
+-- file's header.
+getFixedParser :: EventTypeSize -> [EventParser] -> Maybe EventParser
+getFixedParser size parsers = 
+        do parser <- ((filter isFixedSize) `pipe`
+                      (filter (\x -> (fsp_size x) <= size)) `pipe`
+                      (sortBy descending_size) `pipe`
+                      maybe_head) parsers
+           return $ padParser size parser
+    where pipe f g = g . f
+          descending_size (FixedSizeParser _ s1 _) (FixedSizeParser _ s2 _) =
+            compare s2 s1
+          descending_size _ _ = undefined
+          maybe_head [] = Nothing
+          maybe_head (x:xs) = Just x
 
-           Just et_size
-             | et_size == sz_old_tid + 2,
-               num == EVENT_STOP_THREAD,
-                Just et <- M.lookup EVENT_CREATE_THREAD etypes,
-                size et == Just sz_old_tid ->
-                do  -- (thread, status)
-                  t <- getE
-                  s <- getE :: GetEvents Word16
-                  let stat = fromIntegral s
-                  return StopThread{thread=t, status = if stat > maxBound
-                                                          then NoStatus
-                                                          else mkStopStatus stat}
+padParser :: EventTypeSize -> EventParser -> EventParser
+padParser size (VariableSizeParser t p) = VariableSizeParser t p
+padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
+    where p = if (size == orig_size)
+                then orig_p
+                else do d <- orig_p
+                        skip (size - orig_size)
+                        return d
 
-           Just et_size ->
-             case [ (sz,p) | (sz,p) <- possible, sz <= et_size ] of
-               [] -> noEventTypeParser num mb_et_size
-               ps -> let (sz, best) = maximumBy (compare `on` fst) ps
-                     in  if sz == et_size
-                            then best
-                            else do r <- best
-                                    skip (et_size - sz)
-                                    return r
+makeParserMap :: [EventParser] -> IntMap [EventParser]
+makeParserMap = foldl buildParserMap M.empty
+    where buildParserMap map parser = M.alter (addParser parser) (get_type parser) map
+          addParser p Nothing = Just [p]
+          addParser p (Just ps) = Just (p:ps)
 
 noEventTypeParser :: Int -> Maybe EventTypeSize
                   -> GetEvents EventTypeSpecificInfo
