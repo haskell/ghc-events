@@ -20,7 +20,8 @@ import System.Exit
 files :: [FilePath]
 files = map ("test/"++)
     [ "queens-ghc-6.12.1.eventlog"
-    , "queens-ghc-7.0.2.eventlog" ]
+    , "queens-ghc-7.0.2.eventlog" 
+    , "mandelbrot-mmc-2011-06-14.eventlog" ]
 
 -- returns True on success
 testFile :: FilePath -> IO Bool
@@ -31,13 +32,35 @@ testFile f = do
     case e of
         Left m -> oops m
 
-        Right newlog -> do
+        Right newlogdata -> do
             oldlog <- readFile (f ++ ".reference")
-            if oldlog == ppEventLog newlog
-                then putStrLn (f ++ ": success") >> return True
-                else oops "pretty print output does not match"
+            let newlog = ppEventLog newlogdata in
+                if oldlog == newlog
+                    then putStrLn (f ++ ": success") >> return True
+                    else do print $ diffLines oldlog newlog
+                            oops "pretty print output does not match"
+
 main = do
     successes <- mapM testFile files
     if and successes
         then return ()
         else exitFailure
+
+--
+-- Code to help print the differences between a working test and a failing test.
+--
+
+diffLines o n = diff 1 (lines o) (lines n)
+
+diff :: Int -> [String] -> [String] -> String 
+diff _ [] [] = "Logs match"
+diff l [] (n:ns) = "Extra lines in new log at line " ++ show l ++ ":\n" ++
+    (unlines (n:ns))
+diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++ 
+    (unlines (o:os))
+diff l (o:os) (n:ns) = if (o == n)
+                        then diff (l+1) os ns
+                        else "Different lines at line " ++ show l ++ ":\n" ++
+                            "Original: " ++ o ++
+                            "New:      " ++ n
+
