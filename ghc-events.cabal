@@ -28,7 +28,9 @@ library
                     binary     == 0.5.*,
                     bytestring == 0.9.*,
                     array      == 0.3.*
-  exposed-modules:  GHC.RTS.Events
+  exposed-modules:  GHC.RTS.Events,
+                    GHC.RTS.EventParserUtils,
+                    GHC.RTS.EventTypes
   extensions:	    CPP
 
 executable show-ghc-events
