@@ -287,6 +287,20 @@ ghc7Parsers = [
       return CreateSparkThread{sparkThread=st}
    )),
 
+ (FixedSizeParser EVENT_SPARK_COUNTERS (7*8) (do -- (crt,dud,ovf,cnv,fiz,gcd,rem)
+      crt <- getE :: GetEvents Word64
+      dud <- getE :: GetEvents Word64
+      ovf <- getE :: GetEvents Word64
+      cnv <- getE :: GetEvents Word64
+      fiz <- getE :: GetEvents Word64
+      gcd <- getE :: GetEvents Word64
+      rem <- getE :: GetEvents Word64
+      return SparkCounters{sparksCreated    = crt, sparksDud       = dud,
+                           sparksOverflowed = ovf, sparksConverted = cnv,
+                           sparksFizzled    = fiz, sparksGCd       = gcd,
+                           sparksRemaining  = rem}
+   )),
+
  (FixedSizeParser EVENT_THREAD_WAKEUP (sz_tid + sz_cap) (do  -- (thread, other_cap)
       t <- getE
       oc <- getE :: GetEvents CapNo
@@ -508,6 +522,8 @@ showEventInfo spec =
           printf "thread %d stealing a spark from cap %d" thread victimCap
         CreateSparkThread sparkThread ->
           printf "creating spark thread %d" sparkThread
+        SparkCounters crt dud ovf cnv fiz gcd rem ->
+          printf "spark stats: %d created, %d converted, %d remaining (%d overflowed, %d dud, %d GC'd, %d fizzled)" crt cnv rem ovf dud gcd fiz
         Shutdown ->
           printf "shutting down"
         WakeupThread thread otherCap ->
@@ -666,6 +682,7 @@ eventTypeNum e = case e of
     RequestSeqGC {} -> EVENT_REQUEST_SEQ_GC
     RequestParGC {} -> EVENT_REQUEST_PAR_GC
     CreateSparkThread {} -> EVENT_CREATE_SPARK_THREAD
+    SparkCounters {} -> EVENT_SPARK_COUNTERS
     Message {} -> EVENT_LOG_MSG
     Startup {} -> EVENT_STARTUP
     EventBlock {} -> EVENT_BLOCK_MARKER
@@ -751,6 +768,15 @@ putEventSpec (StealSpark t c) = do
 
 putEventSpec (CreateSparkThread t) = do
     putE t
+
+putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
+    putE crt
+    putE dud
+    putE ovf
+    putE cnv
+    putE fiz
+    putE gcd
+    putE rem
 
 putEventSpec (WakeupThread t c) = do
     putE t
