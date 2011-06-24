@@ -125,7 +125,7 @@ data EventInfo
                        }
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
-  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
+  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId, 
                          otherCap :: {-# UNPACK #-}!Int
                        }
   | Shutdown           { }
