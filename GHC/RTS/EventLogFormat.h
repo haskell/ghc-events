@@ -135,9 +135,12 @@
 #define EVENT_OSPROCESS_PPID      33 /* (capset, parent_pid)   */
 #define EVENT_SPARK_COUNTERS      34 /* (crt,dud,ovf,cnv,fiz,gcd,rem) */
 
-/* Range 34 - 38 is available for new events */
+/* Range 35 - 38 is available for new events */
 
-/* Range 34 - 59 is available for new events */
+#define EVENT_STRING              39 /* (string, id) */
+#define EVENT_CALLING_MAIN        40 /* () */
+
+/* Range 41 - 59 is available for new events */
 
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/
@@ -148,7 +151,7 @@
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_EVENT_TAGS            34
+#define NUM_EVENT_TAGS            41
 
 #if 0  /* DEPRECATED EVENTS: */
 /* ghc changed how it handles sparks so these are no longer applicable */

@@ -125,7 +125,11 @@ data EventInfo
                        }
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
-  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId, 
+  | SparkCounters      { sparksCreated, sparksDud, sparksOverflowed,
+                         sparksConverted, sparksFizzled, sparksGCd,
+                         sparksRemaining :: {-# UNPACK #-}! Word64
+                       }
+  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
                          otherCap :: {-# UNPACK #-}!Int
                        }
   | Shutdown           { }
