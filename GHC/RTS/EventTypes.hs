@@ -20,6 +20,13 @@ type CapNo = Word16
 type Marker = Word32
 type BlockSize = Word32
 type RawThreadStopStatus = Word16
+type StringId = Word32
+
+-- These types are used by Mercury events.
+type ParConjDynId = Word64
+type ParConjStaticId = StringId
+type SparkId = Word32
+type FutureId = Word64
 
 sz_event_type_num :: EventTypeSize
 sz_event_type_num = 2
@@ -40,11 +47,23 @@ sz_block_size :: EventTypeSize
 sz_block_size = 4
 sz_block_event :: EventTypeSize
 sz_block_event = fromIntegral (sz_event_type_num + sz_time + sz_block_size
-    + sz_time + sz_cap) 
+    + sz_time + sz_cap)
 sz_pid :: EventTypeSize
 sz_pid = 4
 sz_th_stop_status :: EventTypeSize
 sz_th_stop_status = 2
+sz_string_id :: EventTypeSize
+sz_string_id = 4
+
+-- Sizes for Mercury event fields.
+sz_par_conj_dyn_id :: EventTypeSize
+sz_par_conj_dyn_id = 8
+sz_par_conj_static_id :: EventTypeSize
+sz_par_conj_static_id = sz_string_id
+sz_spark_id :: EventTypeSize
+sz_spark_id = 4
+sz_future_id :: EventTypeSize
+sz_future_id = 8
 
 {-
  - Data type delcarations to build the GHC RTS data format,
@@ -74,22 +93,22 @@ data EventType =
     size :: Maybe EventTypeSize -- ^ 'Nothing' indicates variable size
   } deriving (Show, Eq)
 
-data Event = 
+data Event =
   Event {
     time :: {-# UNPACK #-}!Timestamp,
-    spec :: EventTypeSpecificInfo
+    spec :: EventInfo
   } deriving Show
 
-data EventTypeSpecificInfo
-  = Startup            { n_caps :: Int
-                       }
-  | EventBlock         { end_time     :: Timestamp, 
-                         cap          :: Int, 
+data EventInfo
+  = EventBlock         { end_time     :: Timestamp,
+                         cap          :: Int,
                          block_events :: [Event]
+                       }
+  | Startup            { n_caps :: Int
                        }
   | CreateThread       { thread :: {-# UNPACK #-}!ThreadId
                        }
-  | RunThread          { thread :: {-# UNPACK #-}!ThreadId 
+  | RunThread          { thread :: {-# UNPACK #-}!ThreadId
                        }
   | StopThread         { thread :: {-# UNPACK #-}!ThreadId,
                          status :: ThreadStopStatus
@@ -106,7 +125,7 @@ data EventTypeSpecificInfo
                        }
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
-  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId, 
+  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
                          otherCap :: {-# UNPACK #-}!Int
                        }
   | Shutdown           { }
@@ -146,6 +165,46 @@ data EventTypeSpecificInfo
   | Message            { msg :: String }
   | UserMessage        { msg :: String }
   | UnknownEvent       { ref  :: {-# UNPACK #-}!EventTypeNum }
+
+  -- These events have been added for Mercury's benifit but are generally
+  -- useful.
+  | String             { str :: String, id :: {-# UNPACK #-}!StringId }
+  | CallingMain
+
+  -- Mercury specific events.
+  | StartParConjunction {
+        dyn_id      :: {-# UNPACK #-}!ParConjDynId,
+        static_id   :: {-# UNPACK #-}!ParConjStaticId
+    }
+  | EndParConjunction {
+        dyn_id      :: {-# UNPACK #-}!ParConjDynId
+    }
+  | EndParConjnct {
+        dyn_id      :: {-# UNPACK #-}!ParConjDynId
+    }
+  | CreateSpark {
+        dyn_id      :: {-# UNPACK #-}!ParConjDynId,
+        spark_id    :: {-# UNPACK #-}!SparkId
+    }
+  | FutureCreate {
+        future_id   :: {-# UNPACK #-}!FutureId,
+        name_id     :: {-# UNPACK #-}!StringId
+    }
+  | FutureWaitNosuspend {
+        future_id   :: {-# UNPACK #-}!FutureId
+    }
+  | FutureWaitSuspended {
+        future_id   :: {-# UNPACK #-}!FutureId
+    }
+  | FutureSignal {
+        future_id   :: {-# UNPACK #-}!FutureId
+    }
+  | LookingForGlobalThread
+  | WorkStealing
+  | ReleaseThread {
+        thread_id   :: {-# UNPACK #-}!ThreadId
+    }
+  | CapSleeping
 
   deriving Show
 
@@ -196,7 +255,7 @@ mkStopStatus n = case n of
  18 ->  BlockedOnMsgGlobalise
  _  ->  error "mkStat"
 
-maxThreadStopStatus :: RawThreadStopStatus 
+maxThreadStopStatus :: RawThreadStopStatus
 maxThreadStopStatus = 18
 
 data CapsetType
@@ -214,7 +273,7 @@ mkCapsetType n = case n of
  _ -> CapsetUnknown
 
 -- | An event annotated with the Capability that generated it, if any
-data CapEvent 
+data CapEvent
   = CapEvent { ce_cap   :: Maybe Int,
                ce_event :: Event
                -- we could UNPACK ce_event, but the Event constructor
