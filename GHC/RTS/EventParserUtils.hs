@@ -37,7 +37,7 @@ import GHC.RTS.EventTypes
 -- reader/Get monad that passes around the event types
 type GetEvents a = ReaderT EventParsers (ErrorT String Get) a
 
-newtype EventParsers = EventParsers (Array Int (GetEvents EventTypeSpecificInfo))
+newtype EventParsers = EventParsers (Array Int (GetEvents EventInfo))
 
 type GetHeader a = ErrorT String Get a
 
@@ -65,15 +65,15 @@ skip n = lift $ lift $ G.skip (fromIntegral n)
 --
 -- Event parser data.  Parsers are either fixed or vairable size.
 --
-data EventParser 
+data EventParser a
     = FixedSizeParser {
         fsp_type        :: Int,
         fsp_size        :: EventTypeSize,
-        fsp_parser      :: GetEvents EventTypeSpecificInfo
+        fsp_parser      :: GetEvents a
     }
     | VariableSizeParser {
         vsp_type        :: Int,
-        vsp_parser      :: GetEvents EventTypeSpecificInfo
+        vsp_parser      :: GetEvents a
     }
 
 get_parser (FixedSizeParser _ _ p) = p
@@ -85,7 +85,7 @@ get_type (VariableSizeParser t _) = t
 isFixedSize (FixedSizeParser {}) = True
 isFixedSize (VariableSizeParser {}) = False
 
-simpleEvent :: Int -> EventTypeSpecificInfo -> EventParser
+simpleEvent :: Int -> a -> EventParser a
 simpleEvent t p = FixedSizeParser t 0 (return p)
 
 -- Our event log format allows new fields to be added to events over
@@ -96,9 +96,9 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 --
 -- The event log file declares the size for each event type, so we can
 -- select the correct parser for the event type based on its size.  We
--- do this once after parsing the header: given the EventTypes, we build 
+-- do this once after parsing the header: given the EventTypes, we build
 -- an array of event parsers indexed by event type.
--- 
+--
 -- For each event type, we may have multiple parsers for different
 -- versions of the event, indexed by size.  These are listed in the
 -- eventTypeParsers list below.  For the given log file we select the
@@ -116,8 +116,8 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 --     parse the bits we understand and discard the rest
 
 mkEventTypeParsers :: IntMap EventType
-                   -> [EventParser]
-                   -> Array Int (GetEvents EventTypeSpecificInfo)
+                   -> [EventParser EventInfo]
+                   -> Array Int (GetEvents EventInfo)
 mkEventTypeParsers etypes event_parsers
  = accumArray (flip const) undefined (0, max_event_num)
     [ (num, parser num) | num <- [0..max_event_num] ]
@@ -150,7 +150,7 @@ mkEventTypeParsers etypes event_parsers
                 Nothing -> undeclared_etype num
 
 -- Find the first variable length parser.
-getVariableParser :: [EventParser] -> Maybe EventParser
+getVariableParser :: [EventParser a] -> Maybe (EventParser a)
 getVariableParser [] = Nothing
 getVariableParser (x:xs) = case x of
     FixedSizeParser _ _ _ -> getVariableParser xs
@@ -159,8 +159,8 @@ getVariableParser (x:xs) = case x of
 -- Find the best fixed size parser, that is to say, the parser for the largest
 -- event that does not exceed the size of the event as declared in the log
 -- file's header.
-getFixedParser :: EventTypeSize -> [EventParser] -> Maybe EventParser
-getFixedParser size parsers = 
+getFixedParser :: EventTypeSize -> [EventParser a] -> Maybe (EventParser a)
+getFixedParser size parsers =
         do parser <- ((filter isFixedSize) `pipe`
                       (filter (\x -> (fsp_size x) <= size)) `pipe`
                       (sortBy descending_size) `pipe`
@@ -173,7 +173,7 @@ getFixedParser size parsers =
           maybe_head [] = Nothing
           maybe_head (x:xs) = Just x
 
-padParser :: EventTypeSize -> EventParser -> EventParser
+padParser :: EventTypeSize -> (EventParser a) -> (EventParser a)
 padParser size (VariableSizeParser t p) = VariableSizeParser t p
 padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
     where p = if (size == orig_size)
@@ -182,14 +182,14 @@ padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
                         skip (size - orig_size)
                         return d
 
-makeParserMap :: [EventParser] -> IntMap [EventParser]
+makeParserMap :: [EventParser a] -> IntMap [EventParser a]
 makeParserMap = foldl buildParserMap M.empty
     where buildParserMap map parser = M.alter (addParser parser) (get_type parser) map
           addParser p Nothing = Just [p]
           addParser p (Just ps) = Just (p:ps)
 
 noEventTypeParser :: Int -> Maybe EventTypeSize
-                  -> GetEvents EventTypeSpecificInfo
+                  -> GetEvents EventInfo
 noEventTypeParser num mb_size = do
   bytes <- case mb_size of
              Just n  -> return n

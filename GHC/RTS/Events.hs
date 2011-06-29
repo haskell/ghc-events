@@ -11,7 +11,7 @@ module GHC.RTS.Events (
        EventLog(..),
        EventType(..),
        Event(..),
-       EventTypeSpecificInfo(..),
+       EventInfo(..),
        ThreadStopStatus(..),
        Header(..),
        Data(..),
@@ -28,7 +28,7 @@ module GHC.RTS.Events (
        buildEventTypeMap,
 
        -- * Printing
-       showEventTypeSpecificInfo, showThreadStopStatus,
+       showEventInfo, showThreadStopStatus,
        ppEventLog, ppEventType, ppEvent
   ) where
 
@@ -117,7 +117,7 @@ getEvent (EventParsers parsers) = do
 --
 -- standardEventParsers.
 --
-standardParsers :: [EventParser]
+standardParsers :: [EventParser EventInfo]
 standardParsers = [
  (FixedSizeParser EVENT_STARTUP sz_cap (do -- (n_caps)
       c <- getE :: GetEvents CapNo
@@ -224,7 +224,7 @@ standardParsers = [
  ]
 
 -- Parsers valid for GHC7 but not GHC6.
-ghc7Parsers :: [EventParser]
+ghc7Parsers :: [EventParser EventInfo]
 ghc7Parsers = [
  (FixedSizeParser EVENT_CREATE_THREAD sz_tid (do  -- (thread)
       t <- getE
@@ -298,7 +298,7 @@ ghc7Parsers = [
  -- GHC 6.12 compat: GHC 6.12 reported the wrong sizes for some events,
  -- so we have to recognise those wrong sizes here for backwards 
  -- compatibility.
-ghc6Parsers :: [EventParser]
+ghc6Parsers :: [EventParser EventInfo]
 ghc6Parsers = [
  (FixedSizeParser EVENT_STARTUP 0 (do
       -- BUG in GHC 6.12: the startup event was incorrectly 
@@ -483,13 +483,15 @@ buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
 -----------------------------------------------------------------------------
 -- Some pretty-printing support
 
-showEventTypeSpecificInfo :: EventTypeSpecificInfo -> String
-showEventTypeSpecificInfo spec =
-      case spec of
-        Startup n_caps ->
-          printf "startup: %d capabilities" n_caps
+showEventInfo :: EventInfo -> String
+showEventInfo spec =
+    case spec of
+        UnknownEvent n ->
+          printf "Unknown event type %d" n
         EventBlock end_time cap _block_events ->
           printf "event block: cap %d, end time: %d\n" cap end_time
+        Startup n_caps ->
+          printf "startup: %d capabilities" n_caps
         CreateThread thread ->
           printf "creating thread %d" thread
         RunThread thread ->
@@ -598,10 +600,7 @@ ppEvent imap (CapEvent cap (Event time spec)) =
     UnknownEvent{ ref=ref } ->
       printf (desc (fromJust (M.lookup (fromIntegral ref) imap)))
 
-    Message msg -> msg
-    UserMessage msg -> msg
-
-    other -> showEventTypeSpecificInfo spec
+    other -> showEventInfo spec
 
 type PutEvents a = PutM a
 
@@ -651,7 +650,7 @@ putData (Data es) = do
     mapM_ putEvent es
     putType EVENT_DATA_END -- Word16
 
-eventTypeNum :: EventTypeSpecificInfo -> EventTypeNum
+eventTypeNum :: EventInfo -> EventTypeNum
 eventTypeNum e = case e of
     CreateThread {} -> EVENT_CREATE_THREAD
     RunThread {} -> EVENT_RUN_THREAD
