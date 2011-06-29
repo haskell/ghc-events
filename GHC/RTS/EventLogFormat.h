@@ -134,8 +134,12 @@
 #define EVENT_OSPROCESS_PID       32 /* (capset, pid)          */
 #define EVENT_OSPROCESS_PPID      33 /* (capset, parent_pid)   */
 
+/* Range 34 - 38 is available for new events */
 
-/* Range 34 - 59 is available for new events */
+#define EVENT_STRING              39 /* (string, id) */
+#define EVENT_CALLING_MAIN        40 /* () */
+
+/* Range 41 - 59 is available for new events */
 
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/
@@ -146,7 +150,7 @@
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_EVENT_TAGS            34
+#define NUM_EVENT_TAGS            41
 
 #if 0  /* DEPRECATED EVENTS: */
 /* ghc changed how it handles sparks so these are no longer applicable */
@@ -163,11 +167,21 @@
  * 139
  */
 #define EVENT_FIRST_MER_EVENT       100
-#define NUM_MER_EVENTS              3
+#define NUM_MER_EVENTS               12
 
 #define EVENT_MER_START_PAR_CONJUNCTION 100 /* (dyn id, static id) */
 #define EVENT_MER_STOP_PAR_CONJUNCTION  101 /* (dyn id) */
 #define EVENT_MER_STOP_PAR_CONJUNCT     102 /* (dyn id) */
+#define EVENT_MER_CREATE_SPARK          103 /* (dyn id, spark id) */
+#define EVENT_MER_FUT_CREATE            104 /* (fut id, memo'd name id) */
+#define EVENT_MER_FUT_WAIT_NOSUSPEND    105 /* (fut id) */
+#define EVENT_MER_FUT_WAIT_SUSPENDED    106 /* (fut id) */
+#define EVENT_MER_FUT_SIGNAL            107 /* (fut id) */
+#define EVENT_MER_LOOKING_FOR_GLOBAL_CONTEXT \
+                                        108 /* () */
+#define EVENT_MER_WORK_STEALING         109 /* () */
+#define EVENT_MER_RELEASE_CONTEXT       110 /* (context id) */
+#define EVENT_MER_ENGINE_SLEEPING       111 /* () */
 
 /*
  * Status values for EVENT_STOP_THREAD
