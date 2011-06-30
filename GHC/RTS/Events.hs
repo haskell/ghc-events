@@ -220,7 +220,14 @@ standardParsers = [
       string <- getString (num - sz_capset)
       return RtsIdentifier{ capset = cs
                           , rtsident = string }
-   ))
+   )),
+
+ (VariableSizeParser EVENT_STRING (do -- (str, id)
+      num <- getE :: GetEvents Word16
+      string <- getString (num - sz_string_id)
+      id <- getE :: GetEvents StringId
+      return (String string id)
+    ))
  ]
 
 -- Parsers valid for GHC7 but not GHC6.
@@ -374,6 +381,65 @@ ghc6Parsers = [
    ))
  ]
 
+mercuryParsers = [
+ (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION 
+    (sz_par_conj_dyn_id + sz_par_conj_static_id)
+    (do dyn_id <- getE
+        static_id <- getE
+        return (MerStartParConjunction dyn_id static_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_STOP_PAR_CONJUNCTION sz_par_conj_dyn_id
+    (do dyn_id <- getE
+        return (MerEndParConjunction dyn_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_STOP_PAR_CONJUNCT sz_par_conj_dyn_id
+    (do dyn_id <- getE
+        return (MerEndParConjunct dyn_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_CREATE_SPARK (sz_par_conj_dyn_id + sz_spark_id)
+    (do dyn_id <- getE
+        spark_id <- getE
+        return (MerCreateSpark dyn_id spark_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_FUT_CREATE (sz_future_id + sz_string_id)
+    (do future_id <- getE
+        name_id <- getE
+        return (MerFutureCreate future_id name_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_FUT_WAIT_NOSUSPEND (sz_future_id)
+    (do future_id <- getE
+        return (MerFutureWaitNosuspend future_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_FUT_WAIT_SUSPENDED (sz_future_id)
+    (do future_id <- getE
+        return (MerFutureWaitSuspended future_id))
+ ),
+
+ (FixedSizeParser EVENT_MER_FUT_SIGNAL (sz_future_id)
+    (do future_id <- getE
+        return (MerFutureSignal future_id))
+ ),
+
+ (simpleEvent EVENT_MER_LOOKING_FOR_GLOBAL_CONTEXT MerLookingForGlobalThread),
+ (simpleEvent EVENT_MER_WORK_STEALING MerWorkStealing),
+ (simpleEvent EVENT_MER_LOOKING_FOR_LOCAL_SPARK MerLookingForLocalSpark),
+
+ (FixedSizeParser EVENT_MER_RELEASE_CONTEXT sz_tid
+    (do thread_id <- getE
+        return (MerReleaseThread thread_id))
+ ),
+
+ (simpleEvent EVENT_MER_ENGINE_SLEEPING MerCapSleeping),
+ (simpleEvent EVENT_CALLING_MAIN MerCallingMain)
+ 
+ ]
+
 getData :: GetEvents Data
 getData = do
    db <- getE :: GetEvents Marker
@@ -416,7 +482,8 @@ getEventLog = do
         -}
         event_parsers = if is_ghc_6
                             then standardParsers ++ ghc6Parsers
-                            else standardParsers ++ ghc7Parsers
+                            else standardParsers ++ ghc7Parsers ++
+                                mercuryParsers
         parsers = mkEventTypeParsers imap event_parsers
     dat <- runReaderT getData (EventParsers parsers)
     return (EventLog header dat)
@@ -500,8 +567,6 @@ buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
 showEventInfo :: EventInfo -> String
 showEventInfo spec =
     case spec of
-        UnknownEvent n ->
-          printf "Unknown event type %d" n
         EventBlock end_time cap _block_events ->
           printf "event block: cap %d, end time: %d\n" cap end_time
         Startup n_caps ->
@@ -564,8 +629,38 @@ showEventInfo spec =
           printf "capset %d: args: %s" cs (show args)
         ProgramEnv cs env ->
           printf "capset %d: env: %s" cs (show env)
-        UnknownEvent _ ->
-          "Unknown event type"
+        UnknownEvent n ->
+          printf "Unknown event type %d" n
+        String str id ->
+          printf "Register string: %s with id %d" str id
+        MerStartParConjunction dyn_id static_id ->
+          printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
+        MerEndParConjunction dyn_id ->
+          printf "End par conjunction: 0x%x" dyn_id
+        MerEndParConjunct dyn_id ->
+          printf "End par conjunct: 0x%x" dyn_id
+        MerCreateSpark dyn_id spark_id ->
+          printf "Create spark for conjunction: 0x%x spark: 0x%x" dyn_id spark_id
+        MerFutureCreate future_id name_id ->
+          printf "Create future 0x%x named %d" future_id name_id
+        MerFutureWaitNosuspend future_id ->
+          printf "Wait didn't suspend for future: 0x%x" future_id
+        MerFutureWaitSuspended future_id ->
+          printf "Wait suspended on future: 0x%x" future_id
+        MerFutureSignal future_id ->
+          printf "Signaled future 0x%x" future_id
+        MerLookingForGlobalThread ->
+          "Looking for global thread to resume"
+        MerWorkStealing ->
+          "Trying to steal a spark"
+        MerLookingForLocalSpark ->
+          "Looking for a local spark to execute"
+        MerReleaseThread thread_id ->
+          printf "Releasing thread %d to the free pool" thread_id
+        MerCapSleeping ->
+          "Capability going to sleep"
+        MerCallingMain ->
+          "About to call the program entry point"
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -700,6 +795,21 @@ eventTypeNum e = case e of
     OsProcessPid {} -> EVENT_OSPROCESS_PID
     OsProcessParentPid{} -> EVENT_OSPROCESS_PPID
     UnknownEvent {} -> error "eventTypeNum UnknownEvent"
+    String {} -> EVENT_STRING
+    MerStartParConjunction {} -> EVENT_MER_START_PAR_CONJUNCTION
+    MerEndParConjunction _ -> EVENT_MER_STOP_PAR_CONJUNCTION
+    MerEndParConjunct _ -> EVENT_MER_STOP_PAR_CONJUNCT
+    MerCreateSpark {} -> EVENT_MER_CREATE_SPARK
+    MerFutureCreate {} -> EVENT_MER_FUT_CREATE
+    MerFutureWaitNosuspend _ -> EVENT_MER_FUT_WAIT_NOSUSPEND
+    MerFutureWaitSuspended _ -> EVENT_MER_FUT_WAIT_SUSPENDED
+    MerFutureSignal _ -> EVENT_MER_FUT_SIGNAL
+    MerLookingForGlobalThread -> EVENT_MER_LOOKING_FOR_GLOBAL_CONTEXT
+    MerWorkStealing -> EVENT_MER_WORK_STEALING
+    MerLookingForLocalSpark -> EVENT_MER_LOOKING_FOR_LOCAL_SPARK
+    MerReleaseThread _ -> EVENT_MER_RELEASE_CONTEXT
+    MerCapSleeping -> EVENT_MER_ENGINE_SLEEPING
+    MerCallingMain -> EVENT_CALLING_MAIN
 
 putEvent :: Event -> PutEvents ()
 putEvent (Event t spec) = do
@@ -859,6 +969,49 @@ putEventSpec (UserMessage s) = do
     mapM_ putE s
 
 putEventSpec (UnknownEvent {}) = error "putEventSpec UnknownEvent"
+
+putEventSpec (String str id) = do
+    putE len
+    mapM_ putE str
+    putE id
+  where len = (fromIntegral (length str) :: Word16) + sz_string_id
+
+putEventSpec (MerStartParConjunction dyn_id static_id) = do
+    putE dyn_id
+    putE static_id
+
+putEventSpec (MerEndParConjunction dyn_id) = do
+    putE dyn_id
+
+putEventSpec (MerEndParConjunct dyn_id) = do
+    putE dyn_id
+
+putEventSpec (MerCreateSpark dyn_id spark_id) = do
+    putE dyn_id
+    putE spark_id
+
+putEventSpec (MerFutureCreate future_id name_id) = do
+    putE future_id
+    putE name_id
+
+putEventSpec (MerFutureWaitNosuspend future_id) = do
+    putE future_id
+
+putEventSpec (MerFutureWaitSuspended future_id) = do
+    putE future_id
+
+putEventSpec (MerFutureSignal future_id) = do
+    putE future_id
+
+putEventSpec MerLookingForGlobalThread = return ()
+putEventSpec MerWorkStealing = return ()
+putEventSpec MerLookingForLocalSpark = return ()
+
+putEventSpec (MerReleaseThread thread_id) = do
+    putE thread_id
+
+putEventSpec MerCapSleeping = return ()
+putEventSpec MerCallingMain = return ()
 
 -- [] == []
 -- [x] == x\0

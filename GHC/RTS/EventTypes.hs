@@ -173,42 +173,43 @@ data EventInfo
   -- These events have been added for Mercury's benifit but are generally
   -- useful.
   | String             { str :: String, id :: {-# UNPACK #-}!StringId }
-  | CallingMain
 
   -- Mercury specific events.
-  | StartParConjunction {
+  | MerStartParConjunction {
         dyn_id      :: {-# UNPACK #-}!ParConjDynId,
         static_id   :: {-# UNPACK #-}!ParConjStaticId
     }
-  | EndParConjunction {
+  | MerEndParConjunction {
         dyn_id      :: {-# UNPACK #-}!ParConjDynId
     }
-  | EndParConjnct {
+  | MerEndParConjunct {
         dyn_id      :: {-# UNPACK #-}!ParConjDynId
     }
-  | CreateSpark {
+  | MerCreateSpark {
         dyn_id      :: {-# UNPACK #-}!ParConjDynId,
         spark_id    :: {-# UNPACK #-}!SparkId
     }
-  | FutureCreate {
+  | MerFutureCreate {
         future_id   :: {-# UNPACK #-}!FutureId,
         name_id     :: {-# UNPACK #-}!StringId
     }
-  | FutureWaitNosuspend {
+  | MerFutureWaitNosuspend {
         future_id   :: {-# UNPACK #-}!FutureId
     }
-  | FutureWaitSuspended {
+  | MerFutureWaitSuspended {
         future_id   :: {-# UNPACK #-}!FutureId
     }
-  | FutureSignal {
+  | MerFutureSignal {
         future_id   :: {-# UNPACK #-}!FutureId
     }
-  | LookingForGlobalThread
-  | WorkStealing
-  | ReleaseThread {
+  | MerLookingForGlobalThread
+  | MerWorkStealing
+  | MerLookingForLocalSpark
+  | MerReleaseThread {
         thread_id   :: {-# UNPACK #-}!ThreadId
     }
-  | CapSleeping
+  | MerCapSleeping
+  | MerCallingMain
 
   deriving Show
 
