@@ -8,7 +8,9 @@ category:         Development, GHC, Debug, Profiling, Trace
 license:          BSD3
 license-file:     LICENSE
 author:           Donnie Jones <donnie@darthik.com>, 
-                  Simon Marlow <marlowsd@gmail.com>
+                  Simon Marlow <marlowsd@gmail.com>,
+                  Paul Bone <pbone@csse.unimelb.edu.au>,
+                  Duncan Coutts <duncan@well-typed.com>
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 build-type:       Simple
 tested-with:      GHC == 6.10.2, GHC == 6.11.20090221
