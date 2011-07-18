@@ -138,8 +138,6 @@
 /* Range 35 - 38 is available for new events */
 
 #define EVENT_STRING              39 /* (string, id) */
-/* XXX: Reassign this id */
-#define EVENT_CALLING_MAIN        40 /* () */
 
 /* Range 41 - 59 is available for new events */
 
@@ -169,7 +167,7 @@
  * 139
  */
 #define EVENT_FIRST_MER_EVENT       100
-#define NUM_MER_EVENTS               13
+#define NUM_MER_EVENTS               14
 
 #define EVENT_MER_START_PAR_CONJUNCTION 100 /* (dyn id, static id) */
 #define EVENT_MER_STOP_PAR_CONJUNCTION  101 /* (dyn id) */
@@ -182,11 +180,11 @@
 #define EVENT_MER_LOOKING_FOR_GLOBAL_CONTEXT \
                                         108 /* () */
 #define EVENT_MER_WORK_STEALING         109 /* () */
-#define EVENT_MER_RELEASE_CONTEXT       110 /* (context id) */
-#define EVENT_MER_ENGINE_SLEEPING       111 /* () */
-/* XXX: Reassign this id */
 #define EVENT_MER_LOOKING_FOR_LOCAL_SPARK \
                                         112 /* () */
+#define EVENT_MER_RELEASE_CONTEXT       110 /* (context id) */
+#define EVENT_MER_ENGINE_SLEEPING       111 /* () */
+#define EVENT_MER_CALLING_MAIN          113 /* () */
 
 /*
  * Status values for EVENT_STOP_THREAD

@@ -54,7 +54,7 @@ Events:
  10577452: cap 1: Trying to steal a spark
  10694043: cap 2: Looking for global thread to resume
  10694551: cap 2: Trying to steal a spark
- 10852245: cap 0: About to call the program entry point
+ 10852245: cap 0: About to call main/2
  11153997: cap 0: Start a parallel conjunction 0x2515150, static_id: 2
  11155725: cap 0: Create spark for conjunction: 0x2515150 spark: 0x0
  11165265: cap 0: Start a parallel conjunction 0x25151b0, static_id: 2
