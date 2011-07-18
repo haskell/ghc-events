@@ -35,10 +35,10 @@ library
                     GHC.RTS.EventTypes
   extensions:	    CPP
 
-executable show-ghc-events
+executable ghc-events-show
   main-is:          ShowGhcEvents.hs
 
-executable merge-ghc-events
+executable ghc-events-merge
   main-is:          MergeGhcEvents.hs
 
 test-suite test-versions
