@@ -145,6 +145,8 @@
  * see http://www.mathematik.uni-marburg.de/~eden/
  */
 
+/* Range 100 - 139 is reserved for Mercury, see below. */
+
 /*
  * The highest event code +1 that ghc itself emits. Note that some event
  * ranges higher than this are reserved but not currently emitted by ghc.
