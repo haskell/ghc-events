@@ -4,9 +4,6 @@ module GHC.RTS.EventTypes where
 
 import Data.Word (Word16, Word32, Word64)
 
-{- Type synonyms. -}
-type Filename = String
-
 -- EventType.
 type EventTypeNum = Word16
 type EventTypeDescLen = Word32
