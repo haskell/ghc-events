@@ -278,17 +278,6 @@ ghc7Parsers = [
       return MigrateThread{thread=t,newCap=fromIntegral nc}
    )),
 
- (FixedSizeParser EVENT_RUN_SPARK sz_tid (do  -- (thread)
-      t <- getE
-      return RunSpark{thread=t}
-   )),
-
- (FixedSizeParser EVENT_STEAL_SPARK (sz_tid + sz_cap) (do  -- (thread, victimCap)
-      t  <- getE
-      vc <- getE :: GetEvents CapNo
-      return StealSpark{thread=t,victimCap=fromIntegral vc}
-   )),
-
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_tid (do  -- (sparkThread)
       st <- getE :: GetEvents ThreadId
       return CreateSparkThread{sparkThread=st}
@@ -307,6 +296,17 @@ ghc7Parsers = [
                            sparksFizzled    = fiz, sparksGCd       = gcd,
                            sparksRemaining  = rem}
    )),
+
+ (simpleEvent EVENT_SPARK_CREATE   SparkCreate),
+ (simpleEvent EVENT_SPARK_DUD      SparkDud),
+ (simpleEvent EVENT_SPARK_OVERFLOW SparkOverflow),
+ (simpleEvent EVENT_SPARK_RUN      SparkRun),
+ (FixedSizeParser EVENT_SPARK_STEAL sz_cap (do  -- (victimCap)
+      vc <- getE :: GetEvents CapNo
+      return SparkSteal{victimCap=fromIntegral vc}
+   )),
+ (simpleEvent EVENT_SPARK_FIZZLE   SparkFizzle),
+ (simpleEvent EVENT_SPARK_GC       SparkGC),
 
  (FixedSizeParser EVENT_THREAD_WAKEUP (sz_tid + sz_cap) (do  -- (thread, other_cap)
       t <- getE
@@ -356,17 +356,6 @@ ghc6Parsers = [
       t  <- getE
       nc <- getE :: GetEvents CapNo
       return MigrateThread{thread=t,newCap=fromIntegral nc}
-   )),
-
- (FixedSizeParser EVENT_RUN_SPARK sz_old_tid (do  -- (thread)
-      t <- getE
-      return RunSpark{thread=t}
-   )),
-
- (FixedSizeParser EVENT_STEAL_SPARK (sz_old_tid + sz_cap) (do  -- (thread, victimCap)
-      t  <- getE
-      vc <- getE :: GetEvents CapNo
-      return StealSpark{thread=t,victimCap=fromIntegral vc}
    )),
 
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_old_tid (do  -- (sparkThread)
@@ -581,14 +570,24 @@ showEventInfo spec =
           printf "thread %d is runnable" thread
         MigrateThread thread newCap  ->
           printf "migrating thread %d to cap %d" thread newCap
-        RunSpark thread ->
-          printf "running a local spark (thread %d)" thread
-        StealSpark thread victimCap ->
-          printf "thread %d stealing a spark from cap %d" thread victimCap
         CreateSparkThread sparkThread ->
           printf "creating spark thread %d" sparkThread
         SparkCounters crt dud ovf cnv fiz gcd rem ->
           printf "spark stats: %d created, %d converted, %d remaining (%d overflowed, %d dud, %d GC'd, %d fizzled)" crt cnv rem ovf dud gcd fiz
+        SparkCreate ->
+          printf "spark created"
+        SparkDud ->
+          printf "dud spark discarded"
+        SparkOverflow ->
+          printf "overflowed spark discarded"
+        SparkRun ->
+          printf "running a local spark"
+        SparkSteal victimCap ->
+          printf "stealing a spark from cap %d" victimCap
+        SparkFizzle ->
+          printf "spark fizzled"
+        SparkGC ->
+          printf "spark GCed"
         Shutdown ->
           printf "shutting down"
         WakeupThread thread otherCap ->
@@ -768,8 +767,6 @@ eventTypeNum e = case e of
     StopThread {} -> EVENT_STOP_THREAD
     ThreadRunnable {} -> EVENT_THREAD_RUNNABLE
     MigrateThread {} -> EVENT_MIGRATE_THREAD
-    RunSpark {} -> EVENT_RUN_SPARK
-    StealSpark {} -> EVENT_STEAL_SPARK
     Shutdown {} -> EVENT_SHUTDOWN
     WakeupThread {} -> EVENT_THREAD_WAKEUP
     StartGC {} -> EVENT_GC_START
@@ -778,6 +775,13 @@ eventTypeNum e = case e of
     RequestParGC {} -> EVENT_REQUEST_PAR_GC
     CreateSparkThread {} -> EVENT_CREATE_SPARK_THREAD
     SparkCounters {} -> EVENT_SPARK_COUNTERS
+    SparkCreate   {} -> EVENT_SPARK_CREATE
+    SparkDud      {} -> EVENT_SPARK_DUD
+    SparkOverflow {} -> EVENT_SPARK_OVERFLOW
+    SparkRun      {} -> EVENT_SPARK_RUN
+    SparkSteal    {} -> EVENT_SPARK_STEAL
+    SparkFizzle   {} -> EVENT_SPARK_FIZZLE
+    SparkGC       {} -> EVENT_SPARK_GC
     Message {} -> EVENT_LOG_MSG
     Startup {} -> EVENT_STARTUP
     EventBlock {} -> EVENT_BLOCK_MARKER
@@ -869,13 +873,6 @@ putEventSpec (MigrateThread t c) = do
     putE t
     putCap c
 
-putEventSpec (RunSpark t) = do
-    putE t
-
-putEventSpec (StealSpark t c) = do
-    putE t
-    putCap c
-
 putEventSpec (CreateSparkThread t) = do
     putE t
 
@@ -887,6 +884,27 @@ putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
     putE fiz
     putE gcd
     putE rem
+
+putEventSpec SparkCreate = do
+    return ()
+
+putEventSpec SparkDud = do
+    return ()
+
+putEventSpec SparkOverflow = do
+    return ()
+
+putEventSpec SparkRun = do
+    return ()
+
+putEventSpec (SparkSteal c) = do
+    putCap c
+
+putEventSpec SparkFizzle = do
+    return ()
+
+putEventSpec SparkGC = do
+    return ()
 
 putEventSpec (WakeupThread t c) = do
     putE t

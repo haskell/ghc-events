@@ -118,10 +118,6 @@ data EventInfo
   | MigrateThread      { thread :: {-# UNPACK #-}!ThreadId,
                          newCap :: {-# UNPACK #-}!Int
                        }
-  | RunSpark           { thread :: {-# UNPACK #-}!ThreadId
-                       }
-  | StealSpark         { thread :: {-# UNPACK #-}!ThreadId,
-                         victimCap :: {-# UNPACK #-}!Int
                        }
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
@@ -133,6 +129,13 @@ data EventInfo
                          otherCap :: {-# UNPACK #-}!Int
                        }
   | Shutdown           { }
+  | SparkCreate        { }
+  | SparkDud           { }
+  | SparkOverflow      { }
+  | SparkRun           { }
+  | SparkSteal         { victimCap :: {-# UNPACK #-}!Int }
+  | SparkFizzle        { }
+  | SparkGC            { }
   | RequestSeqGC       { }
   | RequestParGC       { }
   | StartGC            { }
