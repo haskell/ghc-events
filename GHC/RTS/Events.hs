@@ -436,7 +436,7 @@ mercuryParsers = [
  ),
 
  (simpleEvent EVENT_MER_ENGINE_SLEEPING MerCapSleeping),
- (simpleEvent EVENT_CALLING_MAIN MerCallingMain)
+ (simpleEvent EVENT_MER_CALLING_MAIN MerCallingMain)
  
  ]
 
@@ -809,7 +809,7 @@ eventTypeNum e = case e of
     MerLookingForLocalSpark -> EVENT_MER_LOOKING_FOR_LOCAL_SPARK
     MerReleaseThread _ -> EVENT_MER_RELEASE_CONTEXT
     MerCapSleeping -> EVENT_MER_ENGINE_SLEEPING
-    MerCallingMain -> EVENT_CALLING_MAIN
+    MerCallingMain -> EVENT_MER_CALLING_MAIN
 
 putEvent :: Event -> PutEvents ()
 putEvent (Event t spec) = do
