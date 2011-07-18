@@ -140,9 +140,10 @@
 #define EVENT_SPARK_STEAL         39 /* (victim_cap)           */
 #define EVENT_SPARK_FIZZLE        40 /* ()                     */
 #define EVENT_SPARK_GC            41 /* ()                     */
-#define EVENT_STRING              39 /* (string, id) */
+#define EVENT_INTERN_STRING       42 /* (string, id) */
 
-/* Range 41 - 59 is available for new events */
+
+/* Range 43 - 59 is available for new GHC and common events */
 
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/

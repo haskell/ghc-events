@@ -190,7 +190,7 @@ data EventInfo
 
   -- These events have been added for Mercury's benifit but are generally
   -- useful.
-  | String             { str :: String, id :: {-# UNPACK #-}!StringId }
+  | InternString       { str :: String, id :: {-# UNPACK #-}!StringId }
 
   -- Mercury specific events.
   | MerStartParConjunction {

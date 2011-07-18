@@ -222,11 +222,11 @@ standardParsers = [
                           , rtsident = string }
    )),
 
- (VariableSizeParser EVENT_STRING (do -- (str, id)
+ (VariableSizeParser EVENT_INTERN_STRING (do -- (str, id)
       num <- getE :: GetEvents Word16
       string <- getString (num - sz_string_id)
       id <- getE :: GetEvents StringId
-      return (String string id)
+      return (InternString string id)
     ))
  ]
 
@@ -630,8 +630,8 @@ showEventInfo spec =
           printf "capset %d: env: %s" cs (show env)
         UnknownEvent n ->
           printf "Unknown event type %d" n
-        String str id ->
-          printf "Register string: %s with id %d" str id
+        InternString str id ->
+          printf "Interned string: \"%s\" with id %d" str id
         MerStartParConjunction dyn_id static_id ->
           printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
         MerEndParConjunction dyn_id ->
@@ -799,7 +799,7 @@ eventTypeNum e = case e of
     OsProcessPid {} -> EVENT_OSPROCESS_PID
     OsProcessParentPid{} -> EVENT_OSPROCESS_PPID
     UnknownEvent {} -> error "eventTypeNum UnknownEvent"
-    String {} -> EVENT_STRING
+    InternString {} -> EVENT_INTERN_STRING
     MerStartParConjunction {} -> EVENT_MER_START_PAR_CONJUNCTION
     MerEndParConjunction _ -> EVENT_MER_STOP_PAR_CONJUNCTION
     MerEndParConjunct _ -> EVENT_MER_STOP_PAR_CONJUNCT
@@ -988,7 +988,7 @@ putEventSpec (UserMessage s) = do
 
 putEventSpec (UnknownEvent {}) = error "putEventSpec UnknownEvent"
 
-putEventSpec (String str id) = do
+putEventSpec (InternString str id) = do
     putE len
     mapM_ putE str
     putE id
