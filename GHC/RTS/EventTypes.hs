@@ -100,12 +100,20 @@ data Event =
   } deriving Show
 
 data EventInfo
+
+  -- pseudo events
   = EventBlock         { end_time     :: Timestamp,
                          cap          :: Int,
                          block_events :: [Event]
                        }
+  | UnknownEvent       { ref  :: {-# UNPACK #-}!EventTypeNum }
+
+  -- init and shutdown
   | Startup            { n_caps :: Int
                        }
+  | Shutdown           { }
+
+  -- thread scheduling
   | CreateThread       { thread :: {-# UNPACK #-}!ThreadId
                        }
   | RunThread          { thread :: {-# UNPACK #-}!ThreadId
@@ -118,17 +126,17 @@ data EventInfo
   | MigrateThread      { thread :: {-# UNPACK #-}!ThreadId,
                          newCap :: {-# UNPACK #-}!Int
                        }
+  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
+                         otherCap :: {-# UNPACK #-}!Int
                        }
+
+  -- par sparks
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
   | SparkCounters      { sparksCreated, sparksDud, sparksOverflowed,
                          sparksConverted, sparksFizzled, sparksGCd,
                          sparksRemaining :: {-# UNPACK #-}! Word64
                        }
-  | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
-                         otherCap :: {-# UNPACK #-}!Int
-                       }
-  | Shutdown           { }
   | SparkCreate        { }
   | SparkDud           { }
   | SparkOverflow      { }
@@ -136,6 +144,8 @@ data EventInfo
   | SparkSteal         { victimCap :: {-# UNPACK #-}!Int }
   | SparkFizzle        { }
   | SparkGC            { }
+
+  -- garbage collection
   | RequestSeqGC       { }
   | RequestParGC       { }
   | StartGC            { }
@@ -143,6 +153,8 @@ data EventInfo
   | GCIdle             { }
   | GCDone             { }
   | EndGC              { }
+
+  -- capability sets
   | CapsetCreate       { capset     :: {-# UNPACK #-}!Word32
                        , capsetType :: CapsetType
                        }
@@ -154,6 +166,8 @@ data EventInfo
   | CapsetRemoveCap    { capset :: {-# UNPACK #-}!Word32
                        , cap    :: {-# UNPACK #-}!Int
                        }
+
+  -- program/process info
   | RtsIdentifier      { capset :: {-# UNPACK #-}!Word32
                        , rtsident :: String
                        }
@@ -169,9 +183,10 @@ data EventInfo
   | OsProcessParentPid { capset :: {-# UNPACK #-}!Word32
                        , ppid   :: {-# UNPACK #-}!Word32
                        }
+
+  -- messages
   | Message            { msg :: String }
   | UserMessage        { msg :: String }
-  | UnknownEvent       { ref  :: {-# UNPACK #-}!EventTypeNum }
 
   -- These events have been added for Mercury's benifit but are generally
   -- useful.
