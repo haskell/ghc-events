@@ -158,10 +158,14 @@
  */
 #define NUM_GHC_EVENT_TAGS        42
 
-#if 0  /* DEPRECATED EVENTS: */
-/* we don't actually need to record the thread, it's implicit */
+
+/* DEPRECATED EVENTS: */
+/* These two are deprecated because we don't need to record the thread, it's
+   implicit. We have to keep these #defines because for tiresome reasons we
+   still need to parse them, see GHC.RTS.Events.ghc6Parsers for details. */
 #define EVENT_RUN_SPARK            5 /* (thread)               */
 #define EVENT_STEAL_SPARK          6 /* (thread, victim_cap)   */
+#if 0
 /* ghc changed how it handles sparks so these are no longer applicable */
 #define EVENT_CREATE_SPARK        13 /* (cap, thread) */
 #define EVENT_SPARK_TO_THREAD     14 /* (cap, thread, spark_thread) */

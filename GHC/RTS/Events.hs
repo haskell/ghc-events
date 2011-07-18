@@ -278,6 +278,20 @@ ghc7Parsers = [
       return MigrateThread{thread=t,newCap=fromIntegral nc}
    )),
 
+ -- Yes, EVENT_RUN/STEAL_SPARK are deprecated, but see the explanation in the
+ -- 'ghc6Parsers' section below. Since we're parsing them anyway, we might
+ -- as well convert them to the new SparkRun/SparkSteal events.
+ (FixedSizeParser EVENT_RUN_SPARK sz_tid (do  -- (thread)
+      _ <- getE :: GetEvents ThreadId
+      return SparkRun
+   )),
+
+ (FixedSizeParser EVENT_STEAL_SPARK (sz_tid + sz_cap) (do  -- (thread, victimCap)
+      _  <- getE :: GetEvents ThreadId
+      vc <- getE :: GetEvents CapNo
+      return SparkSteal{victimCap=fromIntegral vc}
+   )),
+
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_tid (do  -- (sparkThread)
       st <- getE :: GetEvents ThreadId
       return CreateSparkThread{sparkThread=st}
@@ -356,6 +370,24 @@ ghc6Parsers = [
       t  <- getE
       nc <- getE :: GetEvents CapNo
       return MigrateThread{thread=t,newCap=fromIntegral nc}
+   )),
+
+ -- Note: it is vital that these two (EVENT_RUN/STEAL_SPARK) remain here (at
+ -- least in the ghc6Parsers section) even though both events are deprecated.
+ -- The reason is that .eventlog files created by the buggy GHC-6.12
+ -- mis-declare the size of these two events. So we have to handle them
+ -- specially here otherwise we'll get the wrong size, leading to us getting
+ -- out of sync and eventual parse failure. Since we're parsing them anyway,
+ -- we might as well convert them to the new SparkRun/SparkSteal events.
+ (FixedSizeParser EVENT_RUN_SPARK sz_old_tid (do  -- (thread)
+      _ <- getE :: GetEvents ThreadId
+      return SparkRun
+   )),
+
+ (FixedSizeParser EVENT_STEAL_SPARK (sz_old_tid + sz_cap) (do  -- (thread, victimCap)
+      _  <- getE :: GetEvents ThreadId
+      vc <- getE :: GetEvents CapNo
+      return SparkSteal{victimCap=fromIntegral vc}
    )),
 
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_old_tid (do  -- (sparkThread)
