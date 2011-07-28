@@ -31,7 +31,7 @@ library
                     binary     == 0.5.*,
                     bytestring == 0.9.*,
                     array      == 0.3.*
-  exposed-modules:  GHC.RTS.Events
+  exposed-modules:  GHC.RTS.Events, GHC.RTS.Events.Sparks
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
   extensions:	    CPP
@@ -43,6 +43,9 @@ executable ghc-events-show
 executable ghc-events-merge
   main-is:          MergeGhcEvents.hs
   build-depends:    base, mtl, containers, binary, bytestring, array
+
+executable ghc-events-sparks
+  main-is:          ShowGhcSparks.hs
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
