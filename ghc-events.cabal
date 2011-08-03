@@ -37,14 +37,8 @@ library
                     GHC.RTS.EventTypes
   extensions:	    CPP
 
-executable ghc-events-show
-  main-is:          ShowGhcEvents.hs
-
-executable ghc-events-merge
-  main-is:          MergeGhcEvents.hs
-
-executable ghc-events-sparks
-  main-is:          ShowGhcSparks.hs
+executable ghc-events
+  main-is:          GhcEvents.hs
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
