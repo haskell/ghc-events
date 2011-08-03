@@ -17,6 +17,9 @@ import System.Exit
 
 main = getArgs >>= command
 
+command ["--help"] = do
+    putStr usage
+
 command ["show", file] = do
     log <- readLogOrDie file
     putStrLn $ ppEventLog log
@@ -30,6 +33,17 @@ command ["merge", out, file1, file2] = do
 command ["sparks-csv", file] = do
     EventLog _ (Data es) <- readLogOrDie file
     putStr . csvSparks . sparkInfo $ es
+
+command _ = putStr usage >> die "Unrecognized command"
+
+usage = unlines $ map pad strings
+ where
+    align = 4 + (maximum . map (length . fst) $ strings)
+    pad (x, y) = zipWith const (x ++ repeat ' ') (replicate align ()) ++ y
+    strings = [ ("ghc-events --help:", "Display this help.")
+              , ("ghc-events show <file>:", "Pretty print an event log.")
+              , ("ghc-events merge <out> <in1> <in2>:", "Merge two event logs.")
+              , ("ghc-events sparks-csv <file>:", "Print spark information in CSV.") ]
 
 readLogOrDie file = do
     e <- readEventLogFromFile file
