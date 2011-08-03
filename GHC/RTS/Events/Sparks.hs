@@ -24,18 +24,18 @@ data SparkEvalInfo = SparkEvalInfo
 sparkDuration :: SparkEvalInfo -> Timestamp
 sparkDuration sp = timeFinished sp - timeStarted sp - timeIdle sp
 
--- | Generate information about each spark evaluated.  The input must be a
--- complete event log.  
-sparkInfo :: [Event] -> [SparkEvalInfo]
-sparkInfo = catMaybes . getSparks . labelThreads . sortEvents
- where getSparks = mapAccumL_ sparkMachine Map.empty
-
 -- | A variant of mapAccumL that does not return the accumulator (more
 -- efficient).  Subject to fusion.
 mapAccumL_ :: (acc -> x -> (acc, y)) -> acc -> [x] -> [y]
 mapAccumL_ f a0 xs = build (\c n -> foldr (go c) (const n) xs a0)
  where
     go c x g a = case f a x of (a', y) -> y `c` g a'
+
+-- | Generate information about each spark evaluated.  The input must be a
+-- complete event log.
+sparkInfo :: [Event] -> [SparkEvalInfo]
+sparkInfo = catMaybes . getSparks . labelThreads . sortEvents
+ where getSparks = mapAccumL_ sparkMachine Map.empty
 
 type ExtEvent = (Timestamp, Maybe Int, Maybe ThreadId, EventInfo)
 
