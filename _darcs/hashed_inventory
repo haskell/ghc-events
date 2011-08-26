@@ -1,4 +1,4 @@
-pristine:0000000753-31bf0197281197a88ea8294cf0f3a6244662a8b3c40cc5a601d2c2641de649de
+pristine:0000000649-90c69f37afec6e843f1914826ad40800a21fc16519c9173d8e0ed03e37db83db
 Starting with inventory:
 0000001638-d0ec69870c34bc0c4b1a76d98c076b5c625420c021a995976565f70b5db77e0f
 [TAG 0.2.0.1
@@ -347,3 +347,28 @@ Duncan Coutts <duncan@well-typed.com>**20110718205627
  Ignore-this: 991c68f1972a99e17db61748a6482e5e
 ] 
 hash: 0000000214-88cdabd8870cfadffbf30cd8ff094e9924433532a93843a3979e873ba6ea1b27
+[Add spark event analyzer
+Spencer Janssen <spencer@well-typed.com>**20110728043630
+ Ignore-this: 8261ccb41c4af19c3793833dbeb0f7e3
+] 
+hash: 0000005392-0a2801f096cf51a6eedb6434b3611be5506baa3dab46b48d0cc089070cc35ce5
+[Cleanup
+Spencer Janssen <spencer@well-typed.com>**20110803153635
+ Ignore-this: 69f6315c16ea176cd0f768a57e473204
+] 
+hash: 0000000706-dc0ee6c2a33f8125ba872dfb7f8d36ba702fc82e50b7e82a7c978d7141b9079f
+[Factor eventlog merging into GHC.RTS.Events.Merge module
+Spencer Janssen <spencer@well-typed.com>**20110803160037
+ Ignore-this: fcaf24d638d0a2e4beebb155d7253257
+] 
+hash: 0000003859-b01fe618220cd2c5d047a13436aa96300445418e83a9bb14195f6115cd6c00a6
+[Merge tools into one executable
+Spencer Janssen <spencer@well-typed.com>**20110803160747
+ Ignore-this: 4010274e967b026a03595711d4c7f07a
+] 
+hash: 0000003111-e958fb3463c8d63fb935920c4831c0d72fe86a6619a0ea3ab43f20fedb5349a2
+[GhcEvents.hs: add usage information
+Spencer Janssen <spencer@well-typed.com>**20110803162652
+ Ignore-this: 1b79703ba191ee8fead3192713c4fde7
+] 
+hash: 0000000777-f9854b4de22634dc18d755263da5f4acf888581f9a3a4d9a478ea96e2eb113dc
