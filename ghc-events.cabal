@@ -1,0 +1,46 @@
+name:             ghc-events
+version:          0.3
+synopsis:         Library and tool for parsing .eventlog files from GHC
+description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
+                  Includes the show-ghc-events tool to dump an event
+                  log file as text.
+category:         Development, GHC, Debug, Profiling, Trace
+license:          BSD3
+license-file:     LICENSE
+author:           Donnie Jones <donnie@darthik.com>, 
+                  Simon Marlow <marlowsd@gmail.com>,
+                  Paul Bone <pbone@csse.unimelb.edu.au>,
+                  Duncan Coutts <duncan@well-typed.com>
+maintainer:       Simon Marlow <marlowsd@gmail.com>
+build-type:       Simple
+tested-with:      GHC == 6.10.2, GHC == 6.11.20090221
+cabal-version:    >= 1.6
+extra-source-files: GHC/RTS/EventLogFormat.h,
+                    AUTHORS,
+                    test/*.eventlog
+
+source-repository head
+  type: darcs
+  location: http://code.haskell.org/ghc-events/
+
+library
+  build-depends:    base       == 4.*,
+                    mtl        >= 1.1 && < 2.1,
+                    containers >= 0.2 && < 0.5,
+                    binary     == 0.5.*,
+                    bytestring == 0.9.*,
+                    array      == 0.3.*
+  exposed-modules:  GHC.RTS.Events
+  other-modules:    GHC.RTS.EventParserUtils,
+                    GHC.RTS.EventTypes
+  extensions:	    CPP
+
+executable ghc-events-show
+  main-is:          ShowGhcEvents.hs
+
+executable ghc-events-merge
+  main-is:          MergeGhcEvents.hs
+
+test-suite test-versions
+  type:             exitcode-stdio-1.0
+  main-is:          test/TestVersions.hs
