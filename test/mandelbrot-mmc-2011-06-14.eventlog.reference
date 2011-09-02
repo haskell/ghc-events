@@ -38,10 +38,10 @@ Events:
         0: created capset 0 of type CapsetOsProcess
         0: capset 0: RTS version mmc-DEV
         0: startup: 4 capabilities
-        0: Register string: STATE_VARIABLE_Acc_19 with id 0
-        0: Register string: predicate `mandelbrot.map_foldl'/5 mode 0: s2-2;c2;q;c3; with id 1
-        0: Register string: predicate `mandelbrot.my_map'/3 mode 0: s2-2;c2; with id 2
-        0: Register string: predicate `mandelbrot.Parallel__pred__map_foldl__[7]_0'/5 mode 0: s2-2;c4; with id 3
+        0: Register an id->string mapping
+        0: Register an id->string mapping
+        0: Register an id->string mapping
+        0: Register an id->string mapping
         0: assigned cap 0 to capset 0
         0: assigned cap 3 to capset 0
         0: assigned cap 1 to capset 0
@@ -54,7 +54,7 @@ Events:
  10577452: cap 1: Trying to steal a spark
  10694043: cap 2: Looking for global thread to resume
  10694551: cap 2: Trying to steal a spark
- 10852245: cap 0: About to call main/2
+ 10852245: cap 0: spark fizzled
  11153997: cap 0: Start a parallel conjunction 0x2515150, static_id: 2
  11155725: cap 0: Create spark for conjunction: 0x2515150 spark: 0x0
  11165265: cap 0: Start a parallel conjunction 0x25151b0, static_id: 2
@@ -74,8 +74,8 @@ Events:
  11175610: cap 0: Create spark for conjunction: 0x25153f0 spark: 0x7
  11175853: cap 3: Trying to steal a spark
  11175885: cap 0: Start a parallel conjunction 0x2515450, static_id: 2
- 11177316: cap 2: thread 4294967295 stealing a spark from cap 0
- 11178108: cap 3: thread 4294967295 stealing a spark from cap 0
+ 11177316: cap 2: stealing a spark from cap 0
+ 11178108: cap 3: stealing a spark from cap 0
  11198002: cap 0: Create spark for conjunction: 0x2515450 spark: 0x8
  11198394: cap 0: Start a parallel conjunction 0x25154b0, static_id: 2
  11198601: cap 0: Create spark for conjunction: 0x25154b0 spark: 0x9
@@ -1087,7 +1087,7 @@ Events:
  11580588: cap 0: Create spark for conjunction: 0x2521150 spark: 0x200
  11580772: cap 0: Start a parallel conjunction 0x25211b0, static_id: 2
  11625201: cap 1: Trying to steal a spark
- 11626915: cap 1: thread 4294967295 stealing a spark from cap 0
+ 11626915: cap 1: stealing a spark from cap 0
  11631217: cap 0: Create spark for conjunction: 0x25211b0 spark: 0x201
  11631456: cap 0: Start a parallel conjunction 0x2521210, static_id: 2
  11631586: cap 0: Create spark for conjunction: 0x2521210 spark: 0x202
@@ -1662,7 +1662,7 @@ Events:
  11725285: cap 0: Start a parallel conjunction 0x2527cf0, static_id: 2
  11725425: cap 0: Create spark for conjunction: 0x2527cf0 spark: 0x31f
  11728597: cap 0: End par conjunct: 0x2527cf0
- 11730312: cap 0: running a local spark (thread 1)
+ 11730312: cap 0: running a local spark
  12148717: cap 3: creating spark thread 3
  12149284: cap 3: running thread 3
  12335386: cap 2: creating spark thread 2
@@ -1671,16 +1671,16 @@ Events:
  12610075: cap 1: running thread 4
  12877888: cap 3: End par conjunct: 0x25151b0
  12878455: cap 3: Trying to steal a spark
- 12879013: cap 3: thread 3 stealing a spark from cap 0
+ 12879013: cap 3: stealing a spark from cap 0
  13341195: cap 2: End par conjunct: 0x2515150
  13342090: cap 2: Trying to steal a spark
- 13343094: cap 2: thread 2 stealing a spark from cap 0
+ 13343094: cap 2: stealing a spark from cap 0
  13501534: cap 3: End par conjunct: 0x2515270
  13501827: cap 3: Trying to steal a spark
- 13502322: cap 3: thread 3 stealing a spark from cap 0
+ 13502322: cap 3: stealing a spark from cap 0
  13596930: cap 1: End par conjunct: 0x2515210
  13597681: cap 1: Trying to steal a spark
- 13598401: cap 1: thread 4 stealing a spark from cap 0
+ 13598401: cap 1: stealing a spark from cap 0
  14083335: cap 1: stopping thread 4 (heap overflow)
  14083542: cap 1: starting GC
  14136727: cap 0: stopping thread 1 (thread yielding)
@@ -1693,791 +1693,791 @@ Events:
  23783292: cap 1: running thread 4
  24076197: cap 2: End par conjunct: 0x25152d0
  24078132: cap 2: Trying to steal a spark
- 24079986: cap 2: thread 2 stealing a spark from cap 0
+ 24079986: cap 2: stealing a spark from cap 0
  24232905: cap 3: End par conjunct: 0x2515330
  24233566: cap 3: Trying to steal a spark
- 24234601: cap 3: thread 3 stealing a spark from cap 0
+ 24234601: cap 3: stealing a spark from cap 0
  24254811: cap 1: End par conjunct: 0x2515390
  24255621: cap 1: Trying to steal a spark
- 24256161: cap 1: thread 4 stealing a spark from cap 0
+ 24256161: cap 1: stealing a spark from cap 0
  24726721: cap 2: End par conjunct: 0x25153f0
  24726996: cap 2: Trying to steal a spark
- 24727351: cap 2: thread 2 stealing a spark from cap 0
+ 24727351: cap 2: stealing a spark from cap 0
  24884374: cap 1: End par conjunct: 0x25154b0
  24884775: cap 1: Trying to steal a spark
- 24884995: cap 1: thread 4 stealing a spark from cap 0
+ 24884995: cap 1: stealing a spark from cap 0
  25181676: cap 3: End par conjunct: 0x2515450
  25182256: cap 3: Trying to steal a spark
- 25182837: cap 3: thread 3 stealing a spark from cap 0
+ 25182837: cap 3: stealing a spark from cap 0
  25332556: cap 2: End par conjunct: 0x2515510
  25332939: cap 2: Trying to steal a spark
- 25333330: cap 2: thread 2 stealing a spark from cap 0
+ 25333330: cap 2: stealing a spark from cap 0
  25496014: cap 1: End par conjunct: 0x2515570
  25496253: cap 1: Trying to steal a spark
- 25496473: cap 1: thread 4 stealing a spark from cap 0
+ 25496473: cap 1: stealing a spark from cap 0
  25927915: cap 2: End par conjunct: 0x2515630
  25928122: cap 2: Trying to steal a spark
- 25928334: cap 2: thread 2 stealing a spark from cap 0
+ 25928334: cap 2: stealing a spark from cap 0
  26084745: cap 3: End par conjunct: 0x25155d0
  26085249: cap 3: Trying to steal a spark
- 26085843: cap 3: thread 3 stealing a spark from cap 0
+ 26085843: cap 3: stealing a spark from cap 0
  26090298: cap 1: End par conjunct: 0x2515690
  26090689: cap 1: Trying to steal a spark
- 26091085: cap 1: thread 4 stealing a spark from cap 0
+ 26091085: cap 1: stealing a spark from cap 0
  26536383: cap 2: End par conjunct: 0x25156f0
  26536603: cap 2: Trying to steal a spark
- 26536914: cap 2: thread 2 stealing a spark from cap 0
+ 26536914: cap 2: stealing a spark from cap 0
  26692762: cap 1: End par conjunct: 0x25157b0
  26692992: cap 1: Trying to steal a spark
- 26693203: cap 1: thread 4 stealing a spark from cap 0
+ 26693203: cap 1: stealing a spark from cap 0
  26979043: cap 3: End par conjunct: 0x2515750
  26979642: cap 3: Trying to steal a spark
- 26980258: cap 3: thread 3 stealing a spark from cap 0
+ 26980258: cap 3: stealing a spark from cap 0
  27137002: cap 2: End par conjunct: 0x2515810
  27137416: cap 2: Trying to steal a spark
- 27137952: cap 2: thread 2 stealing a spark from cap 0
+ 27137952: cap 2: stealing a spark from cap 0
  27307827: cap 1: End par conjunct: 0x2515870
  27308056: cap 1: Trying to steal a spark
- 27308272: cap 1: thread 4 stealing a spark from cap 0
+ 27308272: cap 1: stealing a spark from cap 0
  27746244: cap 2: End par conjunct: 0x2515930
  27746469: cap 2: Trying to steal a spark
- 27746680: cap 2: thread 2 stealing a spark from cap 0
+ 27746680: cap 2: stealing a spark from cap 0
  27876528: cap 3: End par conjunct: 0x25158d0
  27877045: cap 3: Trying to steal a spark
- 27877761: cap 3: thread 3 stealing a spark from cap 0
+ 27877761: cap 3: stealing a spark from cap 0
  27921861: cap 1: End par conjunct: 0x2515990
  27922432: cap 1: Trying to steal a spark
- 27922869: cap 1: thread 4 stealing a spark from cap 0
+ 27922869: cap 1: stealing a spark from cap 0
  28351957: cap 2: End par conjunct: 0x25159f0
  28352187: cap 2: Trying to steal a spark
- 28352407: cap 2: thread 2 stealing a spark from cap 0
+ 28352407: cap 2: stealing a spark from cap 0
  28533199: cap 1: End par conjunct: 0x2515ab0
  28533424: cap 1: Trying to steal a spark
- 28533631: cap 1: thread 4 stealing a spark from cap 0
+ 28533631: cap 1: stealing a spark from cap 0
  28780488: cap 3: End par conjunct: 0x2515a50
  28780996: cap 3: Trying to steal a spark
- 28781604: cap 3: thread 3 stealing a spark from cap 0
+ 28781604: cap 3: stealing a spark from cap 0
  28984594: cap 2: End par conjunct: 0x2515b10
  28985049: cap 2: Trying to steal a spark
- 28985485: cap 2: thread 2 stealing a spark from cap 0
+ 28985485: cap 2: stealing a spark from cap 0
  29173518: cap 1: End par conjunct: 0x2515b70
  29173806: cap 1: Trying to steal a spark
- 29174062: cap 1: thread 4 stealing a spark from cap 0
+ 29174062: cap 1: stealing a spark from cap 0
  29588274: cap 2: End par conjunct: 0x2515c30
  29588494: cap 2: Trying to steal a spark
- 29588706: cap 2: thread 2 stealing a spark from cap 0
+ 29588706: cap 2: stealing a spark from cap 0
  29705886: cap 3: End par conjunct: 0x2515bd0
  29706475: cap 3: Trying to steal a spark
- 29707047: cap 3: thread 3 stealing a spark from cap 0
+ 29707047: cap 3: stealing a spark from cap 0
  29788911: cap 1: End par conjunct: 0x2515c90
  29789302: cap 1: Trying to steal a spark
- 29789694: cap 1: thread 4 stealing a spark from cap 0
+ 29789694: cap 1: stealing a spark from cap 0
  30185464: cap 2: End par conjunct: 0x2515cf0
  30185671: cap 2: Trying to steal a spark
- 30185982: cap 2: thread 2 stealing a spark from cap 0
+ 30185982: cap 2: stealing a spark from cap 0
  30392149: cap 1: End par conjunct: 0x2515db0
  30392374: cap 1: Trying to steal a spark
- 30392590: cap 1: thread 4 stealing a spark from cap 0
+ 30392590: cap 1: stealing a spark from cap 0
  30611209: cap 3: End par conjunct: 0x2515d50
  30611916: cap 3: Trying to steal a spark
- 30612640: cap 3: thread 3 stealing a spark from cap 0
+ 30612640: cap 3: stealing a spark from cap 0
  30809916: cap 2: End par conjunct: 0x2515e10
  30810312: cap 2: Trying to steal a spark
- 30810712: cap 2: thread 2 stealing a spark from cap 0
+ 30810712: cap 2: stealing a spark from cap 0
  31008384: cap 1: End par conjunct: 0x2515e70
  31008600: cap 1: Trying to steal a spark
- 31008901: cap 1: thread 4 stealing a spark from cap 0
+ 31008901: cap 1: stealing a spark from cap 0
  31420368: cap 2: End par conjunct: 0x2515f30
  31420593: cap 2: Trying to steal a spark
- 31420809: cap 2: thread 2 stealing a spark from cap 0
+ 31420809: cap 2: stealing a spark from cap 0
  31533394: cap 3: End par conjunct: 0x2515ed0
  31533984: cap 3: Trying to steal a spark
- 31534591: cap 3: thread 3 stealing a spark from cap 0
+ 31534591: cap 3: stealing a spark from cap 0
  31615168: cap 1: End par conjunct: 0x2515f90
  31615596: cap 1: Trying to steal a spark
- 31615992: cap 1: thread 4 stealing a spark from cap 0
+ 31615992: cap 1: stealing a spark from cap 0
  32033641: cap 2: End par conjunct: 0x2515ff0
  32033866: cap 2: Trying to steal a spark
- 32034177: cap 2: thread 2 stealing a spark from cap 0
+ 32034177: cap 2: stealing a spark from cap 0
  32268591: cap 1: End par conjunct: 0x25160b0
  32268874: cap 1: Trying to steal a spark
- 32269131: cap 1: thread 4 stealing a spark from cap 0
+ 32269131: cap 1: stealing a spark from cap 0
  32468868: cap 3: End par conjunct: 0x2516050
  32469426: cap 3: Trying to steal a spark
- 32470078: cap 3: thread 3 stealing a spark from cap 0
+ 32470078: cap 3: stealing a spark from cap 0
  32677348: cap 2: End par conjunct: 0x2516110
  32677776: cap 2: Trying to steal a spark
- 32678208: cap 2: thread 2 stealing a spark from cap 0
+ 32678208: cap 2: stealing a spark from cap 0
  32876379: cap 1: End par conjunct: 0x2516170
  32876590: cap 1: Trying to steal a spark
- 32876811: cap 1: thread 4 stealing a spark from cap 0
+ 32876811: cap 1: stealing a spark from cap 0
  33304153: cap 2: End par conjunct: 0x2516230
  33304374: cap 2: Trying to steal a spark
- 33304684: cap 2: thread 2 stealing a spark from cap 0
+ 33304684: cap 2: stealing a spark from cap 0
  33398968: cap 3: End par conjunct: 0x25161d0
  33399441: cap 3: Trying to steal a spark
- 33399936: cap 3: thread 3 stealing a spark from cap 0
+ 33399936: cap 3: stealing a spark from cap 0
  33498414: cap 1: End par conjunct: 0x2516290
  33498900: cap 1: Trying to steal a spark
- 33499372: cap 1: thread 4 stealing a spark from cap 0
+ 33499372: cap 1: stealing a spark from cap 0
  33926773: cap 2: End par conjunct: 0x25162f0
  33927003: cap 2: Trying to steal a spark
- 33927219: cap 2: thread 2 stealing a spark from cap 0
+ 33927219: cap 2: stealing a spark from cap 0
  34125759: cap 1: End par conjunct: 0x25163b0
  34125984: cap 1: Trying to steal a spark
- 34126200: cap 1: thread 4 stealing a spark from cap 0
+ 34126200: cap 1: stealing a spark from cap 0
  34343518: cap 3: End par conjunct: 0x2516350
  34344018: cap 3: Trying to steal a spark
- 34344841: cap 3: thread 3 stealing a spark from cap 0
+ 34344841: cap 3: stealing a spark from cap 0
  34555158: cap 2: End par conjunct: 0x2516410
  34555585: cap 2: Trying to steal a spark
- 34555999: cap 2: thread 2 stealing a spark from cap 0
+ 34555999: cap 2: stealing a spark from cap 0
  34755426: cap 1: End par conjunct: 0x2516470
  34755651: cap 1: Trying to steal a spark
- 34755885: cap 1: thread 4 stealing a spark from cap 0
+ 34755885: cap 1: stealing a spark from cap 0
  35181679: cap 2: End par conjunct: 0x2516530
  35181904: cap 2: Trying to steal a spark
- 35182219: cap 2: thread 2 stealing a spark from cap 0
+ 35182219: cap 2: stealing a spark from cap 0
  35299462: cap 3: End par conjunct: 0x25164d0
  35300011: cap 3: Trying to steal a spark
- 35300614: cap 3: thread 3 stealing a spark from cap 0
+ 35300614: cap 3: stealing a spark from cap 0
  35403894: cap 1: End par conjunct: 0x2516590
  35404425: cap 1: Trying to steal a spark
- 35404992: cap 1: thread 4 stealing a spark from cap 0
+ 35404992: cap 1: stealing a spark from cap 0
  35817421: cap 2: End par conjunct: 0x25165f0
  35817651: cap 2: Trying to steal a spark
- 35817867: cap 2: thread 2 stealing a spark from cap 0
+ 35817867: cap 2: stealing a spark from cap 0
  36025614: cap 1: End par conjunct: 0x25166b0
  36025843: cap 1: Trying to steal a spark
- 36026055: cap 1: thread 4 stealing a spark from cap 0
+ 36026055: cap 1: stealing a spark from cap 0
  36222511: cap 3: End par conjunct: 0x2516650
  36223024: cap 3: Trying to steal a spark
- 36223618: cap 3: thread 3 stealing a spark from cap 0
+ 36223618: cap 3: stealing a spark from cap 0
  36455044: cap 2: End par conjunct: 0x2516710
  36455602: cap 2: Trying to steal a spark
- 36456102: cap 2: thread 2 stealing a spark from cap 0
+ 36456102: cap 2: stealing a spark from cap 0
  36668988: cap 1: End par conjunct: 0x2516770
  36669204: cap 1: Trying to steal a spark
- 36669415: cap 1: thread 4 stealing a spark from cap 0
+ 36669415: cap 1: stealing a spark from cap 0
  37113880: cap 2: End par conjunct: 0x2516830
  37114330: cap 2: Trying to steal a spark
- 37114650: cap 2: thread 2 stealing a spark from cap 0
+ 37114650: cap 2: stealing a spark from cap 0
  37175854: cap 3: End par conjunct: 0x25167d0
  37176363: cap 3: Trying to steal a spark
- 37176957: cap 3: thread 3 stealing a spark from cap 0
+ 37176957: cap 3: stealing a spark from cap 0
  37328764: cap 1: End par conjunct: 0x2516890
  37329291: cap 1: Trying to steal a spark
- 37329781: cap 1: thread 4 stealing a spark from cap 0
+ 37329781: cap 1: stealing a spark from cap 0
  37769184: cap 2: End par conjunct: 0x25168f0
  37769454: cap 2: Trying to steal a spark
- 37769818: cap 2: thread 2 stealing a spark from cap 0
+ 37769818: cap 2: stealing a spark from cap 0
  37969281: cap 1: End par conjunct: 0x25169b0
  37969506: cap 1: Trying to steal a spark
- 37969722: cap 1: thread 4 stealing a spark from cap 0
+ 37969722: cap 1: stealing a spark from cap 0
  38118726: cap 3: End par conjunct: 0x2516950
  38119275: cap 3: Trying to steal a spark
- 38119873: cap 3: thread 3 stealing a spark from cap 0
+ 38119873: cap 3: stealing a spark from cap 0
  38409223: cap 2: End par conjunct: 0x2516a10
  38409628: cap 2: Trying to steal a spark
- 38410029: cap 2: thread 2 stealing a spark from cap 0
+ 38410029: cap 2: stealing a spark from cap 0
  38624274: cap 1: End par conjunct: 0x2516a70
  38624539: cap 1: Trying to steal a spark
- 38624760: cap 1: thread 4 stealing a spark from cap 0
+ 38624760: cap 1: stealing a spark from cap 0
  39093678: cap 2: End par conjunct: 0x2516b30
  39093957: cap 2: Trying to steal a spark
- 39094204: cap 2: thread 2 stealing a spark from cap 0
+ 39094204: cap 2: stealing a spark from cap 0
  39133138: cap 3: End par conjunct: 0x2516ad0
  39133723: cap 3: Trying to steal a spark
- 39134574: cap 3: thread 3 stealing a spark from cap 0
+ 39134574: cap 3: stealing a spark from cap 0
  39276504: cap 1: End par conjunct: 0x2516b90
  39276913: cap 1: Trying to steal a spark
- 39277332: cap 1: thread 4 stealing a spark from cap 0
+ 39277332: cap 1: stealing a spark from cap 0
  39746497: cap 2: End par conjunct: 0x2516bf0
  39746718: cap 2: Trying to steal a spark
- 39746938: cap 2: thread 2 stealing a spark from cap 0
+ 39746938: cap 2: stealing a spark from cap 0
  39951765: cap 1: End par conjunct: 0x2516cb0
  39952062: cap 1: Trying to steal a spark
- 39952341: cap 1: thread 4 stealing a spark from cap 0
+ 39952341: cap 1: stealing a spark from cap 0
  40113454: cap 3: End par conjunct: 0x2516c50
  40113999: cap 3: Trying to steal a spark
- 40114507: cap 3: thread 3 stealing a spark from cap 0
+ 40114507: cap 3: stealing a spark from cap 0
  40408366: cap 2: End par conjunct: 0x2516d10
  40408816: cap 2: Trying to steal a spark
- 40409239: cap 2: thread 2 stealing a spark from cap 0
+ 40409239: cap 2: stealing a spark from cap 0
  40619043: cap 1: End par conjunct: 0x2516d70
  40619268: cap 1: Trying to steal a spark
- 40619488: cap 1: thread 4 stealing a spark from cap 0
+ 40619488: cap 1: stealing a spark from cap 0
  41067765: cap 2: End par conjunct: 0x2516e30
  41068017: cap 2: Trying to steal a spark
- 41068260: cap 2: thread 2 stealing a spark from cap 0
+ 41068260: cap 2: stealing a spark from cap 0
  41114754: cap 3: End par conjunct: 0x2516dd0
  41115456: cap 3: Trying to steal a spark
- 41116095: cap 3: thread 3 stealing a spark from cap 0
+ 41116095: cap 3: stealing a spark from cap 0
  41283873: cap 1: End par conjunct: 0x2516e90
  41284156: cap 1: Trying to steal a spark
- 41284548: cap 1: thread 4 stealing a spark from cap 0
+ 41284548: cap 1: stealing a spark from cap 0
  41730048: cap 2: End par conjunct: 0x2516ef0
  41730273: cap 2: Trying to steal a spark
- 41730583: cap 2: thread 2 stealing a spark from cap 0
+ 41730583: cap 2: stealing a spark from cap 0
  41952546: cap 1: End par conjunct: 0x2516fb0
  41952771: cap 1: Trying to steal a spark
- 41952982: cap 1: thread 4 stealing a spark from cap 0
+ 41952982: cap 1: stealing a spark from cap 0
  42100420: cap 3: End par conjunct: 0x2516f50
  42100924: cap 3: Trying to steal a spark
- 42101577: cap 3: thread 3 stealing a spark from cap 0
+ 42101577: cap 3: stealing a spark from cap 0
  42400962: cap 2: End par conjunct: 0x2517010
  42401286: cap 2: Trying to steal a spark
- 42401709: cap 2: thread 2 stealing a spark from cap 0
+ 42401709: cap 2: stealing a spark from cap 0
  42633526: cap 1: End par conjunct: 0x2517070
  42633801: cap 1: Trying to steal a spark
- 42634035: cap 1: thread 4 stealing a spark from cap 0
+ 42634035: cap 1: stealing a spark from cap 0
  43071579: cap 2: End par conjunct: 0x2517130
  43071804: cap 2: Trying to steal a spark
- 43072141: cap 2: thread 2 stealing a spark from cap 0
+ 43072141: cap 2: stealing a spark from cap 0
  43098408: cap 3: End par conjunct: 0x25170d0
  43099047: cap 3: Trying to steal a spark
- 43099650: cap 3: thread 3 stealing a spark from cap 0
+ 43099650: cap 3: stealing a spark from cap 0
  43299085: cap 1: End par conjunct: 0x2517190
  43299540: cap 1: Trying to steal a spark
- 43299994: cap 1: thread 4 stealing a spark from cap 0
+ 43299994: cap 1: stealing a spark from cap 0
  43749342: cap 2: End par conjunct: 0x25171f0
  43749675: cap 2: Trying to steal a spark
- 43749981: cap 2: thread 2 stealing a spark from cap 0
+ 43749981: cap 2: stealing a spark from cap 0
  43987482: cap 1: End par conjunct: 0x25172b0
  43987711: cap 1: Trying to steal a spark
- 43987927: cap 1: thread 4 stealing a spark from cap 0
+ 43987927: cap 1: stealing a spark from cap 0
  44106511: cap 3: End par conjunct: 0x2517250
  44107020: cap 3: Trying to steal a spark
- 44107524: cap 3: thread 3 stealing a spark from cap 0
+ 44107524: cap 3: stealing a spark from cap 0
  44435862: cap 2: End par conjunct: 0x2517310
  44436258: cap 2: Trying to steal a spark
- 44436654: cap 2: thread 2 stealing a spark from cap 0
+ 44436654: cap 2: stealing a spark from cap 0
  44685877: cap 1: End par conjunct: 0x2517370
  44686093: cap 1: Trying to steal a spark
- 44686305: cap 1: thread 4 stealing a spark from cap 0
+ 44686305: cap 1: stealing a spark from cap 0
  45133911: cap 2: End par conjunct: 0x2517430
  45134136: cap 2: Trying to steal a spark
- 45134446: cap 2: thread 2 stealing a spark from cap 0
+ 45134446: cap 2: stealing a spark from cap 0
  45154615: cap 3: End par conjunct: 0x25173d0
  45155164: cap 3: Trying to steal a spark
- 45155763: cap 3: thread 3 stealing a spark from cap 0
+ 45155763: cap 3: stealing a spark from cap 0
  45397935: cap 1: End par conjunct: 0x2517490
  45398326: cap 1: Trying to steal a spark
- 45398718: cap 1: thread 4 stealing a spark from cap 0
+ 45398718: cap 1: stealing a spark from cap 0
  45836001: cap 2: End par conjunct: 0x25174f0
  45836226: cap 2: Trying to steal a spark
- 45836541: cap 2: thread 2 stealing a spark from cap 0
+ 45836541: cap 2: stealing a spark from cap 0
  46110154: cap 1: End par conjunct: 0x25175b0
  46110379: cap 1: Trying to steal a spark
- 46110595: cap 1: thread 4 stealing a spark from cap 0
+ 46110595: cap 1: stealing a spark from cap 0
  46221808: cap 3: End par conjunct: 0x2517550
  46222308: cap 3: Trying to steal a spark
- 46222902: cap 3: thread 3 stealing a spark from cap 0
+ 46222902: cap 3: stealing a spark from cap 0
  46588792: cap 2: End par conjunct: 0x2517610
  46589211: cap 2: Trying to steal a spark
- 46589625: cap 2: thread 2 stealing a spark from cap 0
+ 46589625: cap 2: stealing a spark from cap 0
  46844860: cap 1: End par conjunct: 0x2517670
  46845072: cap 1: Trying to steal a spark
- 46845288: cap 1: thread 4 stealing a spark from cap 0
+ 46845288: cap 1: stealing a spark from cap 0
  47312941: cap 2: End par conjunct: 0x2517730
  47313166: cap 2: Trying to steal a spark
- 47313477: cap 2: thread 2 stealing a spark from cap 0
+ 47313477: cap 2: stealing a spark from cap 0
  47330820: cap 3: End par conjunct: 0x25176d0
  47331400: cap 3: Trying to steal a spark
- 47332035: cap 3: thread 3 stealing a spark from cap 0
+ 47332035: cap 3: stealing a spark from cap 0
  47604280: cap 1: End par conjunct: 0x2517790
  47604735: cap 1: Trying to steal a spark
- 47605203: cap 1: thread 4 stealing a spark from cap 0
+ 47605203: cap 1: stealing a spark from cap 0
  48060094: cap 2: End par conjunct: 0x25177f0
  48060297: cap 2: Trying to steal a spark
- 48060603: cap 2: thread 2 stealing a spark from cap 0
+ 48060603: cap 2: stealing a spark from cap 0
  48358003: cap 1: End par conjunct: 0x25178b0
  48358228: cap 1: Trying to steal a spark
- 48358458: cap 1: thread 4 stealing a spark from cap 0
+ 48358458: cap 1: stealing a spark from cap 0
  48437491: cap 3: End par conjunct: 0x2517850
  48437964: cap 3: Trying to steal a spark
- 48438558: cap 3: thread 3 stealing a spark from cap 0
+ 48438558: cap 3: stealing a spark from cap 0
  48805825: cap 2: End par conjunct: 0x2517910
  48806239: cap 2: Trying to steal a spark
- 48806824: cap 2: thread 2 stealing a spark from cap 0
+ 48806824: cap 2: stealing a spark from cap 0
  49100440: cap 1: End par conjunct: 0x2517970
  49100665: cap 1: Trying to steal a spark
- 49100886: cap 1: thread 4 stealing a spark from cap 0
+ 49100886: cap 1: stealing a spark from cap 0
  49579861: cap 3: End par conjunct: 0x25179d0
  49580419: cap 3: Trying to steal a spark
- 49581022: cap 3: thread 3 stealing a spark from cap 0
+ 49581022: cap 3: stealing a spark from cap 0
  49636854: cap 2: End par conjunct: 0x2517a30
  49637754: cap 2: Trying to steal a spark
- 49638730: cap 2: thread 2 stealing a spark from cap 0
+ 49638730: cap 2: stealing a spark from cap 0
  49870381: cap 1: End par conjunct: 0x2517a90
  49870705: cap 1: Trying to steal a spark
- 49870917: cap 1: thread 4 stealing a spark from cap 0
+ 49870917: cap 1: stealing a spark from cap 0
  50426550: cap 2: End par conjunct: 0x2517b50
  50426932: cap 2: Trying to steal a spark
- 50427261: cap 2: thread 2 stealing a spark from cap 0
+ 50427261: cap 2: stealing a spark from cap 0
  50665230: cap 1: End par conjunct: 0x2517bb0
  50665441: cap 1: Trying to steal a spark
- 50665653: cap 1: thread 4 stealing a spark from cap 0
+ 50665653: cap 1: stealing a spark from cap 0
  50830560: cap 3: End par conjunct: 0x2517af0
  50831068: cap 3: Trying to steal a spark
- 50831662: cap 3: thread 3 stealing a spark from cap 0
+ 50831662: cap 3: stealing a spark from cap 0
  51224148: cap 2: End par conjunct: 0x2517c10
  51224454: cap 2: Trying to steal a spark
- 51225012: cap 2: thread 2 stealing a spark from cap 0
+ 51225012: cap 2: stealing a spark from cap 0
  51483465: cap 1: End par conjunct: 0x2517c70
  51483685: cap 1: Trying to steal a spark
- 51483906: cap 1: thread 4 stealing a spark from cap 0
+ 51483906: cap 1: stealing a spark from cap 0
  52064626: cap 3: End par conjunct: 0x2517cd0
  52065135: cap 3: Trying to steal a spark
- 52065729: cap 3: thread 3 stealing a spark from cap 0
+ 52065729: cap 3: stealing a spark from cap 0
  52247997: cap 2: End par conjunct: 0x2517d30
  52248433: cap 2: Trying to steal a spark
- 52248924: cap 2: thread 2 stealing a spark from cap 0
+ 52248924: cap 2: stealing a spark from cap 0
  52314489: cap 1: End par conjunct: 0x2517d90
  52314921: cap 1: Trying to steal a spark
- 52315168: cap 1: thread 4 stealing a spark from cap 0
+ 52315168: cap 1: stealing a spark from cap 0
  53089573: cap 2: End par conjunct: 0x2517e50
  53089983: cap 2: Trying to steal a spark
- 53090334: cap 2: thread 2 stealing a spark from cap 0
+ 53090334: cap 2: stealing a spark from cap 0
  53148744: cap 1: End par conjunct: 0x2517eb0
  53148991: cap 1: Trying to steal a spark
- 53149203: cap 1: thread 4 stealing a spark from cap 0
+ 53149203: cap 1: stealing a spark from cap 0
  53306419: cap 3: End par conjunct: 0x2517df0
  53306928: cap 3: Trying to steal a spark
- 53307544: cap 3: thread 3 stealing a spark from cap 0
+ 53307544: cap 3: stealing a spark from cap 0
  53907304: cap 2: End par conjunct: 0x2517f10
  53907579: cap 2: Trying to steal a spark
- 53907961: cap 2: thread 2 stealing a spark from cap 0
+ 53907961: cap 2: stealing a spark from cap 0
  54013536: cap 1: End par conjunct: 0x2517f70
  54013806: cap 1: Trying to steal a spark
- 54014022: cap 1: thread 4 stealing a spark from cap 0
+ 54014022: cap 1: stealing a spark from cap 0
  54337927: cap 3: End par conjunct: 0x2517fd0
  54338431: cap 3: Trying to steal a spark
- 54338931: cap 3: thread 3 stealing a spark from cap 0
+ 54338931: cap 3: stealing a spark from cap 0
  54762241: cap 2: End par conjunct: 0x2518030
  54762664: cap 2: Trying to steal a spark
- 54763177: cap 2: thread 2 stealing a spark from cap 0
+ 54763177: cap 2: stealing a spark from cap 0
  54909072: cap 1: End par conjunct: 0x2518090
  54909450: cap 1: Trying to steal a spark
- 54909684: cap 1: thread 4 stealing a spark from cap 0
+ 54909684: cap 1: stealing a spark from cap 0
  55878903: cap 2: End par conjunct: 0x2518150
  55879249: cap 2: Trying to steal a spark
- 55879465: cap 2: thread 2 stealing a spark from cap 0
+ 55879465: cap 2: stealing a spark from cap 0
  55923277: cap 3: End par conjunct: 0x25180f0
  55923610: cap 3: Trying to steal a spark
- 55924101: cap 3: thread 3 stealing a spark from cap 0
+ 55924101: cap 3: stealing a spark from cap 0
  56954371: cap 1: End par conjunct: 0x25181b0
  56954632: cap 1: Trying to steal a spark
- 56955096: cap 1: thread 4 stealing a spark from cap 0
+ 56955096: cap 1: stealing a spark from cap 0
  58131936: cap 2: End par conjunct: 0x2518210
  58132260: cap 2: Trying to steal a spark
- 58132476: cap 2: thread 2 stealing a spark from cap 0
+ 58132476: cap 2: stealing a spark from cap 0
  58232556: cap 3: End par conjunct: 0x2518270
  58232889: cap 3: Trying to steal a spark
- 58233262: cap 3: thread 3 stealing a spark from cap 0
+ 58233262: cap 3: stealing a spark from cap 0
  59230395: cap 1: End par conjunct: 0x25182d0
  59231034: cap 1: Trying to steal a spark
- 59231439: cap 1: thread 4 stealing a spark from cap 0
+ 59231439: cap 1: stealing a spark from cap 0
  59402803: cap 3: End par conjunct: 0x2518390
  59403244: cap 3: Trying to steal a spark
- 59403739: cap 3: thread 3 stealing a spark from cap 0
+ 59403739: cap 3: stealing a spark from cap 0
  59775511: cap 2: End par conjunct: 0x2518330
  59775781: cap 2: Trying to steal a spark
- 59776168: cap 2: thread 2 stealing a spark from cap 0
+ 59776168: cap 2: stealing a spark from cap 0
  60382269: cap 3: End par conjunct: 0x2518450
  60382647: cap 3: Trying to steal a spark
- 60383133: cap 3: thread 3 stealing a spark from cap 0
+ 60383133: cap 3: stealing a spark from cap 0
  60445363: cap 1: End par conjunct: 0x25183f0
  60445737: cap 1: Trying to steal a spark
- 60446155: cap 1: thread 4 stealing a spark from cap 0
+ 60446155: cap 1: stealing a spark from cap 0
  61507039: cap 2: End par conjunct: 0x25184b0
  61507665: cap 2: Trying to steal a spark
- 61508101: cap 2: thread 2 stealing a spark from cap 0
+ 61508101: cap 2: stealing a spark from cap 0
  62346784: cap 1: End par conjunct: 0x2518570
  62347000: cap 1: Trying to steal a spark
- 62347216: cap 1: thread 4 stealing a spark from cap 0
+ 62347216: cap 1: stealing a spark from cap 0
  62512888: cap 3: End par conjunct: 0x2518510
  62513284: cap 3: Trying to steal a spark
- 62513658: cap 3: thread 3 stealing a spark from cap 0
+ 62513658: cap 3: stealing a spark from cap 0
  63392238: cap 2: End par conjunct: 0x25185d0
  63392625: cap 2: Trying to steal a spark
- 63393111: cap 2: thread 2 stealing a spark from cap 0
+ 63393111: cap 2: stealing a spark from cap 0
  63590472: cap 3: End par conjunct: 0x2518690
  63590904: cap 3: Trying to steal a spark
- 63591385: cap 3: thread 3 stealing a spark from cap 0
+ 63591385: cap 3: stealing a spark from cap 0
  64123029: cap 1: End par conjunct: 0x2518630
  64123375: cap 1: Trying to steal a spark
- 64123893: cap 1: thread 4 stealing a spark from cap 0
+ 64123893: cap 1: stealing a spark from cap 0
  64477633: cap 2: End par conjunct: 0x25186f0
  64477975: cap 2: Trying to steal a spark
- 64478223: cap 2: thread 2 stealing a spark from cap 0
+ 64478223: cap 2: stealing a spark from cap 0
  64722933: cap 3: End par conjunct: 0x2518750
  64723369: cap 3: Trying to steal a spark
- 64723851: cap 3: thread 3 stealing a spark from cap 0
+ 64723851: cap 3: stealing a spark from cap 0
  65542941: cap 1: End par conjunct: 0x25187b0
  65543301: cap 1: Trying to steal a spark
- 65543782: cap 1: thread 4 stealing a spark from cap 0
+ 65543782: cap 1: stealing a spark from cap 0
  65650234: cap 2: End par conjunct: 0x2518810
  65650576: cap 2: Trying to steal a spark
- 65650788: cap 2: thread 2 stealing a spark from cap 0
+ 65650788: cap 2: stealing a spark from cap 0
  66578935: cap 3: End par conjunct: 0x2518870
  66579484: cap 3: Trying to steal a spark
- 66580056: cap 3: thread 3 stealing a spark from cap 0
+ 66580056: cap 3: stealing a spark from cap 0
  66854529: cap 2: End par conjunct: 0x2518930
  66854853: cap 2: Trying to steal a spark
- 66855343: cap 2: thread 2 stealing a spark from cap 0
+ 66855343: cap 2: stealing a spark from cap 0
  66946320: cap 1: End par conjunct: 0x25188d0
  66946707: cap 1: Trying to steal a spark
- 66946963: cap 1: thread 4 stealing a spark from cap 0
+ 66946963: cap 1: stealing a spark from cap 0
  67733041: cap 3: End par conjunct: 0x2518990
  67733455: cap 3: Trying to steal a spark
- 67733950: cap 3: thread 3 stealing a spark from cap 0
+ 67733950: cap 3: stealing a spark from cap 0
  68058499: cap 2: End par conjunct: 0x25189f0
  68058882: cap 2: Trying to steal a spark
- 68059377: cap 2: thread 2 stealing a spark from cap 0
+ 68059377: cap 2: stealing a spark from cap 0
  68678649: cap 1: End par conjunct: 0x2518a50
  68678982: cap 1: Trying to steal a spark
- 68679229: cap 1: thread 4 stealing a spark from cap 0
+ 68679229: cap 1: stealing a spark from cap 0
  69240861: cap 3: End par conjunct: 0x2518ab0
  69241176: cap 3: Trying to steal a spark
- 69241567: cap 3: thread 3 stealing a spark from cap 0
+ 69241567: cap 3: stealing a spark from cap 0
  69304954: cap 2: End par conjunct: 0x2518b10
  69305319: cap 2: Trying to steal a spark
- 69305692: cap 2: thread 2 stealing a spark from cap 0
+ 69305692: cap 2: stealing a spark from cap 0
  70140240: cap 1: End par conjunct: 0x2518b70
  70140469: cap 1: Trying to steal a spark
- 70140685: cap 1: thread 4 stealing a spark from cap 0
+ 70140685: cap 1: stealing a spark from cap 0
  70773511: cap 3: End par conjunct: 0x2518bd0
  70773885: cap 3: Trying to steal a spark
- 70774366: cap 3: thread 3 stealing a spark from cap 0
+ 70774366: cap 3: stealing a spark from cap 0
  70808850: cap 2: End par conjunct: 0x2518c30
  70809367: cap 2: Trying to steal a spark
- 70809768: cap 2: thread 2 stealing a spark from cap 0
+ 70809768: cap 2: stealing a spark from cap 0
  71873527: cap 1: End par conjunct: 0x2518c90
  71873860: cap 1: Trying to steal a spark
- 71874072: cap 1: thread 4 stealing a spark from cap 0
+ 71874072: cap 1: stealing a spark from cap 0
  72283689: cap 2: End par conjunct: 0x2518d50
  72284017: cap 2: Trying to steal a spark
- 72284233: cap 2: thread 2 stealing a spark from cap 0
+ 72284233: cap 2: stealing a spark from cap 0
  73054251: cap 3: End par conjunct: 0x2518cf0
  73054732: cap 3: Trying to steal a spark
- 73055466: cap 3: thread 3 stealing a spark from cap 0
+ 73055466: cap 3: stealing a spark from cap 0
  73159285: cap 1: End par conjunct: 0x2518db0
  73159722: cap 1: Trying to steal a spark
- 73160388: cap 1: thread 4 stealing a spark from cap 0
+ 73160388: cap 1: stealing a spark from cap 0
  74440966: cap 3: End par conjunct: 0x2518e70
  74441227: cap 3: Trying to steal a spark
- 74441610: cap 3: thread 3 stealing a spark from cap 0
+ 74441610: cap 3: stealing a spark from cap 0
  74785315: cap 2: End par conjunct: 0x2518e10
  74786017: cap 2: Trying to steal a spark
- 74787043: cap 2: thread 2 stealing a spark from cap 0
+ 74787043: cap 2: stealing a spark from cap 0
  75288483: cap 1: End par conjunct: 0x2518ed0
  75288820: cap 1: Trying to steal a spark
- 75289032: cap 1: thread 4 stealing a spark from cap 0
+ 75289032: cap 1: stealing a spark from cap 0
  77436747: cap 3: End par conjunct: 0x2518f30
  77437134: cap 3: Trying to steal a spark
- 77437759: cap 3: thread 3 stealing a spark from cap 0
+ 77437759: cap 3: stealing a spark from cap 0
  78004147: cap 2: End par conjunct: 0x2518f90
  78004602: cap 2: Trying to steal a spark
- 78005169: cap 2: thread 2 stealing a spark from cap 0
+ 78005169: cap 2: stealing a spark from cap 0
  78438784: cap 1: End par conjunct: 0x2518ff0
  78439081: cap 1: Trying to steal a spark
- 78439360: cap 1: thread 4 stealing a spark from cap 0
+ 78439360: cap 1: stealing a spark from cap 0
  80926996: cap 3: End par conjunct: 0x2519050
  80927392: cap 3: Trying to steal a spark
- 80927775: cap 3: thread 3 stealing a spark from cap 0
+ 80927775: cap 3: stealing a spark from cap 0
  82047559: cap 2: End par conjunct: 0x25190b0
  82047987: cap 2: Trying to steal a spark
- 82048459: cap 2: thread 2 stealing a spark from cap 0
+ 82048459: cap 2: stealing a spark from cap 0
  83968875: cap 1: End par conjunct: 0x2519110
  83969217: cap 1: Trying to steal a spark
- 83969428: cap 1: thread 4 stealing a spark from cap 0
+ 83969428: cap 1: stealing a spark from cap 0
  86729665: cap 3: End par conjunct: 0x2519170
  86730021: cap 3: Trying to steal a spark
- 86730417: cap 3: thread 3 stealing a spark from cap 0
+ 86730417: cap 3: stealing a spark from cap 0
  88351767: cap 2: End par conjunct: 0x25191d0
  88352401: cap 2: Trying to steal a spark
- 88353040: cap 2: thread 2 stealing a spark from cap 0
+ 88353040: cap 2: stealing a spark from cap 0
  91559997: cap 1: End par conjunct: 0x2519230
  91560532: cap 1: Trying to steal a spark
- 91560888: cap 1: thread 4 stealing a spark from cap 0
+ 91560888: cap 1: stealing a spark from cap 0
  94191606: cap 3: End par conjunct: 0x2519290
  94192038: cap 3: Trying to steal a spark
- 94192447: cap 3: thread 3 stealing a spark from cap 0
+ 94192447: cap 3: stealing a spark from cap 0
  96909921: cap 2: End par conjunct: 0x25192f0
  96910249: cap 2: Trying to steal a spark
- 96910677: cap 2: thread 2 stealing a spark from cap 0
+ 96910677: cap 2: stealing a spark from cap 0
 101435247: cap 1: End par conjunct: 0x2519350
 101435656: cap 1: Trying to steal a spark
-101435913: cap 1: thread 4 stealing a spark from cap 0
+101435913: cap 1: stealing a spark from cap 0
 106433743: cap 3: End par conjunct: 0x25193b0
 106434189: cap 3: Trying to steal a spark
-106434796: cap 3: thread 3 stealing a spark from cap 0
+106434796: cap 3: stealing a spark from cap 0
 109706557: cap 2: End par conjunct: 0x2519410
 109707070: cap 2: Trying to steal a spark
-109707538: cap 2: thread 2 stealing a spark from cap 0
+109707538: cap 2: stealing a spark from cap 0
 114820515: cap 1: End par conjunct: 0x2519470
 114820857: cap 1: Trying to steal a spark
-114821217: cap 1: thread 4 stealing a spark from cap 0
+114821217: cap 1: stealing a spark from cap 0
 119917665: cap 3: End par conjunct: 0x25194d0
 119918088: cap 3: Trying to steal a spark
-119918511: cap 3: thread 3 stealing a spark from cap 0
+119918511: cap 3: stealing a spark from cap 0
 123108241: cap 2: End par conjunct: 0x2519530
 123108687: cap 2: Trying to steal a spark
-123109312: cap 2: thread 2 stealing a spark from cap 0
+123109312: cap 2: stealing a spark from cap 0
 128630704: cap 1: End par conjunct: 0x2519590
 128631078: cap 1: Trying to steal a spark
-128631334: cap 1: thread 4 stealing a spark from cap 0
+128631334: cap 1: stealing a spark from cap 0
 134686683: cap 3: End par conjunct: 0x25195f0
 134687052: cap 3: Trying to steal a spark
-134687601: cap 3: thread 3 stealing a spark from cap 0
+134687601: cap 3: stealing a spark from cap 0
 137862301: cap 2: End par conjunct: 0x2519650
 137862945: cap 2: Trying to steal a spark
-137863800: cap 2: thread 2 stealing a spark from cap 0
+137863800: cap 2: stealing a spark from cap 0
 144241731: cap 1: End par conjunct: 0x25196b0
 144242343: cap 1: Trying to steal a spark
-144242730: cap 1: thread 4 stealing a spark from cap 0
+144242730: cap 1: stealing a spark from cap 0
 151251367: cap 3: End par conjunct: 0x2519710
 151251804: cap 3: Trying to steal a spark
-151252218: cap 3: thread 3 stealing a spark from cap 0
+151252218: cap 3: stealing a spark from cap 0
 156148578: cap 2: End par conjunct: 0x2519770
 156149059: cap 2: Trying to steal a spark
-156149635: cap 2: thread 2 stealing a spark from cap 0
+156149635: cap 2: stealing a spark from cap 0
 164802690: cap 1: End par conjunct: 0x25197d0
 164803180: cap 1: Trying to steal a spark
-164803441: cap 1: thread 4 stealing a spark from cap 0
+164803441: cap 1: stealing a spark from cap 0
 172408338: cap 3: End par conjunct: 0x2519830
 172408693: cap 3: Trying to steal a spark
-172409116: cap 3: thread 3 stealing a spark from cap 0
+172409116: cap 3: stealing a spark from cap 0
 178849849: cap 2: End par conjunct: 0x2519890
 178850839: cap 2: Trying to steal a spark
-178851514: cap 2: thread 2 stealing a spark from cap 0
+178851514: cap 2: stealing a spark from cap 0
 190023232: cap 1: End par conjunct: 0x25198f0
 190023628: cap 1: Trying to steal a spark
-190024060: cap 1: thread 4 stealing a spark from cap 0
+190024060: cap 1: stealing a spark from cap 0
 198545305: cap 3: End par conjunct: 0x2519950
 198545724: cap 3: Trying to steal a spark
-198546151: cap 3: thread 3 stealing a spark from cap 0
+198546151: cap 3: stealing a spark from cap 0
 198953811: cap 0: End par conjunct: 0x2527cf0
 198958869: cap 0: End par conjunction: 0x2527cf0
 198959206: cap 0: End par conjunct: 0x2527c90
-198959832: cap 0: running a local spark (thread 1)
+198959832: cap 0: running a local spark
 204747844: cap 2: End par conjunct: 0x25199b0
 204748560: cap 2: Trying to steal a spark
-204749253: cap 2: thread 2 stealing a spark from cap 0
+204749253: cap 2: stealing a spark from cap 0
 216975420: cap 1: End par conjunct: 0x2519a10
 216976068: cap 1: Trying to steal a spark
-216976392: cap 1: thread 4 stealing a spark from cap 0
+216976392: cap 1: stealing a spark from cap 0
 226126588: cap 3: End par conjunct: 0x2519a70
 226127047: cap 3: Trying to steal a spark
-226127484: cap 3: thread 3 stealing a spark from cap 0
+226127484: cap 3: stealing a spark from cap 0
 231747502: cap 2: End par conjunct: 0x2519ad0
 231747970: cap 2: Trying to steal a spark
-231748443: cap 2: thread 2 stealing a spark from cap 0
+231748443: cap 2: stealing a spark from cap 0
 247099896: cap 1: End par conjunct: 0x2519b30
 247100737: cap 1: Trying to steal a spark
-247101367: cap 1: thread 4 stealing a spark from cap 0
+247101367: cap 1: stealing a spark from cap 0
 255828780: cap 3: End par conjunct: 0x2519b90
 255829216: cap 3: Trying to steal a spark
-255829729: cap 3: thread 3 stealing a spark from cap 0
+255829729: cap 3: stealing a spark from cap 0
 260583750: cap 2: End par conjunct: 0x2519bf0
 260584209: cap 2: Trying to steal a spark
-260584807: cap 2: thread 2 stealing a spark from cap 0
+260584807: cap 2: stealing a spark from cap 0
 274906435: cap 1: End par conjunct: 0x2519c50
 274906827: cap 1: Trying to steal a spark
-274907083: cap 1: thread 4 stealing a spark from cap 0
+274907083: cap 1: stealing a spark from cap 0
 284926387: cap 3: End par conjunct: 0x2519cb0
 284926752: cap 3: Trying to steal a spark
-284927184: cap 3: thread 3 stealing a spark from cap 0
+284927184: cap 3: stealing a spark from cap 0
 290982267: cap 2: End par conjunct: 0x2519d10
 290983005: cap 2: Trying to steal a spark
-290983702: cap 2: thread 2 stealing a spark from cap 0
+290983702: cap 2: stealing a spark from cap 0
 307252908: cap 1: End par conjunct: 0x2519d70
 307253191: cap 1: Trying to steal a spark
-307253569: cap 1: thread 4 stealing a spark from cap 0
+307253569: cap 1: stealing a spark from cap 0
 319299286: cap 3: End par conjunct: 0x2519dd0
 319299700: cap 3: Trying to steal a spark
-319300159: cap 3: thread 3 stealing a spark from cap 0
+319300159: cap 3: stealing a spark from cap 0
 326048778: cap 2: End par conjunct: 0x2519e30
 326049336: cap 2: Trying to steal a spark
-326049898: cap 2: thread 2 stealing a spark from cap 0
+326049898: cap 2: stealing a spark from cap 0
 350669619: cap 1: End par conjunct: 0x2519e90
 350670901: cap 1: Trying to steal a spark
-350671846: cap 1: thread 4 stealing a spark from cap 0
+350671846: cap 1: stealing a spark from cap 0
 358029666: cap 3: End par conjunct: 0x2519ef0
 358030057: cap 3: Trying to steal a spark
-358030525: cap 3: thread 3 stealing a spark from cap 0
+358030525: cap 3: stealing a spark from cap 0
 364705011: cap 2: End par conjunct: 0x2519f50
 364706158: cap 2: Trying to steal a spark
-364706928: cap 2: thread 2 stealing a spark from cap 0
+364706928: cap 2: stealing a spark from cap 0
 365778837: cap 0: End par conjunct: 0x2527c90
 365779084: cap 0: End par conjunction: 0x2527c90
 365779363: cap 0: End par conjunct: 0x2527c30
-365779795: cap 0: running a local spark (thread 1)
+365779795: cap 0: running a local spark
 391049748: cap 1: End par conjunct: 0x2519fb0
 391050117: cap 1: Trying to steal a spark
-391050733: cap 1: thread 4 stealing a spark from cap 0
+391050733: cap 1: stealing a spark from cap 0
 397728738: cap 3: End par conjunct: 0x251a010
 397729296: cap 3: Trying to steal a spark
-397729710: cap 3: thread 3 stealing a spark from cap 0
+397729710: cap 3: stealing a spark from cap 0
 403134480: cap 2: End par conjunct: 0x251a070
 403134916: cap 2: Trying to steal a spark
-403135398: cap 2: thread 2 stealing a spark from cap 0
+403135398: cap 2: stealing a spark from cap 0
 430105333: cap 1: End par conjunct: 0x251a0d0
 430105828: cap 1: Trying to steal a spark
-430106098: cap 1: thread 4 stealing a spark from cap 0
+430106098: cap 1: stealing a spark from cap 0
 436262724: cap 3: End par conjunct: 0x251a130
 436263097: cap 3: Trying to steal a spark
-436263556: cap 3: thread 3 stealing a spark from cap 0
+436263556: cap 3: stealing a spark from cap 0
 441701977: cap 2: End par conjunct: 0x251a190
 441702540: cap 2: Trying to steal a spark
-441703102: cap 2: thread 2 stealing a spark from cap 0
+441703102: cap 2: stealing a spark from cap 0
 471085258: cap 1: End par conjunct: 0x251a1f0
 471085825: cap 1: Trying to steal a spark
-471086374: cap 1: thread 4 stealing a spark from cap 0
+471086374: cap 1: stealing a spark from cap 0
 477770602: cap 3: End par conjunct: 0x251a250
 477771034: cap 3: Trying to steal a spark
-477771471: cap 3: thread 3 stealing a spark from cap 0
+477771471: cap 3: stealing a spark from cap 0
 484487622: cap 2: End par conjunct: 0x251a2b0
 484488301: cap 2: Trying to steal a spark
-484488778: cap 2: thread 2 stealing a spark from cap 0
+484488778: cap 2: stealing a spark from cap 0
 514659478: cap 1: End par conjunct: 0x251a310
 514659942: cap 1: Trying to steal a spark
-514660297: cap 1: thread 4 stealing a spark from cap 0
+514660297: cap 1: stealing a spark from cap 0
 521906107: cap 3: End par conjunct: 0x251a370
 521906481: cap 3: Trying to steal a spark
-521906908: cap 3: thread 3 stealing a spark from cap 0
+521906908: cap 3: stealing a spark from cap 0
 529207344: cap 2: End par conjunct: 0x251a3d0
 529207843: cap 2: Trying to steal a spark
-529208352: cap 2: thread 2 stealing a spark from cap 0
+529208352: cap 2: stealing a spark from cap 0
 531944473: cap 0: End par conjunct: 0x2527c30
 531944712: cap 0: End par conjunction: 0x2527c30
 531944883: cap 0: End par conjunct: 0x2527bd0
-531945387: cap 0: running a local spark (thread 1)
+531945387: cap 0: running a local spark
 562630792: cap 1: End par conjunct: 0x251a430
 562631112: cap 1: Trying to steal a spark
-562631571: cap 1: thread 4 stealing a spark from cap 0
+562631571: cap 1: stealing a spark from cap 0
 570400015: cap 3: End par conjunct: 0x251a490
 570400758: cap 3: Trying to steal a spark
-570401365: cap 3: thread 3 stealing a spark from cap 0
+570401365: cap 3: stealing a spark from cap 0
 576937926: cap 2: End par conjunct: 0x251a4f0
 576938331: cap 2: Trying to steal a spark
-576938812: cap 2: thread 2 stealing a spark from cap 0
+576938812: cap 2: stealing a spark from cap 0
 612735025: cap 1: End par conjunct: 0x251a550
 612735705: cap 1: Trying to steal a spark
-612736429: cap 1: thread 4 stealing a spark from cap 0
+612736429: cap 1: stealing a spark from cap 0
 619791169: cap 3: End par conjunct: 0x251a5b0
 619791552: cap 3: Trying to steal a spark
-619792128: cap 3: thread 3 stealing a spark from cap 0
+619792128: cap 3: stealing a spark from cap 0
 626189926: cap 2: End par conjunct: 0x251a610
 626190583: cap 2: Trying to steal a spark
-626191096: cap 2: thread 2 stealing a spark from cap 0
+626191096: cap 2: stealing a spark from cap 0
 663484621: cap 1: End par conjunct: 0x251a670
 663484909: cap 1: Trying to steal a spark
-663485238: cap 1: thread 4 stealing a spark from cap 0
+663485238: cap 1: stealing a spark from cap 0
 671033749: cap 3: End par conjunct: 0x251a6d0
 671034276: cap 3: Trying to steal a spark
-671034811: cap 3: thread 3 stealing a spark from cap 0
+671034811: cap 3: stealing a spark from cap 0
 677780014: cap 2: End par conjunct: 0x251a730
 677780779: cap 2: Trying to steal a spark
-677781445: cap 2: thread 2 stealing a spark from cap 0
+677781445: cap 2: stealing a spark from cap 0
 699230403: cap 0: End par conjunct: 0x2527bd0
 699230659: cap 0: End par conjunction: 0x2527bd0
 699230835: cap 0: End par conjunct: 0x2527b70
-699231397: cap 0: running a local spark (thread 1)
+699231397: cap 0: running a local spark
 717773436: cap 1: End par conjunct: 0x251a790
 717774057: cap 1: Trying to steal a spark
-717774921: cap 1: thread 4 stealing a spark from cap 0
+717774921: cap 1: stealing a spark from cap 0
 726011095: cap 3: End par conjunct: 0x251a7f0
 726011635: cap 3: Trying to steal a spark
-726012076: cap 3: thread 3 stealing a spark from cap 0
+726012076: cap 3: stealing a spark from cap 0
 730991659: cap 2: End par conjunct: 0x251a850
 730992199: cap 2: Trying to steal a spark
-730992726: cap 2: thread 2 stealing a spark from cap 0
+730992726: cap 2: stealing a spark from cap 0
 774688756: cap 1: End par conjunct: 0x251a8b0
 774689584: cap 1: Trying to steal a spark
-774690183: cap 1: thread 4 stealing a spark from cap 0
+774690183: cap 1: stealing a spark from cap 0
 781757100: cap 3: End par conjunct: 0x251a910
 781757734: cap 3: Trying to steal a spark
-781758225: cap 3: thread 3 stealing a spark from cap 0
+781758225: cap 3: stealing a spark from cap 0
 785501482: cap 2: End par conjunct: 0x251a970
 785502193: cap 2: Trying to steal a spark
-785502751: cap 2: thread 2 stealing a spark from cap 0
+785502751: cap 2: stealing a spark from cap 0
 829932813: cap 1: End par conjunct: 0x251a9d0
 829933366: cap 1: Trying to steal a spark
-829933677: cap 1: thread 4 stealing a spark from cap 0
+829933677: cap 1: stealing a spark from cap 0
 837245920: cap 3: End par conjunct: 0x251aa30
 837246307: cap 3: Trying to steal a spark
-837246870: cap 3: thread 3 stealing a spark from cap 0
+837246870: cap 3: stealing a spark from cap 0
 842193072: cap 2: End par conjunct: 0x251aa90
 842193535: cap 2: Trying to steal a spark
-842193999: cap 2: thread 2 stealing a spark from cap 0
+842193999: cap 2: stealing a spark from cap 0
 865855660: cap 0: End par conjunct: 0x2527b70
 865855854: cap 0: End par conjunction: 0x2527b70
 865856250: cap 0: End par conjunct: 0x2527b10
-865856655: cap 0: running a local spark (thread 1)
+865856655: cap 0: running a local spark
 891740749: cap 1: End par conjunct: 0x251aaf0
 891741532: cap 1: Trying to steal a spark
-891742756: cap 1: thread 4 stealing a spark from cap 0
+891742756: cap 1: stealing a spark from cap 0
 899877420: cap 3: End par conjunct: 0x251ab50
 899877951: cap 3: Trying to steal a spark
-899878387: cap 3: thread 3 stealing a spark from cap 0
+899878387: cap 3: stealing a spark from cap 0
 904794669: cap 2: End par conjunct: 0x251abb0
 904795731: cap 2: Trying to steal a spark
-904796541: cap 2: thread 2 stealing a spark from cap 0
+904796541: cap 2: stealing a spark from cap 0
 956212956: cap 1: End par conjunct: 0x251ac10
 956213617: cap 1: Trying to steal a spark
-956213982: cap 1: thread 4 stealing a spark from cap 0
+956213982: cap 1: stealing a spark from cap 0
 965154496: cap 3: End par conjunct: 0x251ac70
 965154946: cap 3: Trying to steal a spark
-965155464: cap 3: thread 3 stealing a spark from cap 0
+965155464: cap 3: stealing a spark from cap 0
 968214550: cap 2: End par conjunct: 0x251acd0
 968215018: cap 2: Trying to steal a spark
-968215549: cap 2: thread 2 stealing a spark from cap 0
+968215549: cap 2: stealing a spark from cap 0
 1023491304: cap 1: End par conjunct: 0x251ad30
 1023492051: cap 1: Trying to steal a spark
-1023492964: cap 1: thread 4 stealing a spark from cap 0
+1023492964: cap 1: stealing a spark from cap 0
 1033080210: cap 0: End par conjunct: 0x2527b10
 1033080399: cap 0: End par conjunction: 0x2527b10
 1033080588: cap 0: End par conjunct: 0x2527ab0
-1033080961: cap 0: running a local spark (thread 1)
+1033080961: cap 0: running a local spark
 1033241377: cap 3: End par conjunct: 0x251ad90
 1033241832: cap 3: Trying to steal a spark
-1033242088: cap 3: thread 3 stealing a spark from cap 0
+1033242088: cap 3: stealing a spark from cap 0
 1035608773: cap 2: End par conjunct: 0x251adf0
 1035609259: cap 2: Trying to steal a spark
-1035609754: cap 2: thread 2 stealing a spark from cap 0
+1035609754: cap 2: stealing a spark from cap 0
 1094081674: cap 1: End par conjunct: 0x251ae50
 1094082358: cap 1: Trying to steal a spark
-1094083029: cap 1: thread 4 stealing a spark from cap 0
+1094083029: cap 1: stealing a spark from cap 0
 1104048639: cap 3: End par conjunct: 0x251aeb0
 1104049210: cap 3: Trying to steal a spark
-1104049710: cap 3: thread 3 stealing a spark from cap 0
+1104049710: cap 3: stealing a spark from cap 0
 1106189802: cap 2: End par conjunct: 0x251af10
 1106190369: cap 2: Trying to steal a spark
-1106190873: cap 2: thread 2 stealing a spark from cap 0
+1106190873: cap 2: stealing a spark from cap 0
 1166137375: cap 1: End par conjunct: 0x251af70
 1166138239: cap 1: Trying to steal a spark
-1166138883: cap 1: thread 4 stealing a spark from cap 0
+1166138883: cap 1: stealing a spark from cap 0
 1176810660: cap 2: End par conjunct: 0x251b030
 1176811240: cap 2: Trying to steal a spark
-1176811735: cap 2: thread 2 stealing a spark from cap 0
+1176811735: cap 2: stealing a spark from cap 0
 1176898396: cap 3: End par conjunct: 0x251afd0
 1176898900: cap 3: Trying to steal a spark
-1176899553: cap 3: thread 3 stealing a spark from cap 0
+1176899553: cap 3: stealing a spark from cap 0
 1200629866: cap 0: End par conjunct: 0x2527ab0
 1200630069: cap 0: End par conjunction: 0x2527ab0
 1200630375: cap 0: End par conjunct: 0x2527a50
-1200630640: cap 0: running a local spark (thread 1)
+1200630640: cap 0: running a local spark
 1240834045: cap 1: End par conjunct: 0x251b090
 1240834689: cap 1: Trying to steal a spark
-1240835539: cap 1: thread 4 stealing a spark from cap 0
+1240835539: cap 1: stealing a spark from cap 0
 1250312490: cap 2: End par conjunct: 0x251b0f0
 1250312809: cap 2: Trying to steal a spark
-1250313336: cap 2: thread 2 stealing a spark from cap 0
+1250313336: cap 2: stealing a spark from cap 0
 1252791828: cap 3: End par conjunct: 0x251b150
 1252792251: cap 3: Trying to steal a spark
-1252792773: cap 3: thread 3 stealing a spark from cap 0
+1252792773: cap 3: stealing a spark from cap 0
 1279191181: cap 1: stopping thread 4 (heap overflow)
 1279191564: cap 1: starting GC
 1279219414: cap 0: stopping thread 1 (thread yielding)
@@ -2490,1708 +2490,1708 @@ Events:
 1288653723: cap 1: running thread 4
 1327831524: cap 1: End par conjunct: 0x251b1b0
 1327833261: cap 1: Trying to steal a spark
-1327835277: cap 1: thread 4 stealing a spark from cap 0
+1327835277: cap 1: stealing a spark from cap 0
 1336238419: cap 2: End par conjunct: 0x251b210
 1336239922: cap 2: Trying to steal a spark
-1336240854: cap 2: thread 2 stealing a spark from cap 0
+1336240854: cap 2: stealing a spark from cap 0
 1342275511: cap 3: End par conjunct: 0x251b270
 1342276861: cap 3: Trying to steal a spark
-1342278328: cap 3: thread 3 stealing a spark from cap 0
+1342278328: cap 3: stealing a spark from cap 0
 1377233797: cap 0: End par conjunct: 0x2527a50
 1377234085: cap 0: End par conjunction: 0x2527a50
 1377234360: cap 0: End par conjunct: 0x25279f0
-1377234999: cap 0: running a local spark (thread 1)
+1377234999: cap 0: running a local spark
 1411012053: cap 1: End par conjunct: 0x251b2d0
 1411012948: cap 1: Trying to steal a spark
-1411014010: cap 1: thread 4 stealing a spark from cap 0
+1411014010: cap 1: stealing a spark from cap 0
 1416178687: cap 2: End par conjunct: 0x251b330
 1416179236: cap 2: Trying to steal a spark
-1416179596: cap 2: thread 2 stealing a spark from cap 0
+1416179596: cap 2: stealing a spark from cap 0
 1425281166: cap 3: End par conjunct: 0x251b390
 1425281638: cap 3: Trying to steal a spark
-1425282160: cap 3: thread 3 stealing a spark from cap 0
+1425282160: cap 3: stealing a spark from cap 0
 1495637941: cap 1: End par conjunct: 0x251b3f0
 1495639008: cap 1: Trying to steal a spark
-1495639872: cap 1: thread 4 stealing a spark from cap 0
+1495639872: cap 1: stealing a spark from cap 0
 1504078123: cap 2: End par conjunct: 0x251b450
 1504080297: cap 2: Trying to steal a spark
-1504082367: cap 2: thread 2 stealing a spark from cap 0
+1504082367: cap 2: stealing a spark from cap 0
 1510001185: cap 3: End par conjunct: 0x251b4b0
 1510001685: cap 3: Trying to steal a spark
-1510002126: cap 3: thread 3 stealing a spark from cap 0
+1510002126: cap 3: stealing a spark from cap 0
 1544941570: cap 0: End par conjunct: 0x25279f0
 1544941795: cap 0: End par conjunction: 0x25279f0
 1544941948: cap 0: End par conjunct: 0x2527990
-1544942205: cap 0: running a local spark (thread 1)
+1544942205: cap 0: running a local spark
 1586146329: cap 1: End par conjunct: 0x251b510
 1586148417: cap 1: Trying to steal a spark
-1586150667: cap 1: thread 4 stealing a spark from cap 0
+1586150667: cap 1: stealing a spark from cap 0
 1595586420: cap 3: End par conjunct: 0x251b5d0
 1595586879: cap 3: Trying to steal a spark
-1595587329: cap 3: thread 3 stealing a spark from cap 0
+1595587329: cap 3: stealing a spark from cap 0
 1617022876: cap 2: End par conjunct: 0x251b570
 1617024591: cap 2: Trying to steal a spark
-1617026719: cap 2: thread 2 stealing a spark from cap 0
+1617026719: cap 2: stealing a spark from cap 0
 1672840125: cap 1: End par conjunct: 0x251b630
 1672842082: cap 1: Trying to steal a spark
-1672843959: cap 1: thread 4 stealing a spark from cap 0
+1672843959: cap 1: stealing a spark from cap 0
 1682179780: cap 3: End par conjunct: 0x251b690
 1682180307: cap 3: Trying to steal a spark
-1682180811: cap 3: thread 3 stealing a spark from cap 0
+1682180811: cap 3: stealing a spark from cap 0
 1712636509: cap 0: End par conjunct: 0x2527990
 1712636757: cap 0: End par conjunction: 0x2527990
 1712637067: cap 0: End par conjunct: 0x2527930
-1712637333: cap 0: running a local spark (thread 1)
+1712637333: cap 0: running a local spark
 1713749616: cap 2: End par conjunct: 0x251b6f0
 1713751249: cap 2: Trying to steal a spark
-1713752950: cap 2: thread 2 stealing a spark from cap 0
+1713752950: cap 2: stealing a spark from cap 0
 1760724864: cap 1: End par conjunct: 0x251b750
 1760726002: cap 1: Trying to steal a spark
-1760727222: cap 1: thread 4 stealing a spark from cap 0
+1760727222: cap 1: stealing a spark from cap 0
 1768582786: cap 3: End par conjunct: 0x251b7b0
 1768583205: cap 3: Trying to steal a spark
-1768583812: cap 3: thread 3 stealing a spark from cap 0
+1768583812: cap 3: stealing a spark from cap 0
 1797995713: cap 2: End par conjunct: 0x251b810
 1797996865: cap 2: Trying to steal a spark
-1797998157: cap 2: thread 2 stealing a spark from cap 0
+1797998157: cap 2: stealing a spark from cap 0
 1847496091: cap 1: End par conjunct: 0x251b870
 1847496856: cap 1: Trying to steal a spark
-1847497662: cap 1: thread 4 stealing a spark from cap 0
+1847497662: cap 1: stealing a spark from cap 0
 1856177788: cap 3: End par conjunct: 0x251b8d0
 1856178396: cap 3: Trying to steal a spark
-1856178990: cap 3: thread 3 stealing a spark from cap 0
+1856178990: cap 3: stealing a spark from cap 0
 1879742844: cap 0: End par conjunct: 0x2527930
 1879743100: cap 0: End par conjunction: 0x2527930
 1879743289: cap 0: End par conjunct: 0x25278d0
-1879743667: cap 0: running a local spark (thread 1)
+1879743667: cap 0: running a local spark
 1883263333: cap 2: End par conjunct: 0x251b930
 1883264202: cap 2: Trying to steal a spark
-1883265142: cap 2: thread 2 stealing a spark from cap 0
+1883265142: cap 2: stealing a spark from cap 0
 1937704716: cap 1: End par conjunct: 0x251b990
 1937705656: cap 1: Trying to steal a spark
-1937706174: cap 1: thread 4 stealing a spark from cap 0
+1937706174: cap 1: stealing a spark from cap 0
 1947000595: cap 3: End par conjunct: 0x251b9f0
 1947001081: cap 3: Trying to steal a spark
-1947001675: cap 3: thread 3 stealing a spark from cap 0
+1947001675: cap 3: stealing a spark from cap 0
 1972568475: cap 2: End par conjunct: 0x251ba50
 1972569087: cap 2: Trying to steal a spark
-1972569622: cap 2: thread 2 stealing a spark from cap 0
+1972569622: cap 2: stealing a spark from cap 0
 2030619109: cap 1: End par conjunct: 0x251bab0
 2030619519: cap 1: Trying to steal a spark
-2030619991: cap 1: thread 4 stealing a spark from cap 0
+2030619991: cap 1: stealing a spark from cap 0
 2040124135: cap 3: End par conjunct: 0x251bb10
 2040124612: cap 3: Trying to steal a spark
-2040125067: cap 3: thread 3 stealing a spark from cap 0
+2040125067: cap 3: stealing a spark from cap 0
 2062369093: cap 2: End par conjunct: 0x251bb70
 2062369728: cap 2: Trying to steal a spark
-2062370209: cap 2: thread 2 stealing a spark from cap 0
+2062370209: cap 2: stealing a spark from cap 0
 2078025511: cap 0: End par conjunct: 0x25278d0
 2078025673: cap 0: End par conjunction: 0x25278d0
 2078028985: cap 0: End par conjunct: 0x2527870
-2078029377: cap 0: running a local spark (thread 1)
+2078029377: cap 0: running a local spark
 2124377307: cap 1: End par conjunct: 0x251bbd0
 2124378454: cap 1: Trying to steal a spark
-2124379426: cap 1: thread 4 stealing a spark from cap 0
+2124379426: cap 1: stealing a spark from cap 0
 2133988411: cap 3: End par conjunct: 0x251bc30
 2133988821: cap 3: Trying to steal a spark
-2133989334: cap 3: thread 3 stealing a spark from cap 0
+2133989334: cap 3: stealing a spark from cap 0
 2154847783: cap 2: End par conjunct: 0x251bc90
 2154848440: cap 2: Trying to steal a spark
-2154848980: cap 2: thread 2 stealing a spark from cap 0
+2154848980: cap 2: stealing a spark from cap 0
 2219288427: cap 1: End par conjunct: 0x251bcf0
 2219289138: cap 1: Trying to steal a spark
-2219289561: cap 1: thread 4 stealing a spark from cap 0
+2219289561: cap 1: stealing a spark from cap 0
 2229366276: cap 3: End par conjunct: 0x251bd50
 2229366739: cap 3: Trying to steal a spark
-2229367311: cap 3: thread 3 stealing a spark from cap 0
+2229367311: cap 3: stealing a spark from cap 0
 2243419969: cap 0: End par conjunct: 0x2527870
 2243420307: cap 0: End par conjunction: 0x2527870
 2243420500: cap 0: End par conjunct: 0x2527810
-2243420883: cap 0: running a local spark (thread 1)
+2243420883: cap 0: running a local spark
 2247777301: cap 2: End par conjunct: 0x251bdb0
 2247777895: cap 2: Trying to steal a spark
-2247778597: cap 2: thread 2 stealing a spark from cap 0
+2247778597: cap 2: stealing a spark from cap 0
 2316280018: cap 1: End par conjunct: 0x251be10
 2316280662: cap 1: Trying to steal a spark
-2316281274: cap 1: thread 4 stealing a spark from cap 0
+2316281274: cap 1: stealing a spark from cap 0
 2325087283: cap 3: End par conjunct: 0x251be70
 2325087769: cap 3: Trying to steal a spark
-2325088224: cap 3: thread 3 stealing a spark from cap 0
+2325088224: cap 3: stealing a spark from cap 0
 2340641119: cap 2: End par conjunct: 0x251bed0
 2340641866: cap 2: Trying to steal a spark
-2340642622: cap 2: thread 2 stealing a spark from cap 0
+2340642622: cap 2: stealing a spark from cap 0
 2409047023: cap 0: End par conjunct: 0x2527810
 2409047343: cap 0: End par conjunction: 0x2527810
 2409047532: cap 0: End par conjunct: 0x25277b0
-2409047811: cap 0: running a local spark (thread 1)
+2409047811: cap 0: running a local spark
 2412755536: cap 1: End par conjunct: 0x251bf30
 2412756139: cap 1: Trying to steal a spark
-2412756859: cap 1: thread 4 stealing a spark from cap 0
+2412756859: cap 1: stealing a spark from cap 0
 2422017855: cap 3: End par conjunct: 0x251bf90
 2422018314: cap 3: Trying to steal a spark
-2422018728: cap 3: thread 3 stealing a spark from cap 0
+2422018728: cap 3: stealing a spark from cap 0
 2434172382: cap 2: End par conjunct: 0x251bff0
 2434173223: cap 2: Trying to steal a spark
-2434173993: cap 2: thread 2 stealing a spark from cap 0
+2434173993: cap 2: stealing a spark from cap 0
 2510563581: cap 1: End par conjunct: 0x251c050
 2510565430: cap 1: Trying to steal a spark
-2510569161: cap 1: thread 4 stealing a spark from cap 0
+2510569161: cap 1: stealing a spark from cap 0
 2520040482: cap 3: End par conjunct: 0x251c0b0
 2520040959: cap 3: Trying to steal a spark
-2520041422: cap 3: thread 3 stealing a spark from cap 0
+2520041422: cap 3: stealing a spark from cap 0
 2558992500: cap 2: End par conjunct: 0x251c110
 2558994210: cap 2: Trying to steal a spark
-2558995884: cap 2: thread 2 stealing a spark from cap 0
+2558995884: cap 2: stealing a spark from cap 0
 2574399645: cap 0: End par conjunct: 0x25277b0
 2574399816: cap 0: End par conjunction: 0x25277b0
 2574399969: cap 0: End par conjunct: 0x2527750
-2574400347: cap 0: running a local spark (thread 1)
+2574400347: cap 0: running a local spark
 2610752301: cap 1: End par conjunct: 0x251c170
 2610753934: cap 1: Trying to steal a spark
-2610755797: cap 1: thread 4 stealing a spark from cap 0
+2610755797: cap 1: stealing a spark from cap 0
 2620085427: cap 3: End par conjunct: 0x251c1d0
 2620086048: cap 3: Trying to steal a spark
-2620086768: cap 3: thread 3 stealing a spark from cap 0
+2620086768: cap 3: stealing a spark from cap 0
 2675306461: cap 2: End par conjunct: 0x251c230
 2675308347: cap 2: Trying to steal a spark
-2675309980: cap 2: thread 2 stealing a spark from cap 0
+2675309980: cap 2: stealing a spark from cap 0
 2714796225: cap 1: End par conjunct: 0x251c290
 2714797030: cap 1: Trying to steal a spark
-2714797593: cap 1: thread 4 stealing a spark from cap 0
+2714797593: cap 1: stealing a spark from cap 0
 2722951039: cap 3: End par conjunct: 0x251c2f0
 2722951467: cap 3: Trying to steal a spark
-2722952020: cap 3: thread 3 stealing a spark from cap 0
+2722952020: cap 3: stealing a spark from cap 0
 2739383973: cap 0: End par conjunct: 0x2527750
 2739384166: cap 0: End par conjunction: 0x2527750
 2739384342: cap 0: End par conjunct: 0x25276f0
-2739384837: cap 0: running a local spark (thread 1)
+2739384837: cap 0: running a local spark
 2774395746: cap 2: End par conjunct: 0x251c350
 2774396821: cap 2: Trying to steal a spark
-2774397874: cap 2: thread 2 stealing a spark from cap 0
+2774397874: cap 2: stealing a spark from cap 0
 2823531642: cap 1: End par conjunct: 0x251c3b0
 2823532524: cap 1: Trying to steal a spark
-2823533046: cap 1: thread 4 stealing a spark from cap 0
+2823533046: cap 1: stealing a spark from cap 0
 2826237402: cap 3: End par conjunct: 0x251c410
 2826237888: cap 3: Trying to steal a spark
-2826238351: cap 3: thread 3 stealing a spark from cap 0
+2826238351: cap 3: stealing a spark from cap 0
 2875559067: cap 2: End par conjunct: 0x251c470
 2875559715: cap 2: Trying to steal a spark
-2875560331: cap 2: thread 2 stealing a spark from cap 0
+2875560331: cap 2: stealing a spark from cap 0
 2904336270: cap 0: End par conjunct: 0x25276f0
 2904336459: cap 0: End par conjunction: 0x25276f0
 2904336598: cap 0: End par conjunct: 0x2527690
-2904336945: cap 0: running a local spark (thread 1)
+2904336945: cap 0: running a local spark
 2929743756: cap 1: End par conjunct: 0x251c4d0
 2929744462: cap 1: Trying to steal a spark
-2929745119: cap 1: thread 4 stealing a spark from cap 0
+2929745119: cap 1: stealing a spark from cap 0
 2932351546: cap 3: End par conjunct: 0x251c530
 2932351933: cap 3: Trying to steal a spark
-2932352451: cap 3: thread 3 stealing a spark from cap 0
+2932352451: cap 3: stealing a spark from cap 0
 2978596588: cap 2: End par conjunct: 0x251c590
 2978597187: cap 2: Trying to steal a spark
-2978598042: cap 2: thread 2 stealing a spark from cap 0
+2978598042: cap 2: stealing a spark from cap 0
 3035545497: cap 1: End par conjunct: 0x251c5f0
 3035546145: cap 1: Trying to steal a spark
-3035546662: cap 1: thread 4 stealing a spark from cap 0
+3035546662: cap 1: stealing a spark from cap 0
 3036216996: cap 3: End par conjunct: 0x251c650
 3036218197: cap 3: Trying to steal a spark
-3036218746: cap 3: thread 3 stealing a spark from cap 0
+3036218746: cap 3: stealing a spark from cap 0
 3070365034: cap 0: End par conjunct: 0x2527690
 3070365327: cap 0: End par conjunction: 0x2527690
 3070365502: cap 0: End par conjunct: 0x2527630
-3070365894: cap 0: running a local spark (thread 1)
+3070365894: cap 0: running a local spark
 3079323792: cap 2: End par conjunct: 0x251c6b0
 3079324228: cap 2: Trying to steal a spark
-3079324786: cap 2: thread 2 stealing a spark from cap 0
+3079324786: cap 2: stealing a spark from cap 0
 3139956252: cap 3: End par conjunct: 0x251c770
 3139956657: cap 3: Trying to steal a spark
-3139957264: cap 3: thread 3 stealing a spark from cap 0
+3139957264: cap 3: stealing a spark from cap 0
 3140464482: cap 1: End par conjunct: 0x251c710
 3140465692: cap 1: Trying to steal a spark
-3140466867: cap 1: thread 4 stealing a spark from cap 0
+3140466867: cap 1: stealing a spark from cap 0
 3185762184: cap 2: End par conjunct: 0x251c7d0
 3185764056: cap 2: Trying to steal a spark
-3185766328: cap 2: thread 2 stealing a spark from cap 0
+3185766328: cap 2: stealing a spark from cap 0
 3236157738: cap 0: End par conjunct: 0x2527630
 3236157981: cap 0: End par conjunction: 0x2527630
 3236158165: cap 0: End par conjunct: 0x25275d0
-3236158624: cap 0: running a local spark (thread 1)
+3236158624: cap 0: running a local spark
 3242741305: cap 3: End par conjunct: 0x251c830
 3242741967: cap 3: Trying to steal a spark
-3242742264: cap 3: thread 3 stealing a spark from cap 0
+3242742264: cap 3: stealing a spark from cap 0
 3244070614: cap 1: End par conjunct: 0x251c890
 3244073584: cap 1: Trying to steal a spark
-3244076878: cap 1: thread 4 stealing a spark from cap 0
+3244076878: cap 1: stealing a spark from cap 0
 3324819811: cap 2: End par conjunct: 0x251c8f0
 3324821854: cap 2: Trying to steal a spark
-3324823920: cap 2: thread 2 stealing a spark from cap 0
+3324823920: cap 2: stealing a spark from cap 0
 3346673485: cap 3: End par conjunct: 0x251c950
 3346673917: cap 3: Trying to steal a spark
-3346674444: cap 3: thread 3 stealing a spark from cap 0
+3346674444: cap 3: stealing a spark from cap 0
 3349538100: cap 1: End par conjunct: 0x251c9b0
 3349539823: cap 1: Trying to steal a spark
-3349542892: cap 1: thread 4 stealing a spark from cap 0
+3349542892: cap 1: stealing a spark from cap 0
 3401577553: cap 0: End par conjunct: 0x25275d0
 3401577796: cap 0: End par conjunction: 0x25275d0
 3401577976: cap 0: End par conjunct: 0x2527570
-3401578467: cap 0: running a local spark (thread 1)
+3401578467: cap 0: running a local spark
 3438720855: cap 2: End par conjunct: 0x251ca10
 3438722511: cap 2: Trying to steal a spark
-3438724752: cap 2: thread 2 stealing a spark from cap 0
+3438724752: cap 2: stealing a spark from cap 0
 3450992944: cap 3: End par conjunct: 0x251ca70
 3450993430: cap 3: Trying to steal a spark
-3450993997: cap 3: thread 3 stealing a spark from cap 0
+3450993997: cap 3: stealing a spark from cap 0
 3455301627: cap 1: End par conjunct: 0x251cad0
 3455302590: cap 1: Trying to steal a spark
-3455303166: cap 1: thread 4 stealing a spark from cap 0
+3455303166: cap 1: stealing a spark from cap 0
 3540340399: cap 2: End par conjunct: 0x251cb30
 3540340863: cap 2: Trying to steal a spark
-3540341277: cap 2: thread 2 stealing a spark from cap 0
+3540341277: cap 2: stealing a spark from cap 0
 3555929610: cap 3: End par conjunct: 0x251cb90
 3555930127: cap 3: Trying to steal a spark
-3555930694: cap 3: thread 3 stealing a spark from cap 0
+3555930694: cap 3: stealing a spark from cap 0
 3560459175: cap 1: End par conjunct: 0x251cbf0
 3560459719: cap 1: Trying to steal a spark
-3560460259: cap 1: thread 4 stealing a spark from cap 0
+3560460259: cap 1: stealing a spark from cap 0
 3566313765: cap 0: End par conjunct: 0x2527570
 3566314080: cap 0: End par conjunction: 0x2527570
 3566314255: cap 0: End par conjunct: 0x2527510
-3566314651: cap 0: running a local spark (thread 1)
+3566314651: cap 0: running a local spark
 3641768923: cap 2: End par conjunct: 0x251cc50
 3641769747: cap 2: Trying to steal a spark
-3641770408: cap 2: thread 2 stealing a spark from cap 0
+3641770408: cap 2: stealing a spark from cap 0
 3660900102: cap 3: End par conjunct: 0x251ccb0
 3660900511: cap 3: Trying to steal a spark
-3660900966: cap 3: thread 3 stealing a spark from cap 0
+3660900966: cap 3: stealing a spark from cap 0
 3665647633: cap 1: End par conjunct: 0x251cd10
 3665648443: cap 1: Trying to steal a spark
-3665648970: cap 1: thread 4 stealing a spark from cap 0
+3665648970: cap 1: stealing a spark from cap 0
 3730731097: cap 0: End par conjunct: 0x2527510
 3730731304: cap 0: End par conjunction: 0x2527510
 3730731480: cap 0: End par conjunct: 0x25274b0
-3730731885: cap 0: running a local spark (thread 1)
+3730731885: cap 0: running a local spark
 3743352760: cap 2: End par conjunct: 0x251cd70
 3743353305: cap 2: Trying to steal a spark
-3743353944: cap 2: thread 2 stealing a spark from cap 0
+3743353944: cap 2: stealing a spark from cap 0
 3765799894: cap 3: End par conjunct: 0x251cdd0
 3765800340: cap 3: Trying to steal a spark
-3765800794: cap 3: thread 3 stealing a spark from cap 0
+3765800794: cap 3: stealing a spark from cap 0
 3771103450: cap 1: End par conjunct: 0x251ce30
 3771103918: cap 1: Trying to steal a spark
-3771104539: cap 1: thread 4 stealing a spark from cap 0
+3771104539: cap 1: stealing a spark from cap 0
 3850822485: cap 2: End par conjunct: 0x251ce90
 3850824190: cap 2: Trying to steal a spark
-3850826094: cap 2: thread 2 stealing a spark from cap 0
+3850826094: cap 2: stealing a spark from cap 0
 3871264050: cap 3: End par conjunct: 0x251cef0
 3871264590: cap 3: Trying to steal a spark
-3871265094: cap 3: thread 3 stealing a spark from cap 0
+3871265094: cap 3: stealing a spark from cap 0
 3878442486: cap 1: End par conjunct: 0x251cf50
 3878443377: cap 1: Trying to steal a spark
-3878444070: cap 1: thread 4 stealing a spark from cap 0
+3878444070: cap 1: stealing a spark from cap 0
 3895063317: cap 0: End par conjunct: 0x25274b0
 3895063519: cap 0: End par conjunction: 0x25274b0
 3895063668: cap 0: End par conjunct: 0x2527450
-3895064023: cap 0: running a local spark (thread 1)
+3895064023: cap 0: running a local spark
 3977831736: cap 3: End par conjunct: 0x251d010
 3977832244: cap 3: Trying to steal a spark
-3977832685: cap 3: thread 3 stealing a spark from cap 0
+3977832685: cap 3: stealing a spark from cap 0
 3990236616: cap 2: End par conjunct: 0x251cfb0
 3990238492: cap 2: Trying to steal a spark
-3990240571: cap 2: thread 2 stealing a spark from cap 0
+3990240571: cap 2: stealing a spark from cap 0
 3991293468: cap 1: End par conjunct: 0x251d070
 3991294359: cap 1: Trying to steal a spark
-3991294746: cap 1: thread 4 stealing a spark from cap 0
+3991294746: cap 1: stealing a spark from cap 0
 4059510961: cap 0: End par conjunct: 0x2527450
 4059511191: cap 0: End par conjunction: 0x2527450
 4059511479: cap 0: End par conjunct: 0x25273f0
-4059511938: cap 0: running a local spark (thread 1)
+4059511938: cap 0: running a local spark
 4084069900: cap 3: End par conjunct: 0x251d0d0
 4084070413: cap 3: Trying to steal a spark
-4084070827: cap 3: thread 3 stealing a spark from cap 0
+4084070827: cap 3: stealing a spark from cap 0
 4098127671: cap 1: End par conjunct: 0x251d190
 4098129345: cap 1: Trying to steal a spark
-4098131190: cap 1: thread 4 stealing a spark from cap 0
+4098131190: cap 1: stealing a spark from cap 0
 4100764009: cap 2: End par conjunct: 0x251d130
 4100764720: cap 2: Trying to steal a spark
-4100765107: cap 2: thread 2 stealing a spark from cap 0
+4100765107: cap 2: stealing a spark from cap 0
 4189030627: cap 3: End par conjunct: 0x251d1f0
 4189031041: cap 3: Trying to steal a spark
-4189031622: cap 3: thread 3 stealing a spark from cap 0
+4189031622: cap 3: stealing a spark from cap 0
 4202895316: cap 1: End par conjunct: 0x251d250
 4202896761: cap 1: Trying to steal a spark
-4202897868: cap 1: thread 4 stealing a spark from cap 0
+4202897868: cap 1: stealing a spark from cap 0
 4203368370: cap 2: End par conjunct: 0x251d2b0
 4203369009: cap 2: Trying to steal a spark
-4203369432: cap 2: thread 2 stealing a spark from cap 0
+4203369432: cap 2: stealing a spark from cap 0
 4224118374: cap 0: End par conjunct: 0x25273f0
 4224118594: cap 0: End par conjunction: 0x25273f0
 4224118779: cap 0: End par conjunct: 0x2527390
-4224119193: cap 0: running a local spark (thread 1)
+4224119193: cap 0: running a local spark
 4293500643: cap 3: End par conjunct: 0x251d310
 4293501210: cap 3: Trying to steal a spark
-4293501547: cap 3: thread 3 stealing a spark from cap 0
+4293501547: cap 3: stealing a spark from cap 0
 4303451088: cap 2: End par conjunct: 0x251d3d0
 4303451740: cap 2: Trying to steal a spark
-4303452370: cap 2: thread 2 stealing a spark from cap 0
+4303452370: cap 2: stealing a spark from cap 0
 4306702729: cap 1: End par conjunct: 0x251d370
 4306703229: cap 1: Trying to steal a spark
-4306703593: cap 1: thread 4 stealing a spark from cap 0
+4306703593: cap 1: stealing a spark from cap 0
 4388432976: cap 0: End par conjunct: 0x2527390
 4388433246: cap 0: End par conjunction: 0x2527390
 4388433552: cap 0: End par conjunct: 0x2527330
-4388433889: cap 0: running a local spark (thread 1)
+4388433889: cap 0: running a local spark
 4396328653: cap 3: End par conjunct: 0x251d430
 4396329103: cap 3: Trying to steal a spark
-4396329517: cap 3: thread 3 stealing a spark from cap 0
+4396329517: cap 3: stealing a spark from cap 0
 4403295733: cap 2: End par conjunct: 0x251d490
 4403296300: cap 2: Trying to steal a spark
-4403297182: cap 2: thread 2 stealing a spark from cap 0
+4403297182: cap 2: stealing a spark from cap 0
 4410306522: cap 1: End par conjunct: 0x251d4f0
 4410306877: cap 1: Trying to steal a spark
-4410307246: cap 1: thread 4 stealing a spark from cap 0
+4410307246: cap 1: stealing a spark from cap 0
 4499511997: cap 3: End par conjunct: 0x251d550
 4499512465: cap 3: Trying to steal a spark
-4499512956: cap 3: thread 3 stealing a spark from cap 0
+4499512956: cap 3: stealing a spark from cap 0
 4502380810: cap 2: End par conjunct: 0x251d5b0
 4502381359: cap 2: Trying to steal a spark
-4502381818: cap 2: thread 2 stealing a spark from cap 0
+4502381818: cap 2: stealing a spark from cap 0
 4512594357: cap 1: End par conjunct: 0x251d610
 4512594910: cap 1: Trying to steal a spark
-4512595275: cap 1: thread 4 stealing a spark from cap 0
+4512595275: cap 1: stealing a spark from cap 0
 4552369659: cap 0: End par conjunct: 0x2527330
 4552369816: cap 0: End par conjunction: 0x2527330
 4552369951: cap 0: End par conjunct: 0x25272d0
-4552370226: cap 0: running a local spark (thread 1)
+4552370226: cap 0: running a local spark
 4600086066: cap 3: End par conjunct: 0x251d670
 4600086556: cap 3: Trying to steal a spark
-4600086817: cap 3: thread 3 stealing a spark from cap 0
+4600086817: cap 3: stealing a spark from cap 0
 4604659614: cap 2: End par conjunct: 0x251d6d0
 4604661180: cap 2: Trying to steal a spark
-4604662786: cap 2: thread 2 stealing a spark from cap 0
+4604662786: cap 2: stealing a spark from cap 0
 4612849681: cap 1: End par conjunct: 0x251d730
 4612850379: cap 1: Trying to steal a spark
-4612850883: cap 1: thread 4 stealing a spark from cap 0
+4612850883: cap 1: stealing a spark from cap 0
 4699006281: cap 3: End par conjunct: 0x251d790
 4699006843: cap 3: Trying to steal a spark
-4699007370: cap 3: thread 3 stealing a spark from cap 0
+4699007370: cap 3: stealing a spark from cap 0
 4710339432: cap 1: End par conjunct: 0x251d850
 4710341389: cap 1: Trying to steal a spark
-4710343032: cap 1: thread 4 stealing a spark from cap 0
+4710343032: cap 1: stealing a spark from cap 0
 4716631368: cap 0: End par conjunct: 0x25272d0
 4716631579: cap 0: End par conjunction: 0x25272d0
 4716631741: cap 0: End par conjunct: 0x2527270
-4716632142: cap 0: running a local spark (thread 1)
+4716632142: cap 0: running a local spark
 4735995192: cap 2: End par conjunct: 0x251d7f0
 4735995916: cap 2: Trying to steal a spark
-4735996753: cap 2: thread 2 stealing a spark from cap 0
+4735996753: cap 2: stealing a spark from cap 0
 4802625774: cap 1: End par conjunct: 0x251d910
 4802627380: cap 1: Trying to steal a spark
-4802629302: cap 1: thread 4 stealing a spark from cap 0
+4802629302: cap 1: stealing a spark from cap 0
 4805334769: cap 3: End par conjunct: 0x251d8b0
 4805336542: cap 3: Trying to steal a spark
-4805338437: cap 3: thread 3 stealing a spark from cap 0
+4805338437: cap 3: stealing a spark from cap 0
 4831134097: cap 2: End par conjunct: 0x251d970
 4831134948: cap 2: Trying to steal a spark
-4831135785: cap 2: thread 2 stealing a spark from cap 0
+4831135785: cap 2: stealing a spark from cap 0
 4880466819: cap 0: End par conjunct: 0x2527270
 4880467201: cap 0: End par conjunction: 0x2527270
 4880467507: cap 0: End par conjunct: 0x2527210
-4880467917: cap 0: running a local spark (thread 1)
+4880467917: cap 0: running a local spark
 4894799611: cap 1: End par conjunct: 0x251d9d0
 4894800457: cap 1: Trying to steal a spark
-4894801132: cap 1: thread 4 stealing a spark from cap 0
+4894801132: cap 1: stealing a spark from cap 0
 4896399325: cap 3: End par conjunct: 0x251da30
 4896399721: cap 3: Trying to steal a spark
-4896400383: cap 3: thread 3 stealing a spark from cap 0
+4896400383: cap 3: stealing a spark from cap 0
 4919787211: cap 2: End par conjunct: 0x251da90
 4919787738: cap 2: Trying to steal a spark
-4919788192: cap 2: thread 2 stealing a spark from cap 0
+4919788192: cap 2: stealing a spark from cap 0
 4987284781: cap 1: End par conjunct: 0x251daf0
 4987285263: cap 1: Trying to steal a spark
-4987285713: cap 1: thread 4 stealing a spark from cap 0
+4987285713: cap 1: stealing a spark from cap 0
 4988328228: cap 3: End par conjunct: 0x251db50
 4988328700: cap 3: Trying to steal a spark
-4988329227: cap 3: thread 3 stealing a spark from cap 0
+4988329227: cap 3: stealing a spark from cap 0
 5009116779: cap 2: End par conjunct: 0x251dbb0
 5009117323: cap 2: Trying to steal a spark
-5009117805: cap 2: thread 2 stealing a spark from cap 0
+5009117805: cap 2: stealing a spark from cap 0
 5044457664: cap 0: End par conjunct: 0x2527210
 5044458010: cap 0: End par conjunction: 0x2527210
 5044458235: cap 0: End par conjunct: 0x25271b0
-5044458622: cap 0: running a local spark (thread 1)
+5044458622: cap 0: running a local spark
 5080150813: cap 1: End par conjunct: 0x251dc10
 5080151259: cap 1: Trying to steal a spark
-5080151767: cap 1: thread 4 stealing a spark from cap 0
+5080151767: cap 1: stealing a spark from cap 0
 5081340006: cap 3: End par conjunct: 0x251dc70
 5081340672: cap 3: Trying to steal a spark
-5081341099: cap 3: thread 3 stealing a spark from cap 0
+5081341099: cap 3: stealing a spark from cap 0
 5099104935: cap 2: End par conjunct: 0x251dcd0
 5099105610: cap 2: Trying to steal a spark
-5099106096: cap 2: thread 2 stealing a spark from cap 0
+5099106096: cap 2: stealing a spark from cap 0
 5174841456: cap 3: End par conjunct: 0x251dd90
 5174841910: cap 3: Trying to steal a spark
-5174842351: cap 3: thread 3 stealing a spark from cap 0
+5174842351: cap 3: stealing a spark from cap 0
 5179632331: cap 1: End par conjunct: 0x251dd30
 5179633258: cap 1: Trying to steal a spark
-5179634032: cap 1: thread 4 stealing a spark from cap 0
+5179634032: cap 1: stealing a spark from cap 0
 5190281595: cap 2: End par conjunct: 0x251ddf0
 5190282031: cap 2: Trying to steal a spark
-5190282355: cap 2: thread 2 stealing a spark from cap 0
+5190282355: cap 2: stealing a spark from cap 0
 5208519726: cap 0: End par conjunct: 0x25271b0
 5208519951: cap 0: End par conjunction: 0x25271b0
 5208520212: cap 0: End par conjunct: 0x2527150
-5208520594: cap 0: running a local spark (thread 1)
+5208520594: cap 0: running a local spark
 5269359082: cap 3: End par conjunct: 0x251de50
 5269359537: cap 3: Trying to steal a spark
-5269359901: cap 3: thread 3 stealing a spark from cap 0
+5269359901: cap 3: stealing a spark from cap 0
 5274835857: cap 1: End par conjunct: 0x251deb0
 5274836505: cap 1: Trying to steal a spark
-5274837094: cap 1: thread 4 stealing a spark from cap 0
+5274837094: cap 1: stealing a spark from cap 0
 5282239549: cap 2: End par conjunct: 0x251df10
 5282239977: cap 2: Trying to steal a spark
-5282240287: cap 2: thread 2 stealing a spark from cap 0
+5282240287: cap 2: stealing a spark from cap 0
 5364891751: cap 3: End par conjunct: 0x251df70
 5364892188: cap 3: Trying to steal a spark
-5364892642: cap 3: thread 3 stealing a spark from cap 0
+5364892642: cap 3: stealing a spark from cap 0
 5371093939: cap 1: End par conjunct: 0x251dfd0
 5371094565: cap 1: Trying to steal a spark
-5371095226: cap 1: thread 4 stealing a spark from cap 0
+5371095226: cap 1: stealing a spark from cap 0
 5372349538: cap 0: End par conjunct: 0x2527150
 5372349732: cap 0: End par conjunction: 0x2527150
 5372349907: cap 0: End par conjunct: 0x25270f0
-5372350204: cap 0: running a local spark (thread 1)
+5372350204: cap 0: running a local spark
 5375287273: cap 2: End par conjunct: 0x251e030
 5375287737: cap 2: Trying to steal a spark
-5375288263: cap 2: thread 2 stealing a spark from cap 0
+5375288263: cap 2: stealing a spark from cap 0
 5460822751: cap 3: End par conjunct: 0x251e090
 5460823359: cap 3: Trying to steal a spark
-5460824029: cap 3: thread 3 stealing a spark from cap 0
+5460824029: cap 3: stealing a spark from cap 0
 5468675634: cap 1: End par conjunct: 0x251e0f0
 5468677600: cap 1: Trying to steal a spark
-5468679922: cap 1: thread 4 stealing a spark from cap 0
+5468679922: cap 1: stealing a spark from cap 0
 5511468537: cap 2: End par conjunct: 0x251e150
 5511470931: cap 2: Trying to steal a spark
-5511472380: cap 2: thread 2 stealing a spark from cap 0
+5511472380: cap 2: stealing a spark from cap 0
 5536802232: cap 0: End par conjunct: 0x25270f0
 5536802448: cap 0: End par conjunction: 0x25270f0
 5536802619: cap 0: End par conjunct: 0x2527090
-5536802916: cap 0: running a local spark (thread 1)
+5536802916: cap 0: running a local spark
 5558417905: cap 3: End par conjunct: 0x251e1b0
 5558418310: cap 3: Trying to steal a spark
-5558418571: cap 3: thread 3 stealing a spark from cap 0
+5558418571: cap 3: stealing a spark from cap 0
 5566822195: cap 1: End par conjunct: 0x251e210
 5566823829: cap 1: Trying to steal a spark
-5566825089: cap 1: thread 4 stealing a spark from cap 0
+5566825089: cap 1: stealing a spark from cap 0
 5613784794: cap 2: End par conjunct: 0x251e270
 5613786652: cap 2: Trying to steal a spark
-5613788389: cap 2: thread 2 stealing a spark from cap 0
+5613788389: cap 2: stealing a spark from cap 0
 5656165357: cap 3: End par conjunct: 0x251e2d0
 5656165731: cap 3: Trying to steal a spark
-5656166226: cap 3: thread 3 stealing a spark from cap 0
+5656166226: cap 3: stealing a spark from cap 0
 5667148989: cap 1: End par conjunct: 0x251e330
 5667150114: cap 1: Trying to steal a spark
-5667151266: cap 1: thread 4 stealing a spark from cap 0
+5667151266: cap 1: stealing a spark from cap 0
 5702150182: cap 0: End par conjunct: 0x2527090
 5702150398: cap 0: End par conjunction: 0x2527090
 5702150677: cap 0: End par conjunct: 0x2527030
-5702151082: cap 0: running a local spark (thread 1)
+5702151082: cap 0: running a local spark
 5710287978: cap 2: End par conjunct: 0x251e390
 5710288504: cap 2: Trying to steal a spark
-5710289094: cap 2: thread 2 stealing a spark from cap 0
+5710289094: cap 2: stealing a spark from cap 0
 5755608112: cap 3: End par conjunct: 0x251e3f0
 5755608495: cap 3: Trying to steal a spark
-5755608940: cap 3: thread 3 stealing a spark from cap 0
+5755608940: cap 3: stealing a spark from cap 0
 5767399530: cap 1: End par conjunct: 0x251e450
 5767400074: cap 1: Trying to steal a spark
-5767400655: cap 1: thread 4 stealing a spark from cap 0
+5767400655: cap 1: stealing a spark from cap 0
 5806750243: cap 2: End par conjunct: 0x251e4b0
 5806750702: cap 2: Trying to steal a spark
-5806751017: cap 2: thread 2 stealing a spark from cap 0
+5806751017: cap 2: stealing a spark from cap 0
 5854923580: cap 3: End par conjunct: 0x251e510
 5854924039: cap 3: Trying to steal a spark
-5854924462: cap 3: thread 3 stealing a spark from cap 0
+5854924462: cap 3: stealing a spark from cap 0
 5867308777: cap 1: End par conjunct: 0x251e570
 5867309322: cap 1: Trying to steal a spark
-5867309866: cap 1: thread 4 stealing a spark from cap 0
+5867309866: cap 1: stealing a spark from cap 0
 5868694615: cap 0: End par conjunct: 0x2527030
 5868694818: cap 0: End par conjunction: 0x2527030
 5868694980: cap 0: End par conjunct: 0x2526fd0
-5868695389: cap 0: running a local spark (thread 1)
+5868695389: cap 0: running a local spark
 5903779621: cap 2: End par conjunct: 0x251e5d0
 5903780049: cap 2: Trying to steal a spark
-5903780517: cap 2: thread 2 stealing a spark from cap 0
+5903780517: cap 2: stealing a spark from cap 0
 5955976417: cap 3: End par conjunct: 0x251e630
 5955976791: cap 3: Trying to steal a spark
-5955977236: cap 3: thread 3 stealing a spark from cap 0
+5955977236: cap 3: stealing a spark from cap 0
 5969468290: cap 1: End par conjunct: 0x251e690
 5969468898: cap 1: Trying to steal a spark
-5969469487: cap 1: thread 4 stealing a spark from cap 0
+5969469487: cap 1: stealing a spark from cap 0
 6002940645: cap 2: End par conjunct: 0x251e6f0
 6002940960: cap 2: Trying to steal a spark
-6002941293: cap 2: thread 2 stealing a spark from cap 0
+6002941293: cap 2: stealing a spark from cap 0
 6036253218: cap 0: End par conjunct: 0x2526fd0
 6036253488: cap 0: End par conjunction: 0x2526fd0
 6036253771: cap 0: End par conjunct: 0x2526f70
-6036254190: cap 0: running a local spark (thread 1)
+6036254190: cap 0: running a local spark
 6058467171: cap 3: End par conjunct: 0x251e750
 6058467612: cap 3: Trying to steal a spark
-6058467877: cap 3: thread 3 stealing a spark from cap 0
+6058467877: cap 3: stealing a spark from cap 0
 6073172662: cap 1: End par conjunct: 0x251e7b0
 6073173180: cap 1: Trying to steal a spark
-6073173729: cap 1: thread 4 stealing a spark from cap 0
+6073173729: cap 1: stealing a spark from cap 0
 6102897106: cap 2: End par conjunct: 0x251e810
 6102897525: cap 2: Trying to steal a spark
-6102897934: cap 2: thread 2 stealing a spark from cap 0
+6102897934: cap 2: stealing a spark from cap 0
 6161465551: cap 3: End par conjunct: 0x251e870
 6161465925: cap 3: Trying to steal a spark
-6161466361: cap 3: thread 3 stealing a spark from cap 0
+6161466361: cap 3: stealing a spark from cap 0
 6176467750: cap 1: End par conjunct: 0x251e8d0
 6176468272: cap 1: Trying to steal a spark
-6176468862: cap 1: thread 4 stealing a spark from cap 0
+6176468862: cap 1: stealing a spark from cap 0
 6202076346: cap 2: End par conjunct: 0x251e930
 6202076782: cap 2: Trying to steal a spark
-6202077183: cap 2: thread 2 stealing a spark from cap 0
+6202077183: cap 2: stealing a spark from cap 0
 6202608786: cap 0: End par conjunct: 0x2526f70
 6202608993: cap 0: End par conjunction: 0x2526f70
 6202609159: cap 0: End par conjunct: 0x2526f10
-6202609461: cap 0: running a local spark (thread 1)
+6202609461: cap 0: running a local spark
 6264545985: cap 3: End par conjunct: 0x251e990
 6264546435: cap 3: Trying to steal a spark
-6264546718: cap 3: thread 3 stealing a spark from cap 0
+6264546718: cap 3: stealing a spark from cap 0
 6280029117: cap 1: End par conjunct: 0x251e9f0
 6280030134: cap 1: Trying to steal a spark
-6280031272: cap 1: thread 4 stealing a spark from cap 0
+6280031272: cap 1: stealing a spark from cap 0
 6302836035: cap 2: End par conjunct: 0x251ea50
 6302836521: cap 2: Trying to steal a spark
-6302837034: cap 2: thread 2 stealing a spark from cap 0
+6302837034: cap 2: stealing a spark from cap 0
 6364841238: cap 0: End par conjunct: 0x2526f10
 6364841436: cap 0: End par conjunction: 0x2526f10
 6364841580: cap 0: End par conjunct: 0x2526eb0
-6364841931: cap 0: running a local spark (thread 1)
+6364841931: cap 0: running a local spark
 6368895904: cap 3: End par conjunct: 0x251eab0
 6368896278: cap 3: Trying to steal a spark
-6368896660: cap 3: thread 3 stealing a spark from cap 0
+6368896660: cap 3: stealing a spark from cap 0
 6391330479: cap 1: End par conjunct: 0x251eb10
 6391331721: cap 1: Trying to steal a spark
-6391332729: cap 1: thread 4 stealing a spark from cap 0
+6391332729: cap 1: stealing a spark from cap 0
 6406162888: cap 2: End par conjunct: 0x251eb70
 6406163248: cap 2: Trying to steal a spark
-6406163586: cap 2: thread 2 stealing a spark from cap 0
+6406163586: cap 2: stealing a spark from cap 0
 6475439569: cap 3: End par conjunct: 0x251ebd0
 6475440010: cap 3: Trying to steal a spark
-6475440442: cap 3: thread 3 stealing a spark from cap 0
+6475440442: cap 3: stealing a spark from cap 0
 6498971127: cap 1: End par conjunct: 0x251ec30
 6498971671: cap 1: Trying to steal a spark
-6498972477: cap 1: thread 4 stealing a spark from cap 0
+6498972477: cap 1: stealing a spark from cap 0
 6510126928: cap 2: End par conjunct: 0x251ec90
 6510127342: cap 2: Trying to steal a spark
-6510127675: cap 2: thread 2 stealing a spark from cap 0
+6510127675: cap 2: stealing a spark from cap 0
 6532580326: cap 0: End par conjunct: 0x2526eb0
 6532580713: cap 0: End par conjunction: 0x2526eb0
 6532580866: cap 0: End par conjunct: 0x2526e50
-6532581163: cap 0: running a local spark (thread 1)
+6532581163: cap 0: running a local spark
 6583930695: cap 3: End par conjunct: 0x251ecf0
 6583931239: cap 3: Trying to steal a spark
-6583931568: cap 3: thread 3 stealing a spark from cap 0
+6583931568: cap 3: stealing a spark from cap 0
 6607367370: cap 1: End par conjunct: 0x251ed50
 6607367905: cap 1: Trying to steal a spark
-6607368616: cap 1: thread 4 stealing a spark from cap 0
+6607368616: cap 1: stealing a spark from cap 0
 6615017739: cap 2: End par conjunct: 0x251edb0
 6615018261: cap 2: Trying to steal a spark
-6615018598: cap 2: thread 2 stealing a spark from cap 0
+6615018598: cap 2: stealing a spark from cap 0
 6692534527: cap 3: End par conjunct: 0x251ee10
 6692535103: cap 3: Trying to steal a spark
-6692535679: cap 3: thread 3 stealing a spark from cap 0
+6692535679: cap 3: stealing a spark from cap 0
 6700865737: cap 0: End par conjunct: 0x2526e50
 6700865953: cap 0: End par conjunction: 0x2526e50
 6700866138: cap 0: End par conjunct: 0x2526df0
-6700866475: cap 0: running a local spark (thread 1)
+6700866475: cap 0: running a local spark
 6716408625: cap 1: End par conjunct: 0x251ee70
 6716409237: cap 1: Trying to steal a spark
-6716410335: cap 1: thread 4 stealing a spark from cap 0
+6716410335: cap 1: stealing a spark from cap 0
 6720467719: cap 2: End par conjunct: 0x251eed0
 6720468286: cap 2: Trying to steal a spark
-6720468646: cap 2: thread 2 stealing a spark from cap 0
+6720468646: cap 2: stealing a spark from cap 0
 6806783403: cap 3: End par conjunct: 0x251ef30
 6806785135: cap 3: Trying to steal a spark
-6806786967: cap 3: thread 3 stealing a spark from cap 0
+6806786967: cap 3: stealing a spark from cap 0
 6823963629: cap 2: End par conjunct: 0x251eff0
 6823964236: cap 2: Trying to steal a spark
-6823964790: cap 2: thread 2 stealing a spark from cap 0
+6823964790: cap 2: stealing a spark from cap 0
 6825203406: cap 1: End par conjunct: 0x251ef90
 6825203973: cap 1: Trying to steal a spark
-6825204369: cap 1: thread 4 stealing a spark from cap 0
+6825204369: cap 1: stealing a spark from cap 0
 6869104015: cap 0: End par conjunct: 0x2526df0
 6869104672: cap 0: End par conjunction: 0x2526df0
 6869105190: cap 0: End par conjunct: 0x2526d90
-6869106378: cap 0: running a local spark (thread 1)
+6869106378: cap 0: running a local spark
 6928249585: cap 2: End par conjunct: 0x251f0b0
 6928249995: cap 2: Trying to steal a spark
-6928250413: cap 2: thread 2 stealing a spark from cap 0
+6928250413: cap 2: stealing a spark from cap 0
 6933589821: cap 1: End par conjunct: 0x251f110
 6933590262: cap 1: Trying to steal a spark
-6933590635: cap 1: thread 4 stealing a spark from cap 0
+6933590635: cap 1: stealing a spark from cap 0
 6956958510: cap 3: End par conjunct: 0x251f050
 6956960251: cap 3: Trying to steal a spark
-6956962425: cap 3: thread 3 stealing a spark from cap 0
+6956962425: cap 3: stealing a spark from cap 0
 7033972122: cap 2: End par conjunct: 0x251f170
 7033973503: cap 2: Trying to steal a spark
-7033974840: cap 2: thread 2 stealing a spark from cap 0
+7033974840: cap 2: stealing a spark from cap 0
 7037497476: cap 0: End par conjunct: 0x2526d90
 7037497863: cap 0: End par conjunction: 0x2526d90
 7037498353: cap 0: End par conjunct: 0x2526d30
-7037498799: cap 0: running a local spark (thread 1)
+7037498799: cap 0: running a local spark
 7043018242: cap 1: End par conjunct: 0x251f1d0
 7043018877: cap 1: Trying to steal a spark
-7043019408: cap 1: thread 4 stealing a spark from cap 0
+7043019408: cap 1: stealing a spark from cap 0
 7065907465: cap 3: End par conjunct: 0x251f230
 7065907906: cap 3: Trying to steal a spark
-7065908442: cap 3: thread 3 stealing a spark from cap 0
+7065908442: cap 3: stealing a spark from cap 0
 7139790391: cap 2: End par conjunct: 0x251f290
 7139791053: cap 2: Trying to steal a spark
-7139791656: cap 2: thread 2 stealing a spark from cap 0
+7139791656: cap 2: stealing a spark from cap 0
 7154419621: cap 1: End par conjunct: 0x251f2f0
 7154420130: cap 1: Trying to steal a spark
-7154420463: cap 1: thread 4 stealing a spark from cap 0
+7154420463: cap 1: stealing a spark from cap 0
 7178493060: cap 3: End par conjunct: 0x251f350
 7178493568: cap 3: Trying to steal a spark
-7178494023: cap 3: thread 3 stealing a spark from cap 0
+7178494023: cap 3: stealing a spark from cap 0
 7205940342: cap 0: End par conjunct: 0x2526d30
 7205940661: cap 0: End par conjunction: 0x2526d30
 7205940810: cap 0: End par conjunct: 0x2526cd0
-7205941197: cap 0: running a local spark (thread 1)
+7205941197: cap 0: running a local spark
 7249679901: cap 2: End par conjunct: 0x251f3b0
 7249680679: cap 2: Trying to steal a spark
-7249681525: cap 2: thread 2 stealing a spark from cap 0
+7249681525: cap 2: stealing a spark from cap 0
 7270700197: cap 1: End par conjunct: 0x251f410
 7270700742: cap 1: Trying to steal a spark
-7270701111: cap 1: thread 4 stealing a spark from cap 0
+7270701111: cap 1: stealing a spark from cap 0
 7294506664: cap 3: End par conjunct: 0x251f470
 7294507105: cap 3: Trying to steal a spark
-7294507659: cap 3: thread 3 stealing a spark from cap 0
+7294507659: cap 3: stealing a spark from cap 0
 7362194377: cap 2: End par conjunct: 0x251f4d0
 7362195111: cap 2: Trying to steal a spark
-7362195624: cap 2: thread 2 stealing a spark from cap 0
+7362195624: cap 2: stealing a spark from cap 0
 7374448426: cap 0: End par conjunct: 0x2526cd0
 7374448746: cap 0: End par conjunction: 0x2526cd0
 7374448917: cap 0: End par conjunct: 0x2526c70
-7374449488: cap 0: running a local spark (thread 1)
+7374449488: cap 0: running a local spark
 7388212914: cap 1: End par conjunct: 0x251f530
 7388214682: cap 1: Trying to steal a spark
-7388216793: cap 1: thread 4 stealing a spark from cap 0
+7388216793: cap 1: stealing a spark from cap 0
 7409992662: cap 3: End par conjunct: 0x251f590
 7409993112: cap 3: Trying to steal a spark
-7409993548: cap 3: thread 3 stealing a spark from cap 0
+7409993548: cap 3: stealing a spark from cap 0
 7505717877: cap 1: End par conjunct: 0x251f650
 7505719911: cap 1: Trying to steal a spark
-7505722413: cap 1: thread 4 stealing a spark from cap 0
+7505722413: cap 1: stealing a spark from cap 0
 7516908211: cap 2: End par conjunct: 0x251f5f0
 7516909035: cap 2: Trying to steal a spark
-7516909422: cap 2: thread 2 stealing a spark from cap 0
+7516909422: cap 2: stealing a spark from cap 0
 7526619144: cap 3: End par conjunct: 0x251f6b0
 7526619607: cap 3: Trying to steal a spark
-7526620030: cap 3: thread 3 stealing a spark from cap 0
+7526620030: cap 3: stealing a spark from cap 0
 7542900904: cap 0: End par conjunct: 0x2526c70
 7542901093: cap 0: End par conjunction: 0x2526c70
 7542901233: cap 0: End par conjunct: 0x2526c10
-7542901593: cap 0: running a local spark (thread 1)
+7542901593: cap 0: running a local spark
 7629785779: cap 1: End par conjunct: 0x251f710
 7629787647: cap 1: Trying to steal a spark
-7629789586: cap 1: thread 4 stealing a spark from cap 0
+7629789586: cap 1: stealing a spark from cap 0
 7638019537: cap 2: End par conjunct: 0x251f770
 7638020248: cap 2: Trying to steal a spark
-7638020640: cap 2: thread 2 stealing a spark from cap 0
+7638020640: cap 2: stealing a spark from cap 0
 7644842095: cap 3: End par conjunct: 0x251f7d0
 7644842563: cap 3: Trying to steal a spark
-7644843103: cap 3: thread 3 stealing a spark from cap 0
+7644843103: cap 3: stealing a spark from cap 0
 7711580452: cap 0: End par conjunct: 0x2526c10
 7711580659: cap 0: End par conjunction: 0x2526c10
 7711580830: cap 0: End par conjunct: 0x2526bb0
-7711581078: cap 0: running a local spark (thread 1)
+7711581078: cap 0: running a local spark
 7748250741: cap 1: End par conjunct: 0x251f830
 7748251834: cap 1: Trying to steal a spark
-7748253274: cap 1: thread 4 stealing a spark from cap 0
+7748253274: cap 1: stealing a spark from cap 0
 7752907786: cap 2: End par conjunct: 0x251f890
 7752908403: cap 2: Trying to steal a spark
-7752908754: cap 2: thread 2 stealing a spark from cap 0
+7752908754: cap 2: stealing a spark from cap 0
 7762712247: cap 3: End par conjunct: 0x251f8f0
 7762712625: cap 3: Trying to steal a spark
-7762713061: cap 3: thread 3 stealing a spark from cap 0
+7762713061: cap 3: stealing a spark from cap 0
 7866824067: cap 1: End par conjunct: 0x251f950
 7866824791: cap 1: Trying to steal a spark
-7866825435: cap 1: thread 4 stealing a spark from cap 0
+7866825435: cap 1: stealing a spark from cap 0
 7868129994: cap 2: End par conjunct: 0x251f9b0
 7868130318: cap 2: Trying to steal a spark
-7868130660: cap 2: thread 2 stealing a spark from cap 0
+7868130660: cap 2: stealing a spark from cap 0
 7880553090: cap 0: End par conjunct: 0x2526bb0
 7880553283: cap 0: End par conjunction: 0x2526bb0
 7880553571: cap 0: End par conjunct: 0x2526b50
-7880553886: cap 0: running a local spark (thread 1)
+7880553886: cap 0: running a local spark
 7881310125: cap 3: End par conjunct: 0x251fa10
 7881310575: cap 3: Trying to steal a spark
-7881310930: cap 3: thread 3 stealing a spark from cap 0
+7881310930: cap 3: stealing a spark from cap 0
 7983051835: cap 2: End par conjunct: 0x251fad0
 7983052690: cap 2: Trying to steal a spark
-7983053311: cap 2: thread 2 stealing a spark from cap 0
+7983053311: cap 2: stealing a spark from cap 0
 7986387316: cap 1: End par conjunct: 0x251fa70
 7986387856: cap 1: Trying to steal a spark
-7986388225: cap 1: thread 4 stealing a spark from cap 0
+7986388225: cap 1: stealing a spark from cap 0
 7999363462: cap 3: End par conjunct: 0x251fb30
 7999363831: cap 3: Trying to steal a spark
-7999364371: cap 3: thread 3 stealing a spark from cap 0
+7999364371: cap 3: stealing a spark from cap 0
 8049000447: cap 0: End par conjunct: 0x2526b50
 8049000636: cap 0: End par conjunction: 0x2526b50
 8049000807: cap 0: End par conjunct: 0x2526af0
-8049001171: cap 0: running a local spark (thread 1)
+8049001171: cap 0: running a local spark
 8097602877: cap 2: End par conjunct: 0x251fb90
 8097603786: cap 2: Trying to steal a spark
-8097604686: cap 2: thread 2 stealing a spark from cap 0
+8097604686: cap 2: stealing a spark from cap 0
 8105726808: cap 1: End par conjunct: 0x251fbf0
 8105727348: cap 1: Trying to steal a spark
-8105727708: cap 1: thread 4 stealing a spark from cap 0
+8105727708: cap 1: stealing a spark from cap 0
 8122236853: cap 3: End par conjunct: 0x251fc50
 8122238694: cap 3: Trying to steal a spark
-8122240728: cap 3: thread 3 stealing a spark from cap 0
+8122240728: cap 3: stealing a spark from cap 0
 8209894459: cap 2: End par conjunct: 0x251fcb0
 8209895179: cap 2: Trying to steal a spark
-8209895760: cap 2: thread 2 stealing a spark from cap 0
+8209895760: cap 2: stealing a spark from cap 0
 8217917545: cap 0: End par conjunct: 0x2526af0
 8217918414: cap 0: End par conjunction: 0x2526af0
 8217918882: cap 0: End par conjunct: 0x2526a90
-8217919912: cap 0: running a local spark (thread 1)
+8217919912: cap 0: running a local spark
 8222221260: cap 1: End par conjunct: 0x251fd10
 8222221822: cap 1: Trying to steal a spark
-8222222331: cap 1: thread 4 stealing a spark from cap 0
+8222222331: cap 1: stealing a spark from cap 0
 8274741862: cap 3: End par conjunct: 0x251fd70
 8274743266: cap 3: Trying to steal a spark
-8274745170: cap 3: thread 3 stealing a spark from cap 0
+8274745170: cap 3: stealing a spark from cap 0
 8322421567: cap 2: End par conjunct: 0x251fdd0
 8322422215: cap 2: Trying to steal a spark
-8322422940: cap 2: thread 2 stealing a spark from cap 0
+8322422940: cap 2: stealing a spark from cap 0
 8338848345: cap 1: End par conjunct: 0x251fe30
 8338848705: cap 1: Trying to steal a spark
-8338849056: cap 1: thread 4 stealing a spark from cap 0
+8338849056: cap 1: stealing a spark from cap 0
 8387412912: cap 0: End par conjunct: 0x2526a90
 8387413497: cap 0: End par conjunction: 0x2526a90
 8387414005: cap 0: End par conjunct: 0x2526a30
-8387415427: cap 0: running a local spark (thread 1)
+8387415427: cap 0: running a local spark
 8397977359: cap 3: End par conjunct: 0x251fe90
 8397978768: cap 3: Trying to steal a spark
-8397980046: cap 3: thread 3 stealing a spark from cap 0
+8397980046: cap 3: stealing a spark from cap 0
 8435992648: cap 2: End par conjunct: 0x251fef0
 8435993760: cap 2: Trying to steal a spark
-8435994781: cap 2: thread 2 stealing a spark from cap 0
+8435994781: cap 2: stealing a spark from cap 0
 8456515038: cap 1: End par conjunct: 0x251ff50
 8456515564: cap 1: Trying to steal a spark
-8456515929: cap 1: thread 4 stealing a spark from cap 0
+8456515929: cap 1: stealing a spark from cap 0
 8514977890: cap 3: End par conjunct: 0x251ffb0
 8514978282: cap 3: Trying to steal a spark
-8514978934: cap 3: thread 3 stealing a spark from cap 0
+8514978934: cap 3: stealing a spark from cap 0
 8550261373: cap 2: End par conjunct: 0x2520010
 8550261990: cap 2: Trying to steal a spark
-8550262786: cap 2: thread 2 stealing a spark from cap 0
+8550262786: cap 2: stealing a spark from cap 0
 8556870406: cap 0: End par conjunct: 0x2526a30
 8556870582: cap 0: End par conjunction: 0x2526a30
 8556870753: cap 0: End par conjunct: 0x25269d0
-8556871288: cap 0: running a local spark (thread 1)
+8556871288: cap 0: running a local spark
 8574920581: cap 1: End par conjunct: 0x2520070
 8574921054: cap 1: Trying to steal a spark
-8574921639: cap 1: thread 4 stealing a spark from cap 0
+8574921639: cap 1: stealing a spark from cap 0
 8633149510: cap 3: End par conjunct: 0x25200d0
 8633150113: cap 3: Trying to steal a spark
-8633150716: cap 3: thread 3 stealing a spark from cap 0
+8633150716: cap 3: stealing a spark from cap 0
 8664787926: cap 2: End par conjunct: 0x2520130
 8664788367: cap 2: Trying to steal a spark
-8664789078: cap 2: thread 2 stealing a spark from cap 0
+8664789078: cap 2: stealing a spark from cap 0
 8694223839: cap 1: End par conjunct: 0x2520190
 8694224397: cap 1: Trying to steal a spark
-8694224788: cap 1: thread 4 stealing a spark from cap 0
+8694224788: cap 1: stealing a spark from cap 0
 8726062792: cap 0: End par conjunct: 0x25269d0
 8726062995: cap 0: End par conjunction: 0x25269d0
 8726063166: cap 0: End par conjunct: 0x2526970
-8726063571: cap 0: running a local spark (thread 1)
+8726063571: cap 0: running a local spark
 8752188550: cap 3: End par conjunct: 0x25201f0
 8752189995: cap 3: Trying to steal a spark
-8752191502: cap 3: thread 3 stealing a spark from cap 0
+8752191502: cap 3: stealing a spark from cap 0
 8780949805: cap 2: End par conjunct: 0x2520250
 8780951065: cap 2: Trying to steal a spark
-8780952100: cap 2: thread 2 stealing a spark from cap 0
+8780952100: cap 2: stealing a spark from cap 0
 8819446338: cap 1: End par conjunct: 0x25202b0
 8819447175: cap 1: Trying to steal a spark
-8819447544: cap 1: thread 4 stealing a spark from cap 0
+8819447544: cap 1: stealing a spark from cap 0
 8871555856: cap 3: End par conjunct: 0x2520310
 8871557584: cap 3: Trying to steal a spark
-8871559020: cap 3: thread 3 stealing a spark from cap 0
+8871559020: cap 3: stealing a spark from cap 0
 8896779094: cap 2: End par conjunct: 0x2520370
 8896779801: cap 2: Trying to steal a spark
-8896780467: cap 2: thread 2 stealing a spark from cap 0
+8896780467: cap 2: stealing a spark from cap 0
 8937728199: cap 0: End par conjunct: 0x2526970
 8937728946: cap 0: End par conjunction: 0x2526970
 8937729603: cap 0: End par conjunct: 0x2526910
-8937730624: cap 0: running a local spark (thread 1)
+8937730624: cap 0: running a local spark
 8941134757: cap 1: End par conjunct: 0x25203d0
 8941135234: cap 1: Trying to steal a spark
-8941135860: cap 1: thread 4 stealing a spark from cap 0
+8941135860: cap 1: stealing a spark from cap 0
 8994217396: cap 3: End par conjunct: 0x2520430
 8994218571: cap 3: Trying to steal a spark
-8994220483: cap 3: thread 3 stealing a spark from cap 0
+8994220483: cap 3: stealing a spark from cap 0
 9016329973: cap 2: End par conjunct: 0x2520490
 9016330657: cap 2: Trying to steal a spark
-9016331319: cap 2: thread 2 stealing a spark from cap 0
+9016331319: cap 2: stealing a spark from cap 0
 9065391511: cap 1: End par conjunct: 0x25204f0
 9065392182: cap 1: Trying to steal a spark
-9065392542: cap 1: thread 4 stealing a spark from cap 0
+9065392542: cap 1: stealing a spark from cap 0
 9114060033: cap 0: End par conjunct: 0x2526910
 9114061369: cap 0: End par conjunction: 0x2526910
 9114062017: cap 0: End par conjunct: 0x25268b0
-9114063439: cap 0: running a local spark (thread 1)
+9114063439: cap 0: running a local spark
 9118985994: cap 3: End par conjunct: 0x2520550
 9118987276: cap 3: Trying to steal a spark
-9118988649: cap 3: thread 3 stealing a spark from cap 0
+9118988649: cap 3: stealing a spark from cap 0
 9137965891: cap 2: End par conjunct: 0x25205b0
 9137966944: cap 2: Trying to steal a spark
-9137967768: cap 2: thread 2 stealing a spark from cap 0
+9137967768: cap 2: stealing a spark from cap 0
 9190963782: cap 1: End par conjunct: 0x2520610
 9190964430: cap 1: Trying to steal a spark
-9190964794: cap 1: thread 4 stealing a spark from cap 0
+9190964794: cap 1: stealing a spark from cap 0
 9244042654: cap 3: End par conjunct: 0x2520670
 9244043077: cap 3: Trying to steal a spark
-9244043527: cap 3: thread 3 stealing a spark from cap 0
+9244043527: cap 3: stealing a spark from cap 0
 9259115341: cap 2: End par conjunct: 0x25206d0
 9259115881: cap 2: Trying to steal a spark
-9259116448: cap 2: thread 2 stealing a spark from cap 0
+9259116448: cap 2: stealing a spark from cap 0
 9316672281: cap 1: End par conjunct: 0x2520730
 9316672717: cap 1: Trying to steal a spark
-9316673172: cap 1: thread 4 stealing a spark from cap 0
+9316673172: cap 1: stealing a spark from cap 0
 9318656340: cap 0: End par conjunct: 0x25268b0
 9318656502: cap 0: End par conjunction: 0x25268b0
 9318656637: cap 0: End par conjunct: 0x2526850
-9318656965: cap 0: running a local spark (thread 1)
+9318656965: cap 0: running a local spark
 9369180099: cap 3: End par conjunct: 0x2520790
 9369180544: cap 3: Trying to steal a spark
-9369180931: cap 3: thread 3 stealing a spark from cap 0
+9369180931: cap 3: stealing a spark from cap 0
 9383760999: cap 2: End par conjunct: 0x25207f0
 9383761741: cap 2: Trying to steal a spark
-9383762263: cap 2: thread 2 stealing a spark from cap 0
+9383762263: cap 2: stealing a spark from cap 0
 9449296929: cap 1: End par conjunct: 0x2520850
 9449297469: cap 1: Trying to steal a spark
-9449297946: cap 1: thread 4 stealing a spark from cap 0
+9449297946: cap 1: stealing a spark from cap 0
 9485841762: cap 0: End par conjunct: 0x2526850
 9485841924: cap 0: End par conjunction: 0x2526850
 9485842077: cap 0: End par conjunct: 0x25267f0
-9485842509: cap 0: running a local spark (thread 1)
+9485842509: cap 0: running a local spark
 9502258122: cap 3: End par conjunct: 0x25208b0
 9502258671: cap 3: Trying to steal a spark
-9502258995: cap 3: thread 3 stealing a spark from cap 0
+9502258995: cap 3: stealing a spark from cap 0
 9514881801: cap 2: End par conjunct: 0x2520910
 9514882534: cap 2: Trying to steal a spark
-9514883137: cap 2: thread 2 stealing a spark from cap 0
+9514883137: cap 2: stealing a spark from cap 0
 9586031359: cap 1: End par conjunct: 0x2520970
 9586031724: cap 1: Trying to steal a spark
-9586032093: cap 1: thread 4 stealing a spark from cap 0
+9586032093: cap 1: stealing a spark from cap 0
 9638764969: cap 3: End par conjunct: 0x25209d0
 9638765464: cap 3: Trying to steal a spark
-9638765941: cap 3: thread 3 stealing a spark from cap 0
+9638765941: cap 3: stealing a spark from cap 0
 9651997687: cap 0: End par conjunct: 0x25267f0
 9651998029: cap 0: End par conjunction: 0x25267f0
 9651998214: cap 0: End par conjunct: 0x2526790
-9651998565: cap 0: running a local spark (thread 1)
+9651998565: cap 0: running a local spark
 9654841575: cap 2: End par conjunct: 0x2520a30
 9654843897: cap 2: Trying to steal a spark
-9654845958: cap 2: thread 2 stealing a spark from cap 0
+9654845958: cap 2: stealing a spark from cap 0
 9725912271: cap 1: End par conjunct: 0x2520a90
 9725915304: cap 1: Trying to steal a spark
-9725918872: cap 1: thread 4 stealing a spark from cap 0
+9725918872: cap 1: stealing a spark from cap 0
 9777878748: cap 3: End par conjunct: 0x2520af0
 9777879166: cap 3: Trying to steal a spark
-9777879670: cap 3: thread 3 stealing a spark from cap 0
+9777879670: cap 3: stealing a spark from cap 0
 9824287432: cap 0: End par conjunct: 0x2526790
 9824288269: cap 0: End par conjunction: 0x2526790
 9824288706: cap 0: End par conjunct: 0x2526730
-9824289768: cap 0: running a local spark (thread 1)
+9824289768: cap 0: running a local spark
 9830543400: cap 2: End par conjunct: 0x2520b50
 9830545330: cap 2: Trying to steal a spark
-9830547454: cap 2: thread 2 stealing a spark from cap 0
+9830547454: cap 2: stealing a spark from cap 0
 9867722602: cap 1: End par conjunct: 0x2520bb0
 9867723367: cap 1: Trying to steal a spark
-9867723768: cap 1: thread 4 stealing a spark from cap 0
+9867723768: cap 1: stealing a spark from cap 0
 9918449059: cap 3: End par conjunct: 0x2520c10
 9918450211: cap 3: Trying to steal a spark
-9918451539: cap 3: thread 3 stealing a spark from cap 0
+9918451539: cap 3: stealing a spark from cap 0
 9967959841: cap 2: End par conjunct: 0x2520c70
 9967961182: cap 2: Trying to steal a spark
-9967962555: cap 2: thread 2 stealing a spark from cap 0
+9967962555: cap 2: stealing a spark from cap 0
 9989056377: cap 0: End par conjunct: 0x2526730
 9989056579: cap 0: End par conjunction: 0x2526730
 9989056858: cap 0: End par conjunct: 0x25266d0
-9989057290: cap 0: running a local spark (thread 1)
+9989057290: cap 0: running a local spark
 10015182895: cap 1: End par conjunct: 0x2520cd0
 10015183467: cap 1: Trying to steal a spark
-10015184277: cap 1: thread 4 stealing a spark from cap 0
+10015184277: cap 1: stealing a spark from cap 0
 10059675948: cap 3: End par conjunct: 0x2520d30
 10059676402: cap 3: Trying to steal a spark
-10059676888: cap 3: thread 3 stealing a spark from cap 0
+10059676888: cap 3: stealing a spark from cap 0
 10105111224: cap 2: End par conjunct: 0x2520d90
 10105111881: cap 2: Trying to steal a spark
-10105112583: cap 2: thread 2 stealing a spark from cap 0
+10105112583: cap 2: stealing a spark from cap 0
 10153755009: cap 0: End par conjunct: 0x25266d0
 10153755400: cap 0: End par conjunction: 0x25266d0
 10153755567: cap 0: End par conjunct: 0x2526670
-10153756350: cap 0: running a local spark (thread 1)
+10153756350: cap 0: running a local spark
 10156564170: cap 1: End par conjunct: 0x2520df0
 10156564795: cap 1: Trying to steal a spark
-10156565889: cap 1: thread 4 stealing a spark from cap 0
+10156565889: cap 1: stealing a spark from cap 0
 10199449233: cap 3: End par conjunct: 0x2520e50
 10199449971: cap 3: Trying to steal a spark
-10199450623: cap 3: thread 3 stealing a spark from cap 0
+10199450623: cap 3: stealing a spark from cap 0
 10242140503: cap 2: End par conjunct: 0x2520eb0
 10242141174: cap 2: Trying to steal a spark
-10242141844: cap 2: thread 2 stealing a spark from cap 0
+10242141844: cap 2: stealing a spark from cap 0
 10297449207: cap 1: End par conjunct: 0x2520f10
 10297449886: cap 1: Trying to steal a spark
-10297450435: cap 1: thread 4 stealing a spark from cap 0
+10297450435: cap 1: stealing a spark from cap 0
 10317707554: cap 0: End par conjunct: 0x2526670
 10317707797: cap 0: End par conjunction: 0x2526670
 10317707968: cap 0: End par conjunct: 0x2526610
-10317708265: cap 0: running a local spark (thread 1)
+10317708265: cap 0: running a local spark
 10340165916: cap 3: End par conjunct: 0x2520f70
 10340166298: cap 3: Trying to steal a spark
-10340166829: cap 3: thread 3 stealing a spark from cap 0
+10340166829: cap 3: stealing a spark from cap 0
 10378737562: cap 2: End par conjunct: 0x2520fd0
 10378738183: cap 2: Trying to steal a spark
-10378738926: cap 2: thread 2 stealing a spark from cap 0
+10378738926: cap 2: stealing a spark from cap 0
 10438743933: cap 1: End par conjunct: 0x2521030
 10438745697: cap 1: Trying to steal a spark
-10438747713: cap 1: thread 4 stealing a spark from cap 0
+10438747713: cap 1: stealing a spark from cap 0
 10480589802: cap 0: End par conjunct: 0x2526610
 10480590054: cap 0: End par conjunction: 0x2526610
 10480590229: cap 0: End par conjunct: 0x25265b0
-10480590585: cap 0: running a local spark (thread 1)
+10480590585: cap 0: running a local spark
 10481222119: cap 3: End par conjunct: 0x2521090
 10481222790: cap 3: Trying to steal a spark
-10481223469: cap 3: thread 3 stealing a spark from cap 0
+10481223469: cap 3: stealing a spark from cap 0
 10563616602: cap 2: End par conjunct: 0x25210f0
 10563618640: cap 2: Trying to steal a spark
-10563620764: cap 2: thread 2 stealing a spark from cap 0
+10563620764: cap 2: stealing a spark from cap 0
 10583217459: cap 1: End par conjunct: 0x2521150
 10583219313: cap 1: Trying to steal a spark
-10583221414: cap 1: thread 4 stealing a spark from cap 0
+10583221414: cap 1: stealing a spark from cap 0
 10623586666: cap 3: End par conjunct: 0x25211b0
 10623587157: cap 3: Trying to steal a spark
-10623587679: cap 3: thread 3 stealing a spark from cap 0
+10623587679: cap 3: stealing a spark from cap 0
 10642220793: cap 0: End par conjunct: 0x25265b0
 10642221031: cap 0: End par conjunction: 0x25265b0
 10642221202: cap 0: End par conjunct: 0x2526550
-10642221454: cap 0: running a local spark (thread 1)
+10642221454: cap 0: running a local spark
 10711376500: cap 2: End par conjunct: 0x2521210
 10711378080: cap 2: Trying to steal a spark
-10711379547: cap 2: thread 2 stealing a spark from cap 0
+10711379547: cap 2: stealing a spark from cap 0
 10727115322: cap 1: End par conjunct: 0x2521270
 10727115952: cap 1: Trying to steal a spark
-10727116326: cap 1: thread 4 stealing a spark from cap 0
+10727116326: cap 1: stealing a spark from cap 0
 10766963713: cap 3: End par conjunct: 0x25212d0
 10766964159: cap 3: Trying to steal a spark
-10766964708: cap 3: thread 3 stealing a spark from cap 0
+10766964708: cap 3: stealing a spark from cap 0
 10803763021: cap 0: End par conjunct: 0x2526550
 10803763255: cap 0: End par conjunction: 0x2526550
 10803763669: cap 0: End par conjunct: 0x25264f0
-10803764065: cap 0: running a local spark (thread 1)
+10803764065: cap 0: running a local spark
 10850931634: cap 2: End par conjunct: 0x2521330
 10850932723: cap 2: Trying to steal a spark
-10850933682: cap 2: thread 2 stealing a spark from cap 0
+10850933682: cap 2: stealing a spark from cap 0
 10871063343: cap 1: End par conjunct: 0x2521390
 10871063959: cap 1: Trying to steal a spark
-10871064324: cap 1: thread 4 stealing a spark from cap 0
+10871064324: cap 1: stealing a spark from cap 0
 10910143683: cap 3: End par conjunct: 0x25213f0
 10910144070: cap 3: Trying to steal a spark
-10910144668: cap 3: thread 3 stealing a spark from cap 0
+10910144668: cap 3: stealing a spark from cap 0
 10964218027: cap 0: End par conjunct: 0x25264f0
 10964218221: cap 0: End par conjunction: 0x25264f0
 10964218396: cap 0: End par conjunct: 0x2526490
-10964218648: cap 0: running a local spark (thread 1)
+10964218648: cap 0: running a local spark
 10990676259: cap 2: End par conjunct: 0x2521450
 10990677249: cap 2: Trying to steal a spark
-10990677919: cap 2: thread 2 stealing a spark from cap 0
+10990677919: cap 2: stealing a spark from cap 0
 11016644328: cap 1: End par conjunct: 0x25214b0
 11016644814: cap 1: Trying to steal a spark
-11016645349: cap 1: thread 4 stealing a spark from cap 0
+11016645349: cap 1: stealing a spark from cap 0
 11054020212: cap 3: End par conjunct: 0x2521510
 11054020747: cap 3: Trying to steal a spark
-11054021283: cap 3: thread 3 stealing a spark from cap 0
+11054021283: cap 3: stealing a spark from cap 0
 11124312552: cap 0: End par conjunct: 0x2526490
 11124312741: cap 0: End par conjunction: 0x2526490
 11124312912: cap 0: End par conjunct: 0x2526430
-11124313141: cap 0: running a local spark (thread 1)
+11124313141: cap 0: running a local spark
 11130237697: cap 2: End par conjunct: 0x2521570
 11130238665: cap 2: Trying to steal a spark
-11130239587: cap 2: thread 2 stealing a spark from cap 0
+11130239587: cap 2: stealing a spark from cap 0
 11166443280: cap 1: End par conjunct: 0x25215d0
 11166443941: cap 1: Trying to steal a spark
-11166444351: cap 1: thread 4 stealing a spark from cap 0
+11166444351: cap 1: stealing a spark from cap 0
 11198276806: cap 3: End par conjunct: 0x2521630
 11198277180: cap 3: Trying to steal a spark
-11198277738: cap 3: thread 3 stealing a spark from cap 0
+11198277738: cap 3: stealing a spark from cap 0
 11284699194: cap 0: End par conjunct: 0x2526430
 11284699360: cap 0: End par conjunction: 0x2526430
 11284699513: cap 0: End par conjunct: 0x25263d0
-11284699761: cap 0: running a local spark (thread 1)
+11284699761: cap 0: running a local spark
 11312440254: cap 1: End par conjunct: 0x25216f0
 11312442040: cap 1: Trying to steal a spark
-11312444371: cap 1: thread 4 stealing a spark from cap 0
+11312444371: cap 1: stealing a spark from cap 0
 11312783883: cap 2: End par conjunct: 0x2521690
 11312784580: cap 2: Trying to steal a spark
-11312784972: cap 2: thread 2 stealing a spark from cap 0
+11312784972: cap 2: stealing a spark from cap 0
 11342731563: cap 3: End par conjunct: 0x2521750
 11342732139: cap 3: Trying to steal a spark
-11342732652: cap 3: thread 3 stealing a spark from cap 0
+11342732652: cap 3: stealing a spark from cap 0
 11445803059: cap 0: End par conjunct: 0x25263d0
 11445803433: cap 0: End par conjunction: 0x25263d0
 11445803622: cap 0: End par conjunct: 0x2526370
-11445804027: cap 0: running a local spark (thread 1)
+11445804027: cap 0: running a local spark
 11458751418: cap 1: End par conjunct: 0x25217b0
 11458753222: cap 1: Trying to steal a spark
-11458755310: cap 1: thread 4 stealing a spark from cap 0
+11458755310: cap 1: stealing a spark from cap 0
 11460625096: cap 2: End par conjunct: 0x2521810
 11460625893: cap 2: Trying to steal a spark
-11460626257: cap 2: thread 2 stealing a spark from cap 0
+11460626257: cap 2: stealing a spark from cap 0
 11487493503: cap 3: End par conjunct: 0x2521870
 11487493921: cap 3: Trying to steal a spark
-11487494565: cap 3: thread 3 stealing a spark from cap 0
+11487494565: cap 3: stealing a spark from cap 0
 11601736843: cap 2: End par conjunct: 0x2521930
 11601737851: cap 2: Trying to steal a spark
-11601738589: cap 2: thread 2 stealing a spark from cap 0
+11601738589: cap 2: stealing a spark from cap 0
 11604598339: cap 1: End par conjunct: 0x25218d0
 11604598888: cap 1: Trying to steal a spark
-11604599257: cap 1: thread 4 stealing a spark from cap 0
+11604599257: cap 1: stealing a spark from cap 0
 11606569362: cap 0: End par conjunct: 0x2526370
 11606569528: cap 0: End par conjunction: 0x2526370
 11606569825: cap 0: End par conjunct: 0x2526310
-11606570104: cap 0: running a local spark (thread 1)
+11606570104: cap 0: running a local spark
 11633560339: cap 3: End par conjunct: 0x2521990
 11633560816: cap 3: Trying to steal a spark
-11633561136: cap 3: thread 3 stealing a spark from cap 0
+11633561136: cap 3: stealing a spark from cap 0
 11743114063: cap 2: End par conjunct: 0x25219f0
 11743115157: cap 2: Trying to steal a spark
-11743115940: cap 2: thread 2 stealing a spark from cap 0
+11743115940: cap 2: stealing a spark from cap 0
 11751459736: cap 1: End par conjunct: 0x2521a50
 11751460425: cap 1: Trying to steal a spark
-11751460942: cap 1: thread 4 stealing a spark from cap 0
+11751460942: cap 1: stealing a spark from cap 0
 11766982891: cap 0: End par conjunct: 0x2526310
 11766983035: cap 0: End par conjunction: 0x2526310
 11766983175: cap 0: End par conjunct: 0x25262b0
-11766983422: cap 0: running a local spark (thread 1)
+11766983422: cap 0: running a local spark
 11779198884: cap 3: End par conjunct: 0x2521ab0
 11779199352: cap 3: Trying to steal a spark
-11779199617: cap 3: thread 3 stealing a spark from cap 0
+11779199617: cap 3: stealing a spark from cap 0
 11883866166: cap 2: End par conjunct: 0x2521b10
 11883867021: cap 2: Trying to steal a spark
-11883867556: cap 2: thread 2 stealing a spark from cap 0
+11883867556: cap 2: stealing a spark from cap 0
 11896785247: cap 1: End par conjunct: 0x2521b70
 11896785634: cap 1: Trying to steal a spark
-11896786044: cap 1: thread 4 stealing a spark from cap 0
+11896786044: cap 1: stealing a spark from cap 0
 11923061341: cap 3: End par conjunct: 0x2521bd0
 11923061922: cap 3: Trying to steal a spark
-11923062372: cap 3: thread 3 stealing a spark from cap 0
+11923062372: cap 3: stealing a spark from cap 0
 11926619131: cap 0: End par conjunct: 0x25262b0
 11926619298: cap 0: End par conjunction: 0x25262b0
 11926619428: cap 0: End par conjunct: 0x2526250
-11926619824: cap 0: running a local spark (thread 1)
+11926619824: cap 0: running a local spark
 12024676044: cap 2: End par conjunct: 0x2521c30
 12024677214: cap 2: Trying to steal a spark
-12024678789: cap 2: thread 2 stealing a spark from cap 0
+12024678789: cap 2: stealing a spark from cap 0
 12041377704: cap 1: End par conjunct: 0x2521c90
 12041378595: cap 1: Trying to steal a spark
-12041378955: cap 1: thread 4 stealing a spark from cap 0
+12041378955: cap 1: stealing a spark from cap 0
 12086340925: cap 0: End par conjunct: 0x2526250
 12086341938: cap 0: End par conjunction: 0x2526250
 12086342455: cap 0: End par conjunct: 0x25261f0
-12086343774: cap 0: running a local spark (thread 1)
+12086343774: cap 0: running a local spark
 12108682764: cap 3: End par conjunct: 0x2521cf0
 12108683965: cap 3: Trying to steal a spark
-12108685653: cap 3: thread 3 stealing a spark from cap 0
+12108685653: cap 3: stealing a spark from cap 0
 12164697918: cap 2: End par conjunct: 0x2521d50
 12164699362: cap 2: Trying to steal a spark
-12164700856: cap 2: thread 2 stealing a spark from cap 0
+12164700856: cap 2: stealing a spark from cap 0
 12184922889: cap 1: End par conjunct: 0x2521db0
 12184923429: cap 1: Trying to steal a spark
-12184923888: cap 1: thread 4 stealing a spark from cap 0
+12184923888: cap 1: stealing a spark from cap 0
 12251227675: cap 3: End par conjunct: 0x2521e10
 12251229313: cap 3: Trying to steal a spark
-12251230870: cap 3: thread 3 stealing a spark from cap 0
+12251230870: cap 3: stealing a spark from cap 0
 12251896699: cap 0: End par conjunct: 0x25261f0
 12251897073: cap 0: End par conjunction: 0x25261f0
 12251897343: cap 0: End par conjunct: 0x2526190
-12251897892: cap 0: running a local spark (thread 1)
+12251897892: cap 0: running a local spark
 12302414905: cap 2: End par conjunct: 0x2521e70
 12302415652: cap 2: Trying to steal a spark
-12302416246: cap 2: thread 2 stealing a spark from cap 0
+12302416246: cap 2: stealing a spark from cap 0
 12333407085: cap 1: End par conjunct: 0x2521ed0
 12333407895: cap 1: Trying to steal a spark
-12333408480: cap 1: thread 4 stealing a spark from cap 0
+12333408480: cap 1: stealing a spark from cap 0
 12392754678: cap 3: End par conjunct: 0x2521f30
 12392755141: cap 3: Trying to steal a spark
-12392755785: cap 3: thread 3 stealing a spark from cap 0
+12392755785: cap 3: stealing a spark from cap 0
 12411366187: cap 0: End par conjunct: 0x2526190
 12411366376: cap 0: End par conjunction: 0x2526190
 12411366673: cap 0: End par conjunct: 0x2526130
-12411367051: cap 0: running a local spark (thread 1)
+12411367051: cap 0: running a local spark
 12440491884: cap 2: End par conjunct: 0x2521f90
 12440493301: cap 2: Trying to steal a spark
-12440494921: cap 2: thread 2 stealing a spark from cap 0
+12440494921: cap 2: stealing a spark from cap 0
 12473435754: cap 1: End par conjunct: 0x2521ff0
 12473436339: cap 1: Trying to steal a spark
-12473436748: cap 1: thread 4 stealing a spark from cap 0
+12473436748: cap 1: stealing a spark from cap 0
 12530891619: cap 3: End par conjunct: 0x2522050
 12530892181: cap 3: Trying to steal a spark
-12530892865: cap 3: thread 3 stealing a spark from cap 0
+12530892865: cap 3: stealing a spark from cap 0
 12570819007: cap 0: End par conjunct: 0x2526130
 12570819277: cap 0: End par conjunction: 0x2526130
 12570819453: cap 0: End par conjunct: 0x25260d0
-12570819714: cap 0: running a local spark (thread 1)
+12570819714: cap 0: running a local spark
 12573405976: cap 2: End par conjunct: 0x25220b0
 12573407128: cap 2: Trying to steal a spark
-12573407970: cap 2: thread 2 stealing a spark from cap 0
+12573407970: cap 2: stealing a spark from cap 0
 12609466533: cap 1: End par conjunct: 0x2522110
 12609468292: cap 1: Trying to steal a spark
-12609469975: cap 1: thread 4 stealing a spark from cap 0
+12609469975: cap 1: stealing a spark from cap 0
 12665593035: cap 3: End par conjunct: 0x2522170
 12665593894: cap 3: Trying to steal a spark
-12665594556: cap 3: thread 3 stealing a spark from cap 0
+12665594556: cap 3: stealing a spark from cap 0
 12730098919: cap 0: End par conjunct: 0x25260d0
 12730099153: cap 0: End par conjunction: 0x25260d0
 12730099329: cap 0: End par conjunct: 0x2526070
-12730099702: cap 0: running a local spark (thread 1)
+12730099702: cap 0: running a local spark
 12746089467: cap 1: End par conjunct: 0x2522230
 12746091240: cap 1: Trying to steal a spark
-12746093512: cap 1: thread 4 stealing a spark from cap 0
+12746093512: cap 1: stealing a spark from cap 0
 12747438603: cap 2: End par conjunct: 0x25221d0
 12747439525: cap 2: Trying to steal a spark
-12747439917: cap 2: thread 2 stealing a spark from cap 0
+12747439917: cap 2: stealing a spark from cap 0
 12800840445: cap 3: End par conjunct: 0x2522290
 12800841079: cap 3: Trying to steal a spark
-12800841687: cap 3: thread 3 stealing a spark from cap 0
+12800841687: cap 3: stealing a spark from cap 0
 12882794319: cap 1: End par conjunct: 0x25222f0
 12882795804: cap 1: Trying to steal a spark
-12882797946: cap 1: thread 4 stealing a spark from cap 0
+12882797946: cap 1: stealing a spark from cap 0
 12885226623: cap 2: End par conjunct: 0x2522350
 12885227482: cap 2: Trying to steal a spark
-12885227986: cap 2: thread 2 stealing a spark from cap 0
+12885227986: cap 2: stealing a spark from cap 0
 12889340410: cap 0: End par conjunct: 0x2526070
 12889340604: cap 0: End par conjunction: 0x2526070
 12889340775: cap 0: End par conjunct: 0x2526010
-12889341090: cap 0: running a local spark (thread 1)
+12889341090: cap 0: running a local spark
 12936631729: cap 3: End par conjunct: 0x25223b0
 12936632161: cap 3: Trying to steal a spark
-12936632440: cap 3: thread 3 stealing a spark from cap 0
+12936632440: cap 3: stealing a spark from cap 0
 13016933113: cap 2: End par conjunct: 0x2522470
 13016933599: cap 2: Trying to steal a spark
-13016934391: cap 2: thread 2 stealing a spark from cap 0
+13016934391: cap 2: stealing a spark from cap 0
 13019456101: cap 1: End par conjunct: 0x2522410
 13019456655: cap 1: Trying to steal a spark
-13019457055: cap 1: thread 4 stealing a spark from cap 0
+13019457055: cap 1: stealing a spark from cap 0
 13048585978: cap 0: End par conjunct: 0x2526010
 13048586176: cap 0: End par conjunction: 0x2526010
 13048586469: cap 0: End par conjunct: 0x2525fb0
-13048586914: cap 0: running a local spark (thread 1)
+13048586914: cap 0: running a local spark
 13072866543: cap 3: End par conjunct: 0x25224d0
 13072866988: cap 3: Trying to steal a spark
-13072867348: cap 3: thread 3 stealing a spark from cap 0
+13072867348: cap 3: stealing a spark from cap 0
 13149420961: cap 2: End par conjunct: 0x2522530
 13149421587: cap 2: Trying to steal a spark
-13149422266: cap 2: thread 2 stealing a spark from cap 0
+13149422266: cap 2: stealing a spark from cap 0
 13156455595: cap 1: End par conjunct: 0x2522590
 13156456378: cap 1: Trying to steal a spark
-13156456887: cap 1: thread 4 stealing a spark from cap 0
+13156456887: cap 1: stealing a spark from cap 0
 13202327227: cap 0: End par conjunct: 0x2525fb0
 13202327430: cap 0: End par conjunction: 0x2525fb0
 13202327596: cap 0: End par conjunct: 0x2525f50
-13202328006: cap 0: running a local spark (thread 1)
+13202328006: cap 0: running a local spark
 13209541380: cap 3: End par conjunct: 0x25225f0
 13209541816: cap 3: Trying to steal a spark
-13209542199: cap 3: thread 3 stealing a spark from cap 0
+13209542199: cap 3: stealing a spark from cap 0
 13294576719: cap 2: End par conjunct: 0x2522650
 13294578469: cap 2: Trying to steal a spark
-13294580467: cap 2: thread 2 stealing a spark from cap 0
+13294580467: cap 2: stealing a spark from cap 0
 13295452455: cap 1: End par conjunct: 0x25226b0
 13295453157: cap 1: Trying to steal a spark
-13295453553: cap 1: thread 4 stealing a spark from cap 0
+13295453553: cap 1: stealing a spark from cap 0
 13346993713: cap 3: End par conjunct: 0x2522710
 13346994289: cap 3: Trying to steal a spark
-13346994838: cap 3: thread 3 stealing a spark from cap 0
+13346994838: cap 3: stealing a spark from cap 0
 13361654686: cap 0: End par conjunct: 0x2525f50
 13361654893: cap 0: End par conjunction: 0x2525f50
 13361655055: cap 0: End par conjunct: 0x2525ef0
-13361655514: cap 0: running a local spark (thread 1)
+13361655514: cap 0: running a local spark
 13434790189: cap 1: End par conjunct: 0x25227d0
 13434792075: cap 1: Trying to steal a spark
-13434794478: cap 1: thread 4 stealing a spark from cap 0
+13434794478: cap 1: stealing a spark from cap 0
 13465013116: cap 2: End par conjunct: 0x2522770
 13465015015: cap 2: Trying to steal a spark
-13465016919: cap 2: thread 2 stealing a spark from cap 0
+13465016919: cap 2: stealing a spark from cap 0
 13484915806: cap 3: End par conjunct: 0x2522830
 13484916477: cap 3: Trying to steal a spark
-13484917336: cap 3: thread 3 stealing a spark from cap 0
+13484917336: cap 3: stealing a spark from cap 0
 13519454503: cap 0: End par conjunct: 0x2525ef0
 13519454850: cap 0: End par conjunction: 0x2525ef0
 13519455124: cap 0: End par conjunct: 0x2525e90
-13519455376: cap 0: running a local spark (thread 1)
+13519455376: cap 0: running a local spark
 13579299810: cap 1: End par conjunct: 0x2522890
 13579301457: cap 1: Trying to steal a spark
-13579302429: cap 1: thread 4 stealing a spark from cap 0
+13579302429: cap 1: stealing a spark from cap 0
 13599378765: cap 2: End par conjunct: 0x25228f0
 13599379377: cap 2: Trying to steal a spark
-13599379800: cap 2: thread 2 stealing a spark from cap 0
+13599379800: cap 2: stealing a spark from cap 0
 13623892609: cap 3: End par conjunct: 0x2522950
 13623893185: cap 3: Trying to steal a spark
-13623893649: cap 3: thread 3 stealing a spark from cap 0
+13623893649: cap 3: stealing a spark from cap 0
 13679082040: cap 0: End par conjunct: 0x2525e90
 13679082324: cap 0: End par conjunction: 0x2525e90
 13679082490: cap 0: End par conjunct: 0x2525e30
-13679082742: cap 0: running a local spark (thread 1)
+13679082742: cap 0: running a local spark
 13719399462: cap 1: End par conjunct: 0x25229b0
 13719400780: cap 1: Trying to steal a spark
-13719402382: cap 1: thread 4 stealing a spark from cap 0
+13719402382: cap 1: stealing a spark from cap 0
 13734837477: cap 2: End par conjunct: 0x2522a10
 13734837954: cap 2: Trying to steal a spark
-13734838345: cap 2: thread 2 stealing a spark from cap 0
+13734838345: cap 2: stealing a spark from cap 0
 13762870983: cap 3: End par conjunct: 0x2522a70
 13762871401: cap 3: Trying to steal a spark
-13762871964: cap 3: thread 3 stealing a spark from cap 0
+13762871964: cap 3: stealing a spark from cap 0
 13839696346: cap 0: End par conjunct: 0x2525e30
 13839696603: cap 0: End par conjunction: 0x2525e30
 13839696792: cap 0: End par conjunct: 0x2525dd0
-13839697048: cap 0: running a local spark (thread 1)
+13839697048: cap 0: running a local spark
 13859145571: cap 1: End par conjunct: 0x2522ad0
 13859146750: cap 1: Trying to steal a spark
-13859147745: cap 1: thread 4 stealing a spark from cap 0
+13859147745: cap 1: stealing a spark from cap 0
 13870250689: cap 2: End par conjunct: 0x2522b30
 13870251175: cap 2: Trying to steal a spark
-13870251544: cap 2: thread 2 stealing a spark from cap 0
+13870251544: cap 2: stealing a spark from cap 0
 13902688201: cap 3: End par conjunct: 0x2522b90
 13902688687: cap 3: Trying to steal a spark
-13902689376: cap 3: thread 3 stealing a spark from cap 0
+13902689376: cap 3: stealing a spark from cap 0
 13999707765: cap 1: End par conjunct: 0x2522bf0
 13999709479: cap 1: Trying to steal a spark
-13999711612: cap 1: thread 4 stealing a spark from cap 0
+13999711612: cap 1: stealing a spark from cap 0
 13999929925: cap 0: End par conjunct: 0x2525dd0
 13999930159: cap 0: End par conjunction: 0x2525dd0
 13999930330: cap 0: End par conjunct: 0x2525d70
-13999930789: cap 0: running a local spark (thread 1)
+13999930789: cap 0: running a local spark
 14044262805: cap 3: End par conjunct: 0x2522cb0
 14044263592: cap 3: Trying to steal a spark
-14044264146: cap 3: thread 3 stealing a spark from cap 0
+14044264146: cap 3: stealing a spark from cap 0
 14049352827: cap 2: End par conjunct: 0x2522c50
 14049355230: cap 2: Trying to steal a spark
-14049357529: cap 2: thread 2 stealing a spark from cap 0
+14049357529: cap 2: stealing a spark from cap 0
 14142702411: cap 1: End par conjunct: 0x2522d10
 14142703923: cap 1: Trying to steal a spark
-14142705565: cap 1: thread 4 stealing a spark from cap 0
+14142705565: cap 1: stealing a spark from cap 0
 14159583769: cap 0: End par conjunct: 0x2525d70
 14159584620: cap 0: End par conjunction: 0x2525d70
 14159585119: cap 0: End par conjunct: 0x2525d10
-14159586640: cap 0: running a local spark (thread 1)
+14159586640: cap 0: running a local spark
 14189476360: cap 2: End par conjunct: 0x2522dd0
 14189477049: cap 2: Trying to steal a spark
-14189477629: cap 2: thread 2 stealing a spark from cap 0
+14189477629: cap 2: stealing a spark from cap 0
 14204428195: cap 3: End par conjunct: 0x2522d70
 14204429865: cap 3: Trying to steal a spark
-14204431737: cap 3: thread 3 stealing a spark from cap 0
+14204431737: cap 3: stealing a spark from cap 0
 14285098071: cap 1: End par conjunct: 0x2522e30
 14285098629: cap 1: Trying to steal a spark
-14285099290: cap 1: thread 4 stealing a spark from cap 0
+14285099290: cap 1: stealing a spark from cap 0
 14319386586: cap 0: End par conjunct: 0x2525d10
 14319386770: cap 0: End par conjunction: 0x2525d10
 14319387045: cap 0: End par conjunct: 0x2525cb0
-14319387364: cap 0: running a local spark (thread 1)
+14319387364: cap 0: running a local spark
 14326496716: cap 2: End par conjunct: 0x2522e90
 14326497346: cap 2: Trying to steal a spark
-14326498039: cap 2: thread 2 stealing a spark from cap 0
+14326498039: cap 2: stealing a spark from cap 0
 14345105616: cap 3: End par conjunct: 0x2522ef0
 14345106169: cap 3: Trying to steal a spark
-14345106669: cap 3: thread 3 stealing a spark from cap 0
+14345106669: cap 3: stealing a spark from cap 0
 14426574268: cap 1: End par conjunct: 0x2522f50
 14426574975: cap 1: Trying to steal a spark
-14426575848: cap 1: thread 4 stealing a spark from cap 0
+14426575848: cap 1: stealing a spark from cap 0
 14463282816: cap 2: End par conjunct: 0x2522fb0
 14463283608: cap 2: Trying to steal a spark
-14463284076: cap 2: thread 2 stealing a spark from cap 0
+14463284076: cap 2: stealing a spark from cap 0
 14479039764: cap 0: End par conjunct: 0x2525cb0
 14479039966: cap 0: End par conjunction: 0x2525cb0
 14479040124: cap 0: End par conjunct: 0x2525c50
-14479040632: cap 0: running a local spark (thread 1)
+14479040632: cap 0: running a local spark
 14486433358: cap 3: End par conjunct: 0x2523010
 14486433831: cap 3: Trying to steal a spark
-14486434155: cap 3: thread 3 stealing a spark from cap 0
+14486434155: cap 3: stealing a spark from cap 0
 14568810984: cap 1: End par conjunct: 0x2523070
 14568811731: cap 1: Trying to steal a spark
-14568812536: cap 1: thread 4 stealing a spark from cap 0
+14568812536: cap 1: stealing a spark from cap 0
 14601411877: cap 2: End par conjunct: 0x25230d0
 14601412935: cap 2: Trying to steal a spark
-14601413380: cap 2: thread 2 stealing a spark from cap 0
+14601413380: cap 2: stealing a spark from cap 0
 14628823312: cap 3: End par conjunct: 0x2523130
 14628823843: cap 3: Trying to steal a spark
-14628824293: cap 3: thread 3 stealing a spark from cap 0
+14628824293: cap 3: stealing a spark from cap 0
 14638176405: cap 0: End par conjunct: 0x2525c50
 14638176558: cap 0: End par conjunction: 0x2525c50
 14638176837: cap 0: End par conjunct: 0x2525bf0
-14638177161: cap 0: running a local spark (thread 1)
+14638177161: cap 0: running a local spark
 14712473970: cap 1: End par conjunct: 0x2523190
 14712475869: cap 1: Trying to steal a spark
-14712478024: cap 1: thread 4 stealing a spark from cap 0
+14712478024: cap 1: stealing a spark from cap 0
 14771506563: cap 3: End par conjunct: 0x2523250
 14771507184: cap 3: Trying to steal a spark
-14771507814: cap 3: thread 3 stealing a spark from cap 0
+14771507814: cap 3: stealing a spark from cap 0
 14783932206: cap 2: End par conjunct: 0x25231f0
 14783933722: cap 2: Trying to steal a spark
-14783935815: cap 2: thread 2 stealing a spark from cap 0
+14783935815: cap 2: stealing a spark from cap 0
 14796214938: cap 0: End par conjunct: 0x2525bf0
 14796215145: cap 0: End par conjunction: 0x2525bf0
 14796215320: cap 0: End par conjunct: 0x2525b90
-14796215667: cap 0: running a local spark (thread 1)
+14796215667: cap 0: running a local spark
 14865487227: cap 1: End par conjunct: 0x25232b0
 14865489189: cap 1: Trying to steal a spark
-14865491578: cap 1: thread 4 stealing a spark from cap 0
+14865491578: cap 1: stealing a spark from cap 0
 14916953641: cap 3: End par conjunct: 0x2523310
 14916954114: cap 3: Trying to steal a spark
-14916954879: cap 3: thread 3 stealing a spark from cap 0
+14916954879: cap 3: stealing a spark from cap 0
 14933806969: cap 2: End par conjunct: 0x2523370
 14933807860: cap 2: Trying to steal a spark
-14933808607: cap 2: thread 2 stealing a spark from cap 0
+14933808607: cap 2: stealing a spark from cap 0
 14954455723: cap 0: End par conjunct: 0x2525b90
 14954455980: cap 0: End par conjunction: 0x2525b90
 14954456169: cap 0: End par conjunct: 0x2525b30
-14954456547: cap 0: running a local spark (thread 1)
+14954456547: cap 0: running a local spark
 15012382698: cap 1: End par conjunct: 0x25233d0
 15012383508: cap 1: Trying to steal a spark
-15012384228: cap 1: thread 4 stealing a spark from cap 0
+15012384228: cap 1: stealing a spark from cap 0
 15062862001: cap 3: End par conjunct: 0x2523430
 15062862519: cap 3: Trying to steal a spark
-15062863090: cap 3: thread 3 stealing a spark from cap 0
+15062863090: cap 3: stealing a spark from cap 0
 15075263713: cap 2: End par conjunct: 0x2523490
 15075264213: cap 2: Trying to steal a spark
-15075264712: cap 2: thread 2 stealing a spark from cap 0
+15075264712: cap 2: stealing a spark from cap 0
 15111651541: cap 0: End par conjunct: 0x2525b30
 15111651730: cap 0: End par conjunction: 0x2525b30
 15111651901: cap 0: End par conjunct: 0x2525ad0
-15111652338: cap 0: running a local spark (thread 1)
+15111652338: cap 0: running a local spark
 15159532509: cap 1: End par conjunct: 0x25234f0
 15159532869: cap 1: Trying to steal a spark
-15159533517: cap 1: thread 4 stealing a spark from cap 0
+15159533517: cap 1: stealing a spark from cap 0
 15209371957: cap 3: End par conjunct: 0x2523550
 15209372385: cap 3: Trying to steal a spark
-15209372830: cap 3: thread 3 stealing a spark from cap 0
+15209372830: cap 3: stealing a spark from cap 0
 15217142107: cap 2: End par conjunct: 0x25235b0
 15217142562: cap 2: Trying to steal a spark
-15217143066: cap 2: thread 2 stealing a spark from cap 0
+15217143066: cap 2: stealing a spark from cap 0
 15269150128: cap 0: End par conjunct: 0x2525ad0
 15269150335: cap 0: End par conjunction: 0x2525ad0
 15269150470: cap 0: End par conjunct: 0x2525a70
-15269150875: cap 0: running a local spark (thread 1)
+15269150875: cap 0: running a local spark
 15307307370: cap 1: End par conjunct: 0x2523610
 15307308000: cap 1: Trying to steal a spark
-15307308598: cap 1: thread 4 stealing a spark from cap 0
+15307308598: cap 1: stealing a spark from cap 0
 15356259828: cap 3: End par conjunct: 0x2523670
 15356260264: cap 3: Trying to steal a spark
-15356260719: cap 3: thread 3 stealing a spark from cap 0
+15356260719: cap 3: stealing a spark from cap 0
 15359061276: cap 2: End par conjunct: 0x25236d0
 15359062068: cap 2: Trying to steal a spark
-15359062869: cap 2: thread 2 stealing a spark from cap 0
+15359062869: cap 2: stealing a spark from cap 0
 15426181422: cap 0: End par conjunct: 0x2525a70
 15426181611: cap 0: End par conjunction: 0x2525a70
 15426181777: cap 0: End par conjunct: 0x2525a10
-15426182079: cap 0: running a local spark (thread 1)
+15426182079: cap 0: running a local spark
 15454049139: cap 1: End par conjunct: 0x2523730
 15454049773: cap 1: Trying to steal a spark
-15454050367: cap 1: thread 4 stealing a spark from cap 0
+15454050367: cap 1: stealing a spark from cap 0
 15499701720: cap 2: End par conjunct: 0x25237f0
 15499702341: cap 2: Trying to steal a spark
-15499702908: cap 2: thread 2 stealing a spark from cap 0
+15499702908: cap 2: stealing a spark from cap 0
 15501423757: cap 3: End par conjunct: 0x2523790
 15501424230: cap 3: Trying to steal a spark
-15501424765: cap 3: thread 3 stealing a spark from cap 0
+15501424765: cap 3: stealing a spark from cap 0
 15583032742: cap 0: End par conjunct: 0x2525a10
 15583032940: cap 0: End par conjunction: 0x2525a10
 15583033129: cap 0: End par conjunct: 0x25259b0
-15583033386: cap 0: running a local spark (thread 1)
+15583033386: cap 0: running a local spark
 15599108277: cap 1: End par conjunct: 0x2523850
 15599109303: cap 1: Trying to steal a spark
-15599110086: cap 1: thread 4 stealing a spark from cap 0
+15599110086: cap 1: stealing a spark from cap 0
 15640560369: cap 2: End par conjunct: 0x25238b0
 15640561480: cap 2: Trying to steal a spark
-15640562115: cap 2: thread 2 stealing a spark from cap 0
+15640562115: cap 2: stealing a spark from cap 0
 15646349893: cap 3: End par conjunct: 0x2523910
 15646350348: cap 3: Trying to steal a spark
-15646350793: cap 3: thread 3 stealing a spark from cap 0
+15646350793: cap 3: stealing a spark from cap 0
 15739566930: cap 0: End par conjunct: 0x25259b0
 15739567137: cap 0: End par conjunction: 0x25259b0
 15739567308: cap 0: End par conjunct: 0x2525950
-15739567560: cap 0: running a local spark (thread 1)
+15739567560: cap 0: running a local spark
 15745644837: cap 1: End par conjunct: 0x2523970
 15745645597: cap 1: Trying to steal a spark
-15745646556: cap 1: thread 4 stealing a spark from cap 0
+15745646556: cap 1: stealing a spark from cap 0
 15781384827: cap 2: End par conjunct: 0x25239d0
 15781385376: cap 2: Trying to steal a spark
-15781385727: cap 2: thread 2 stealing a spark from cap 0
+15781385727: cap 2: stealing a spark from cap 0
 15791739669: cap 3: End par conjunct: 0x2523a30
 15791740051: cap 3: Trying to steal a spark
-15791740510: cap 3: thread 3 stealing a spark from cap 0
+15791740510: cap 3: stealing a spark from cap 0
 15892384153: cap 1: End par conjunct: 0x2523a90
 15892385337: cap 1: Trying to steal a spark
-15892386390: cap 1: thread 4 stealing a spark from cap 0
+15892386390: cap 1: stealing a spark from cap 0
 15896202012: cap 0: End par conjunct: 0x2525950
 15896202246: cap 0: End par conjunction: 0x2525950
 15896202421: cap 0: End par conjunct: 0x25258f0
-15896202997: cap 0: running a local spark (thread 1)
+15896202997: cap 0: running a local spark
 15924082396: cap 2: End par conjunct: 0x2523af0
 15924083310: cap 2: Trying to steal a spark
-15924083980: cap 2: thread 2 stealing a spark from cap 0
+15924083980: cap 2: stealing a spark from cap 0
 15937728102: cap 3: End par conjunct: 0x2523b50
 15937728588: cap 3: Trying to steal a spark
-15937729150: cap 3: thread 3 stealing a spark from cap 0
+15937729150: cap 3: stealing a spark from cap 0
 16045001689: cap 1: End par conjunct: 0x2523bb0
 16045003084: cap 1: Trying to steal a spark
-16045004160: cap 1: thread 4 stealing a spark from cap 0
+16045004160: cap 1: stealing a spark from cap 0
 16053299329: cap 0: End par conjunct: 0x25258f0
 16053299523: cap 0: End par conjunction: 0x25258f0
 16053299671: cap 0: End par conjunct: 0x2525890
-16053299982: cap 0: running a local spark (thread 1)
+16053299982: cap 0: running a local spark
 16066608561: cap 2: End par conjunct: 0x2523c10
 16066609231: cap 2: Trying to steal a spark
-16066609744: cap 2: thread 2 stealing a spark from cap 0
+16066609744: cap 2: stealing a spark from cap 0
 16084188706: cap 3: End par conjunct: 0x2523c70
 16084189174: cap 3: Trying to steal a spark
-16084189714: cap 3: thread 3 stealing a spark from cap 0
+16084189714: cap 3: stealing a spark from cap 0
 16193615319: cap 1: End par conjunct: 0x2523cd0
 16193616453: cap 1: Trying to steal a spark
-16193617564: cap 1: thread 4 stealing a spark from cap 0
+16193617564: cap 1: stealing a spark from cap 0
 16210622965: cap 0: End par conjunct: 0x2525890
 16210623222: cap 0: End par conjunction: 0x2525890
 16210623411: cap 0: End par conjunct: 0x2525830
-16210623978: cap 0: running a local spark (thread 1)
+16210623978: cap 0: running a local spark
 16210819453: cap 2: End par conjunct: 0x2523d30
 16210819912: cap 2: Trying to steal a spark
-16210820493: cap 2: thread 2 stealing a spark from cap 0
+16210820493: cap 2: stealing a spark from cap 0
 16232694493: cap 3: End par conjunct: 0x2523d90
 16232695141: cap 3: Trying to steal a spark
-16232695753: cap 3: thread 3 stealing a spark from cap 0
+16232695753: cap 3: stealing a spark from cap 0
 16342119135: cap 1: End par conjunct: 0x2523df0
 16342120183: cap 1: Trying to steal a spark
-16342120809: cap 1: thread 4 stealing a spark from cap 0
+16342120809: cap 1: stealing a spark from cap 0
 16354987947: cap 2: End par conjunct: 0x2523e50
 16354988622: cap 2: Trying to steal a spark
-16354988977: cap 2: thread 2 stealing a spark from cap 0
+16354988977: cap 2: stealing a spark from cap 0
 16367815017: cap 0: End par conjunct: 0x2525830
 16367815350: cap 0: End par conjunction: 0x2525830
 16367815525: cap 0: End par conjunct: 0x25257d0
-16367815836: cap 0: running a local spark (thread 1)
+16367815836: cap 0: running a local spark
 16380890707: cap 3: End par conjunct: 0x2523eb0
 16380891310: cap 3: Trying to steal a spark
-16380891652: cap 3: thread 3 stealing a spark from cap 0
+16380891652: cap 3: stealing a spark from cap 0
 16492019895: cap 1: End par conjunct: 0x2523f10
 16492020795: cap 1: Trying to steal a spark
-16492021740: cap 1: thread 4 stealing a spark from cap 0
+16492021740: cap 1: stealing a spark from cap 0
 16499029032: cap 2: End par conjunct: 0x2523f70
 16499029392: cap 2: Trying to steal a spark
-16499029711: cap 2: thread 2 stealing a spark from cap 0
+16499029711: cap 2: stealing a spark from cap 0
 16524922896: cap 0: End par conjunct: 0x25257d0
 16524923058: cap 0: End par conjunction: 0x25257d0
 16524923215: cap 0: End par conjunct: 0x2525770
-16524923607: cap 0: running a local spark (thread 1)
+16524923607: cap 0: running a local spark
 16529886841: cap 3: End par conjunct: 0x2523fd0
 16529887332: cap 3: Trying to steal a spark
-16529887768: cap 3: thread 3 stealing a spark from cap 0
+16529887768: cap 3: stealing a spark from cap 0
 16642523817: cap 1: End par conjunct: 0x2524030
 16642524627: cap 1: Trying to steal a spark
-16642525428: cap 1: thread 4 stealing a spark from cap 0
+16642525428: cap 1: stealing a spark from cap 0
 16643228026: cap 2: End par conjunct: 0x2524090
 16643228620: cap 2: Trying to steal a spark
-16643228958: cap 2: thread 2 stealing a spark from cap 0
+16643228958: cap 2: stealing a spark from cap 0
 16680950910: cap 0: End par conjunct: 0x2525770
 16680951099: cap 0: End par conjunction: 0x2525770
 16680951247: cap 0: End par conjunct: 0x2525710
-16680951499: cap 0: running a local spark (thread 1)
+16680951499: cap 0: running a local spark
 16682200146: cap 3: End par conjunct: 0x25240f0
 16682200569: cap 3: Trying to steal a spark
-16682200947: cap 3: thread 3 stealing a spark from cap 0
+16682200947: cap 3: stealing a spark from cap 0
 16793102727: cap 2: End par conjunct: 0x25241b0
 16793103429: cap 2: Trying to steal a spark
-16793104441: cap 2: thread 2 stealing a spark from cap 0
+16793104441: cap 2: stealing a spark from cap 0
 16797486150: cap 1: End par conjunct: 0x2524150
 16797486825: cap 1: Trying to steal a spark
-16797487225: cap 1: thread 4 stealing a spark from cap 0
+16797487225: cap 1: stealing a spark from cap 0
 16836621975: cap 0: End par conjunct: 0x2525710
 16836622141: cap 0: End par conjunction: 0x2525710
 16836622321: cap 0: End par conjunct: 0x25256b0
-16836622663: cap 0: running a local spark (thread 1)
+16836622663: cap 0: running a local spark
 16837625277: cap 3: End par conjunct: 0x2524210
 16837625754: cap 3: Trying to steal a spark
-16837626159: cap 3: thread 3 stealing a spark from cap 0
+16837626159: cap 3: stealing a spark from cap 0
 16945347280: cap 2: End par conjunct: 0x2524270
 16945348770: cap 2: Trying to steal a spark
-16945349895: cap 2: thread 2 stealing a spark from cap 0
+16945349895: cap 2: stealing a spark from cap 0
 16955697573: cap 1: End par conjunct: 0x25242d0
 16955698000: cap 1: Trying to steal a spark
-16955698558: cap 1: thread 4 stealing a spark from cap 0
+16955698558: cap 1: stealing a spark from cap 0
 16992188572: cap 0: End par conjunct: 0x25256b0
 16992188766: cap 0: End par conjunction: 0x25256b0
 16992188968: cap 0: End par conjunct: 0x2525650
-16992189297: cap 0: running a local spark (thread 1)
+16992189297: cap 0: running a local spark
 16996860166: cap 3: End par conjunct: 0x2524330
 16996860612: cap 3: Trying to steal a spark
-16996860994: cap 3: thread 3 stealing a spark from cap 0
+16996860994: cap 3: stealing a spark from cap 0
 17100326358: cap 2: End par conjunct: 0x2524390
 17100327078: cap 2: Trying to steal a spark
-17100327775: cap 2: thread 2 stealing a spark from cap 0
+17100327775: cap 2: stealing a spark from cap 0
 17121939421: cap 1: End par conjunct: 0x25243f0
 17121940146: cap 1: Trying to steal a spark
-17121940542: cap 1: thread 4 stealing a spark from cap 0
+17121940542: cap 1: stealing a spark from cap 0
 17147488131: cap 0: End par conjunct: 0x2525650
 17147488477: cap 0: End par conjunction: 0x2525650
 17147488635: cap 0: End par conjunct: 0x25255f0
-17147489058: cap 0: running a local spark (thread 1)
+17147489058: cap 0: running a local spark
 17156473344: cap 3: End par conjunct: 0x2524450
 17156473798: cap 3: Trying to steal a spark
-17156474167: cap 3: thread 3 stealing a spark from cap 0
+17156474167: cap 3: stealing a spark from cap 0
 17257222408: cap 2: End par conjunct: 0x25244b0
 17257223875: cap 2: Trying to steal a spark
-17257225095: cap 2: thread 2 stealing a spark from cap 0
+17257225095: cap 2: stealing a spark from cap 0
 17283512254: cap 1: End par conjunct: 0x2524510
 17283513100: cap 1: Trying to steal a spark
-17283513496: cap 1: thread 4 stealing a spark from cap 0
+17283513496: cap 1: stealing a spark from cap 0
 17303152891: cap 0: End par conjunct: 0x25255f0
 17303153125: cap 0: End par conjunction: 0x25255f0
 17303153301: cap 0: End par conjunct: 0x2525590
-17303153638: cap 0: running a local spark (thread 1)
+17303153638: cap 0: running a local spark
 17317260342: cap 3: End par conjunct: 0x2524570
 17317260765: cap 3: Trying to steal a spark
-17317261179: cap 3: thread 3 stealing a spark from cap 0
+17317261179: cap 3: stealing a spark from cap 0
 17413679826: cap 2: End par conjunct: 0x25245d0
 17413680730: cap 2: Trying to steal a spark
-17413681639: cap 2: thread 2 stealing a spark from cap 0
+17413681639: cap 2: stealing a spark from cap 0
 17445166501: cap 1: End par conjunct: 0x2524630
 17445167343: cap 1: Trying to steal a spark
-17445167896: cap 1: thread 4 stealing a spark from cap 0
+17445167896: cap 1: stealing a spark from cap 0
 17459300466: cap 0: End par conjunct: 0x2525590
 17459301208: cap 0: End par conjunction: 0x2525590
 17459301870: cap 0: End par conjunct: 0x2525530
-17459303044: cap 0: running a local spark (thread 1)
+17459303044: cap 0: running a local spark
 17482807381: cap 3: End par conjunct: 0x2524690
 17482808547: cap 3: Trying to steal a spark
-17482809829: cap 3: thread 3 stealing a spark from cap 0
+17482809829: cap 3: stealing a spark from cap 0
 17569003230: cap 2: End par conjunct: 0x25246f0
 17569004233: cap 2: Trying to steal a spark
-17569004854: cap 2: thread 2 stealing a spark from cap 0
+17569004854: cap 2: stealing a spark from cap 0
 17605677370: cap 1: End par conjunct: 0x2524750
 17605677892: cap 1: Trying to steal a spark
-17605678446: cap 1: thread 4 stealing a spark from cap 0
+17605678446: cap 1: stealing a spark from cap 0
 17615119162: cap 0: End par conjunct: 0x2525530
 17615120013: cap 0: End par conjunction: 0x2525530
 17615120620: cap 0: End par conjunct: 0x25254d0
-17615121957: cap 0: running a local spark (thread 1)
+17615121957: cap 0: running a local spark
 17686208227: cap 3: End par conjunct: 0x25247b0
 17686209937: cap 3: Trying to steal a spark
-17686211638: cap 3: thread 3 stealing a spark from cap 0
+17686211638: cap 3: stealing a spark from cap 0
 17725139019: cap 2: End par conjunct: 0x2524810
 17725140454: cap 2: Trying to steal a spark
-17725141692: cap 2: thread 2 stealing a spark from cap 0
+17725141692: cap 2: stealing a spark from cap 0
 17767218150: cap 1: End par conjunct: 0x2524870
 17767218951: cap 1: Trying to steal a spark
-17767219387: cap 1: thread 4 stealing a spark from cap 0
+17767219387: cap 1: stealing a spark from cap 0
 17770340709: cap 0: End par conjunct: 0x25254d0
 17770340929: cap 0: End par conjunction: 0x25254d0
 17770341208: cap 0: End par conjunct: 0x2525470
-17770341649: cap 0: running a local spark (thread 1)
+17770341649: cap 0: running a local spark
 17846979615: cap 3: End par conjunct: 0x25248d0
 17846980263: cap 3: Trying to steal a spark
-17846980960: cap 3: thread 3 stealing a spark from cap 0
+17846980960: cap 3: stealing a spark from cap 0
 17882204926: cap 2: End par conjunct: 0x2524930
 17882206677: cap 2: Trying to steal a spark
-17882208459: cap 2: thread 2 stealing a spark from cap 0
+17882208459: cap 2: stealing a spark from cap 0
 17925635443: cap 0: End par conjunct: 0x2525470
 17925635695: cap 0: End par conjunction: 0x2525470
 17925635983: cap 0: End par conjunct: 0x2525410
-17925636316: cap 0: running a local spark (thread 1)
+17925636316: cap 0: running a local spark
 17929204371: cap 1: End par conjunct: 0x2524990
 17929205428: cap 1: Trying to steal a spark
-17929206256: cap 1: thread 4 stealing a spark from cap 0
+17929206256: cap 1: stealing a spark from cap 0
 18007752343: cap 3: End par conjunct: 0x25249f0
 18007752766: cap 3: Trying to steal a spark
-18007753437: cap 3: thread 3 stealing a spark from cap 0
+18007753437: cap 3: stealing a spark from cap 0
 18038756245: cap 2: End par conjunct: 0x2524a50
 18038757163: cap 2: Trying to steal a spark
-18038757798: cap 2: thread 2 stealing a spark from cap 0
+18038757798: cap 2: stealing a spark from cap 0
 18080380548: cap 0: End par conjunct: 0x2525410
 18080380750: cap 0: End par conjunction: 0x2525410
 18080380926: cap 0: End par conjunct: 0x25253b0
-18080381268: cap 0: running a local spark (thread 1)
+18080381268: cap 0: running a local spark
 18090447849: cap 1: End par conjunct: 0x2524ab0
 18090448285: cap 1: Trying to steal a spark
-18090448825: cap 1: thread 4 stealing a spark from cap 0
+18090448825: cap 1: stealing a spark from cap 0
 18168395116: cap 3: End par conjunct: 0x2524b10
 18168395557: cap 3: Trying to steal a spark
-18168396106: cap 3: thread 3 stealing a spark from cap 0
+18168396106: cap 3: stealing a spark from cap 0
 18194295892: cap 2: End par conjunct: 0x2524b70
 18194296734: cap 2: Trying to steal a spark
-18194297454: cap 2: thread 2 stealing a spark from cap 0
+18194297454: cap 2: stealing a spark from cap 0
 18235582875: cap 0: End par conjunct: 0x25253b0
 18235583064: cap 0: End par conjunction: 0x25253b0
 18235583217: cap 0: End par conjunct: 0x2525350
-18235583536: cap 0: running a local spark (thread 1)
+18235583536: cap 0: running a local spark
 18251847418: cap 1: End par conjunct: 0x2524bd0
 18251847949: cap 1: Trying to steal a spark
-18251848642: cap 1: thread 4 stealing a spark from cap 0
+18251848642: cap 1: stealing a spark from cap 0
 18328247212: cap 3: End par conjunct: 0x2524c30
 18328247581: cap 3: Trying to steal a spark
-18328248135: cap 3: thread 3 stealing a spark from cap 0
+18328248135: cap 3: stealing a spark from cap 0
 18349427848: cap 2: End par conjunct: 0x2524c90
 18349428879: cap 2: Trying to steal a spark
-18349429522: cap 2: thread 2 stealing a spark from cap 0
+18349429522: cap 2: stealing a spark from cap 0
 18390413767: cap 0: End par conjunct: 0x2525350
 18390414015: cap 0: End par conjunction: 0x2525350
 18390414307: cap 0: End par conjunct: 0x25252f0
-18390414771: cap 0: running a local spark (thread 1)
+18390414771: cap 0: running a local spark
 18418554441: cap 1: End par conjunct: 0x2524cf0
 18418556151: cap 1: Trying to steal a spark
-18418558081: cap 1: thread 4 stealing a spark from cap 0
+18418558081: cap 1: stealing a spark from cap 0
 18488594830: cap 3: End par conjunct: 0x2524d50
 18488595802: cap 3: Trying to steal a spark
-18488596576: cap 3: thread 3 stealing a spark from cap 0
+18488596576: cap 3: stealing a spark from cap 0
 18545712619: cap 0: End par conjunct: 0x25252f0
 18545712975: cap 0: End par conjunction: 0x25252f0
 18545713146: cap 0: End par conjunct: 0x2525290
-18545713398: cap 0: running a local spark (thread 1)
+18545713398: cap 0: running a local spark
 18548312062: cap 2: End par conjunct: 0x2524db0
 18548314159: cap 2: Trying to steal a spark
-18548316522: cap 2: thread 2 stealing a spark from cap 0
+18548316522: cap 2: stealing a spark from cap 0
 18581090584: cap 1: End par conjunct: 0x2524e10
 18581091916: cap 1: Trying to steal a spark
-18581092528: cap 1: thread 4 stealing a spark from cap 0
+18581092528: cap 1: stealing a spark from cap 0
 18647874999: cap 3: End par conjunct: 0x2524e70
 18647876155: cap 3: Trying to steal a spark
-18647877249: cap 3: thread 3 stealing a spark from cap 0
+18647877249: cap 3: stealing a spark from cap 0
 18701289085: cap 0: End par conjunct: 0x2525290
 18701289450: cap 0: End par conjunction: 0x2525290
 18701289634: cap 0: End par conjunct: 0x2525230
-18701290008: cap 0: running a local spark (thread 1)
+18701290008: cap 0: running a local spark
 18709436227: cap 2: End par conjunct: 0x2524ed0
 18709437973: cap 2: Trying to steal a spark
-18709439710: cap 2: thread 2 stealing a spark from cap 0
+18709439710: cap 2: stealing a spark from cap 0
 18740173275: cap 1: End par conjunct: 0x2524f30
 18740174184: cap 1: Trying to steal a spark
-18740174580: cap 1: thread 4 stealing a spark from cap 0
+18740174580: cap 1: stealing a spark from cap 0
 18805391203: cap 3: End par conjunct: 0x2524f90
 18805391730: cap 3: Trying to steal a spark
-18805392283: cap 3: thread 3 stealing a spark from cap 0
+18805392283: cap 3: stealing a spark from cap 0
 18855587983: cap 0: End par conjunct: 0x2525230
 18855588177: cap 0: End par conjunction: 0x2525230
 18855588330: cap 0: End par conjunct: 0x25251d0
-18855588541: cap 0: running a local spark (thread 1)
+18855588541: cap 0: running a local spark
 18861182568: cap 2: End par conjunct: 0x2524ff0
 18861183427: cap 2: Trying to steal a spark
-18861184143: cap 2: thread 2 stealing a spark from cap 0
+18861184143: cap 2: stealing a spark from cap 0
 18895434813: cap 1: End par conjunct: 0x2525050
 18895435393: cap 1: Trying to steal a spark
-18895435798: cap 1: thread 4 stealing a spark from cap 0
+18895435798: cap 1: stealing a spark from cap 0
 18959237212: cap 3: End par conjunct: 0x25250b0
 18959238031: cap 3: Trying to steal a spark
 18959238990: cap 3: Looking for global thread to resume
@@ -5593,4 +5593,5 @@ Events:
 19242931954: removed cap 0 from capset 0
 19242932310: cap 0: shutting down
 19243048770: deleted capset 0
+
 
