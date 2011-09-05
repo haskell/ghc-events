@@ -64,9 +64,9 @@ Events:
   1639000: cap 1: thread 6 is runnable
   1639000: cap 3: running thread 3
   1640000: cap 1: running thread 6
-  1642000: cap 2: thread 4 stealing a spark from cap 3
-  1647000: cap 0: thread 5 stealing a spark from cap 3
-  1647000: cap 1: thread 6 stealing a spark from cap 3
+  1642000: cap 2: stealing a spark from cap 3
+  1647000: cap 0: stealing a spark from cap 3
+  1647000: cap 1: stealing a spark from cap 3
   1652000: cap 2: stopping thread 4 (thread yielding)
   1653000: cap 2: thread 4 is runnable
   1653000: cap 2: running thread 4
@@ -151,7 +151,7 @@ Events:
   2612000: cap 3: creating spark thread 7
   2612000: cap 3: thread 7 is runnable
   2613000: cap 3: running thread 7
-  2616000: cap 3: running a local spark (thread 7)
+  2616000: cap 3: running a local spark
   2629000: cap 3: stopping thread 7 (stack overflow)
   2630000: cap 3: running thread 7
   2845000: cap 3: stopping thread 7 (heap overflow)
@@ -218,9 +218,9 @@ Events:
   3275000: cap 1: running thread 6
   3275000: cap 2: running thread 4
   3275000: cap 3: running thread 7
-  3507000: cap 2: thread 4 stealing a spark from cap 3
-  3524000: cap 0: thread 5 stealing a spark from cap 2
-  3540000: cap 1: thread 6 stealing a spark from cap 0
+  3507000: cap 2: stealing a spark from cap 3
+  3524000: cap 0: stealing a spark from cap 2
+  3540000: cap 1: stealing a spark from cap 0
   3607000: cap 3: stopping thread 7 (heap overflow)
   3607000: cap 3: requesting parallel GC
   3609000: cap 0: stopping thread 5 (thread yielding)
@@ -257,22 +257,22 @@ Events:
   3662000: cap 3: running thread 3
   3666000: cap 3: stopping thread 3 (thread blocked)
   3668000: cap 3: running thread 7
-  3684000: cap 1: thread 6 stealing a spark from cap 2
-  3692000: cap 0: thread 5 stealing a spark from cap 1
+  3684000: cap 1: stealing a spark from cap 2
+  3692000: cap 0: stealing a spark from cap 1
   3729000: cap 2: stopping thread 4 (thread blocked)
   3730000: cap 2: creating thread 8
   3730000: cap 2: creating spark thread 8
   3731000: cap 2: thread 8 is runnable
   3731000: cap 2: running thread 8
-  3731000: cap 2: running a local spark (thread 8)
-  3770000: cap 0: thread 5 stealing a spark from cap 1
+  3731000: cap 2: running a local spark
+  3770000: cap 0: stealing a spark from cap 1
   3810000: cap 1: stopping thread 6 (thread blocked)
   3812000: cap 1: creating thread 9
   3813000: cap 1: creating spark thread 9
   3813000: cap 1: thread 9 is runnable
   3813000: cap 1: running thread 9
-  3814000: cap 1: thread 9 stealing a spark from cap 2
-  3865000: cap 0: thread 5 stealing a spark from cap 1
+  3814000: cap 1: stealing a spark from cap 2
+  3865000: cap 0: stealing a spark from cap 1
   3883000: cap 1: stopping thread 9 (thread blocked)
   3884000: cap 1: thread 6 is runnable
   3884000: cap 1: waking up thread 6 on cap 1
@@ -280,14 +280,14 @@ Events:
   3885000: cap 1: stopping thread 6 (thread yielding)
   3885000: cap 1: thread 6 is runnable
   3885000: cap 1: running thread 6
-  3886000: cap 1: running a local spark (thread 6)
-  3955000: cap 0: thread 5 stealing a spark from cap 1
+  3886000: cap 1: running a local spark
+  3955000: cap 0: stealing a spark from cap 1
   3985000: cap 2: stopping thread 8 (heap overflow)
   3986000: cap 2: requesting parallel GC
   3987000: cap 0: stopping thread 5 (heap overflow)
   3987000: cap 0: thread 5 is runnable
   3987000: cap 0: starting GC
-  3987000: cap 1: thread 6 stealing a spark from cap 3
+  3987000: cap 1: stealing a spark from cap 3
   3988000: cap 1: stopping thread 6 (thread yielding)
   3988000: cap 1: thread 6 is runnable
   3988000: cap 1: starting GC
@@ -320,14 +320,14 @@ Events:
   4038000: cap 2: running thread 4
   4041000: cap 2: stopping thread 4 (thread blocked)
   4041000: cap 2: running thread 8
-  4053000: cap 2: thread 8 stealing a spark from cap 1
-  4064000: cap 0: thread 5 stealing a spark from cap 1
-  4102000: cap 3: running a local spark (thread 7)
-  4296000: cap 0: thread 5 stealing a spark from cap 1
-  4308000: cap 2: thread 8 stealing a spark from cap 0
+  4053000: cap 2: stealing a spark from cap 1
+  4064000: cap 0: stealing a spark from cap 1
+  4102000: cap 3: running a local spark
+  4296000: cap 0: stealing a spark from cap 1
+  4308000: cap 2: stealing a spark from cap 0
   4312000: cap 1: stopping thread 6 (thread blocked)
   4313000: cap 1: running thread 9
-  4314000: cap 1: running a local spark (thread 9)
+  4314000: cap 1: running a local spark
   4375000: cap 2: stopping thread 8 (heap overflow)
   4375000: cap 2: requesting parallel GC
   4376000: cap 0: stopping thread 5 (heap overflow)
@@ -365,15 +365,15 @@ Events:
   4426000: cap 1: running thread 9
   4428000: cap 2: stopping thread 4 (thread finished)
   4428000: cap 2: running thread 8
-  4440000: cap 2: thread 8 stealing a spark from cap 0
+  4440000: cap 2: stealing a spark from cap 0
   4466000: cap 0: stopping thread 5 (thread blocked)
   4467000: cap 0: creating thread 10
   4468000: cap 0: creating spark thread 10
   4468000: cap 0: thread 10 is runnable
   4468000: cap 0: running thread 10
-  4468000: cap 0: running a local spark (thread 10)
-  4497000: cap 2: thread 8 stealing a spark from cap 1
-  4512000: cap 0: thread 10 stealing a spark from cap 3
+  4468000: cap 0: running a local spark
+  4497000: cap 2: stealing a spark from cap 1
+  4512000: cap 0: stealing a spark from cap 3
   4515000: cap 3: stopping thread 7 (thread blocked)
   4527000: cap 3: running thread 3
   4529000: cap 3: stopping thread 3 (thread blocked)
@@ -384,20 +384,20 @@ Events:
   4533000: cap 3: running thread 11
   4534000: cap 0: stopping thread 10 (thread yielding)
   4534000: cap 0: thread 10 is runnable
-  4534000: cap 3: running a local spark (thread 11)
+  4534000: cap 3: running a local spark
   4535000: cap 0: running thread 10
   4547000: cap 1: stopping thread 9 (thread blocked)
   4549000: cap 1: creating thread 12
   4549000: cap 1: creating spark thread 12
   4549000: cap 1: thread 12 is runnable
   4549000: cap 1: running thread 12
-  4550000: cap 1: thread 12 stealing a spark from cap 0
-  4562000: cap 2: thread 8 stealing a spark from cap 0
-  4595000: cap 2: thread 8 stealing a spark from cap 3
+  4550000: cap 1: stealing a spark from cap 0
+  4562000: cap 2: stealing a spark from cap 0
+  4595000: cap 2: stealing a spark from cap 3
   4600000: cap 0: stopping thread 10 (thread blocked)
   4600000: cap 0: running thread 5
-  4601000: cap 0: thread 5 stealing a spark from cap 2
-  4608000: cap 1: thread 12 stealing a spark from cap 2
+  4601000: cap 0: stealing a spark from cap 2
+  4608000: cap 1: stealing a spark from cap 2
   4625000: cap 2: stopping thread 8 (thread blocked)
   4626000: cap 2: waking up thread 10 on cap 0
   4627000: cap 2: waking up thread 9 on cap 1
@@ -412,12 +412,12 @@ Events:
   4629000: cap 1: thread 12 is runnable
   4629000: cap 1: running thread 12
   4629000: cap 2: running thread 13
-  4629000: cap 2: running a local spark (thread 13)
+  4629000: cap 2: running a local spark
   4665000: cap 1: stopping thread 12 (thread finished)
   4665000: cap 1: running thread 9
   4666000: cap 1: stopping thread 9 (thread finished)
   4666000: cap 1: running thread 6
-  4668000: cap 1: thread 6 stealing a spark from cap 3
+  4668000: cap 1: stealing a spark from cap 3
   4669000: cap 0: stopping thread 5 (thread finished)
   4669000: cap 0: running thread 10
   4670000: cap 0: stopping thread 10 (thread finished)
@@ -428,7 +428,7 @@ Events:
   4673000: cap 0: creating spark thread 14
   4673000: cap 0: thread 14 is runnable
   4673000: cap 0: running thread 14
-  4673000: cap 0: thread 14 stealing a spark from cap 1
+  4673000: cap 0: stealing a spark from cap 1
   4673000: cap 3: stopping thread 11 (thread yielding)
   4673000: cap 3: thread 11 is runnable
   4674000: cap 2: stopping thread 13 (thread yielding)
@@ -440,11 +440,11 @@ Events:
   4676000: cap 1: creating spark thread 15
   4676000: cap 1: thread 15 is runnable
   4676000: cap 1: running thread 15
-  4676000: cap 1: running a local spark (thread 15)
+  4676000: cap 1: running a local spark
   4685000: cap 2: stopping thread 13 (thread finished)
   4686000: cap 2: running thread 8
-  4687000: cap 2: thread 8 stealing a spark from cap 1
-  4707000: cap 1: running a local spark (thread 15)
+  4687000: cap 2: stealing a spark from cap 1
+  4707000: cap 1: running a local spark
   4711000: cap 3: stopping thread 11 (thread finished)
   4719000: cap 0: stopping thread 14 (thread finished)
   4719000: cap 0: waking up thread 6 on cap 1
@@ -506,4 +506,5 @@ Events:
   5054000: cap 1: shutting down
   5104000: cap 2: shutting down
   5105000: cap 3: shutting down
+
 

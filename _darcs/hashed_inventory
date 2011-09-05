@@ -1,4 +1,4 @@
-pristine:0000000649-d8875d9e486cf16bcf5c02f5c37f57b2015ff7dff818f398910be57ddc5cb827
+pristine:0000000649-a8010c688351155319f005ad49b6ea52103497c4f26c800e72d02b9c0108136a
 Starting with inventory:
 0000001638-d0ec69870c34bc0c4b1a76d98c076b5c625420c021a995976565f70b5db77e0f
 [TAG 0.2.0.1
@@ -392,3 +392,33 @@ Duncan Coutts <duncan@well-typed.com>**20110826114403
  Ignore-this: cccc81cfbf0d358ef25e2830cce69fe5
 ] 
 hash: 0000011832-88a1a7056a507a8df7797b55a8486e6adc73a7a5ae5273ef4a58de3c0c395238
+[change the test reference files to reflect changes in event format
+Mikolaj Konarski <mikolaj@well-typed.com>**20110902115516
+ Ignore-this: 56ce59524c35ab44723da6e54eb5770e
+] 
+hash: 0000145251-df9629ee6a81714100b2154eec5e1f86d5b9653d79368b41296334350f072659
+[Set bug report URL to new threadscope trac
+Duncan Coutts <duncan@well-typed.com>**20110903001350
+ Ignore-this: c2dc0cee241939bdbfec6aaf42dbf3d7
+] 
+hash: 0000000229-9763c9cd94f3f40ea5a820b9a12e3f72efe41e9394b4316e677a2ffdf9a0ebba
+[Bump version to 0.3.0.1
+Duncan Coutts <duncan@well-typed.com>**20110905000158
+ Ignore-this: f2ca9c4dde95450b01e4b03140400864
+] 
+hash: 0000000207-941eb3bfe34b7c471930e9b6a78e2b4c6b5240e788d4b847fc80dcad0128711e
+[Update .cabal file to Cabal 1.8 semantics
+Duncan Coutts <duncan@well-typed.com>**20110905001821
+ Ignore-this: 1e16e905835cc956416de2b720e33ebc
+] 
+hash: 0000001235-719159b28e8c81143031baa9ff777bb87505d70510284fb819d1593a784ca22f
+[TAG 0.3.0.1
+Duncan Coutts <duncan@well-typed.com>**20110905001849
+ Ignore-this: 2054d0c7ba87c8a097813eb5341d5732
+] 
+hash: 0000000837-a4cec76a549d95a44b832fdd1ef8ab29064738b8c2fbd7b05d82ff33649766cb
+[TODO: REBASE (resolve conflict after update to 0.3.0.1) 
+Mikolaj Konarski <mikolaj@well-typed.com>**20110905112826
+ Ignore-this: fdde4b5dd6c4e88f7dbd007cc5525c09
+] 
+hash: 0000000660-ca46a4b4778b9dc50675f57bf8a19bde03c07f98e17eb866dc47009f72780fd5

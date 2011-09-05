@@ -1,5 +1,5 @@
 name:             ghc-events
-version:          0.3.0.0
+version:          0.3.0.1
 synopsis:         Library and tool for parsing .eventlog files from GHC
 description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the show-ghc-events tool to dump an event
@@ -7,14 +7,15 @@ description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
 category:         Development, GHC, Debug, Profiling, Trace
 license:          BSD3
 license-file:     LICENSE
-author:           Donnie Jones <donnie@darthik.com>, 
+author:           Donnie Jones <donnie@darthik.com>,
                   Simon Marlow <marlowsd@gmail.com>,
                   Paul Bone <pbone@csse.unimelb.edu.au>,
                   Duncan Coutts <duncan@well-typed.com>
 maintainer:       Simon Marlow <marlowsd@gmail.com>
+bug-reports:      http://trac.haskell.org/ThreadScope/
 build-type:       Simple
 tested-with:      GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1
-cabal-version:    >= 1.6
+cabal-version:    >= 1.8
 extra-source-files: GHC/RTS/EventLogFormat.h,
                     AUTHORS,
                     test/*.eventlog
@@ -39,7 +40,9 @@ library
 
 executable ghc-events
   main-is:          GhcEvents.hs
+  build-depends:    base, mtl, containers, binary, bytestring, array
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
   main-is:          test/TestVersions.hs
+  build-depends:    base, mtl, containers, binary, bytestring, array

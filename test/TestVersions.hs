@@ -20,7 +20,7 @@ import System.Exit
 files :: [FilePath]
 files = map ("test/"++)
     [ "queens-ghc-6.12.1.eventlog"
-    , "queens-ghc-7.0.2.eventlog" 
+    , "queens-ghc-7.0.2.eventlog"
     , "mandelbrot-mmc-2011-06-14.eventlog" ]
 
 -- returns True on success
@@ -34,7 +34,7 @@ testFile f = do
 
         Right newlogdata -> do
             oldlog <- readFile (f ++ ".reference")
-            let newlog = ppEventLog newlogdata in
+            let newlog = ppEventLog newlogdata ++ "\n" in
                 if oldlog == newlog
                     then putStrLn (f ++ ": success") >> return True
                     else do print $ diffLines oldlog newlog
@@ -52,15 +52,14 @@ main = do
 
 diffLines o n = diff 1 (lines o) (lines n)
 
-diff :: Int -> [String] -> [String] -> String 
+diff :: Int -> [String] -> [String] -> String
 diff _ [] [] = "Logs match"
 diff l [] (n:ns) = "Extra lines in new log at line " ++ show l ++ ":\n" ++
     (unlines (n:ns))
-diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++ 
+diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++
     (unlines (o:os))
 diff l (o:os) (n:ns) = if (o == n)
                         then diff (l+1) os ns
                         else "Different lines at line " ++ show l ++ ":\n" ++
                             "Original: " ++ o ++
                             "New:      " ++ n
-
