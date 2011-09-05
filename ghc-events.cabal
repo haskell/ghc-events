@@ -15,7 +15,7 @@ maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      http://trac.haskell.org/ThreadScope/
 build-type:       Simple
 tested-with:      GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1
-cabal-version:    >= 1.6
+cabal-version:    >= 1.8
 extra-source-files: GHC/RTS/EventLogFormat.h,
                     AUTHORS,
                     test/*.eventlog
@@ -38,9 +38,16 @@ library
                     GHC.RTS.EventTypes
   extensions:	    CPP
 
-executable ghc-events
-  main-is:          GhcEvents.hs
+executable ghc-events-show
+  main-is:          ShowGhcEvents.hs
+
+executable ghc-events-merge
+  main-is:          MergeGhcEvents.hs
+
+executable ghc-events-sparks
+  main-is:          ShowGhcSparks.hs
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
   main-is:          test/TestVersions.hs
+  build-depends:    base, mtl, containers, binary, bytestring, array
