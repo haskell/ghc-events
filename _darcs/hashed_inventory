@@ -1,4 +1,4 @@
-pristine:0000000649-a8010c688351155319f005ad49b6ea52103497c4f26c800e72d02b9c0108136a
+pristine:0000000649-e86a1a45b2f5e4150c971ce14a8e1b6596984403b96b6030c5f413a16878c20b
 Starting with inventory:
 0000001638-d0ec69870c34bc0c4b1a76d98c076b5c625420c021a995976565f70b5db77e0f
 [TAG 0.2.0.1
@@ -422,3 +422,8 @@ Mikolaj Konarski <mikolaj@well-typed.com>**20110907100223
  Ignore-this: 3daa946ebf4f6a8c7e0d31beea8c4c5c
 ] 
 hash: 0000003677-7c0d1069e07cbff23556f3ed521be07edacc276c1d673f57d60529dde4c5be7a
+[change mentions of "show-ghc-events" to "ghc-events"
+Mikolaj Konarski <mikolaj@well-typed.com>**20110907102511
+ Ignore-this: 24b71b2a79d37395726b714ae4eb704f
+] 
+hash: 0000000831-b4d64354462fa48c144fdd2d58039d274b3491ebdc6986a6d15d0803ac00a508
