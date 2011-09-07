@@ -417,8 +417,8 @@ Duncan Coutts <duncan@well-typed.com>**20110905001849
  Ignore-this: 2054d0c7ba87c8a097813eb5341d5732
 ] 
 hash: 0000000837-a4cec76a549d95a44b832fdd1ef8ab29064738b8c2fbd7b05d82ff33649766cb
-[TODO: REBASE (resolve conflict after update to 0.3.0.1) 
-Mikolaj Konarski <mikolaj@well-typed.com>**20110905112826
- Ignore-this: fdde4b5dd6c4e88f7dbd007cc5525c09
+[resolve the conflict after update to 0.3.0.1
+Mikolaj Konarski <mikolaj@well-typed.com>**20110907095350
+ Ignore-this: 5b9d1f837d3aeebd453367ab73408cd5
 ] 
-hash: 0000000660-ca46a4b4778b9dc50675f57bf8a19bde03c07f98e17eb866dc47009f72780fd5
+hash: 0000000648-a1417ae4e1d022f52f84e1dc4f0d3a87257bfc25837207bd8f51895d957d588a
