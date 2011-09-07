@@ -7,7 +7,7 @@ description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
 category:         Development, GHC, Debug, Profiling, Trace
 license:          BSD3
 license-file:     LICENSE
-author:           Donnie Jones <donnie@darthik.com>, 
+author:           Donnie Jones <donnie@darthik.com>,
                   Simon Marlow <marlowsd@gmail.com>,
                   Paul Bone <pbone@csse.unimelb.edu.au>,
                   Duncan Coutts <duncan@well-typed.com>
@@ -38,14 +38,9 @@ library
                     GHC.RTS.EventTypes
   extensions:	    CPP
 
-executable ghc-events-show
-  main-is:          ShowGhcEvents.hs
-
-executable ghc-events-merge
-  main-is:          MergeGhcEvents.hs
-
-executable ghc-events-sparks
-  main-is:          ShowGhcSparks.hs
+executable ghc-events
+  main-is:          GhcEvents.hs
+  build-depends:    base, mtl, containers, binary, bytestring, array
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
