@@ -372,11 +372,6 @@ Spencer Janssen <spencer@well-typed.com>**20110803162652
  Ignore-this: 1b79703ba191ee8fead3192713c4fde7
 ] 
 hash: 0000000777-f9854b4de22634dc18d755263da5f4acf888581f9a3a4d9a478ea96e2eb113dc
-[TODO: rebase with previous changes (reconstructed a missing file; now compiles)
-Mikolaj Konarski <mikolaj@well-typed.com>**20110826071844
- Ignore-this: d37f95367dd62b14520fede4e6f76962
-] 
-hash: 0000003693-aa3d135a100f1fc26fb588eb9268626f38f80dad5bc212d47dd96fb79b493c5c
 [Set version to 0.3.0.0
 Duncan Coutts <duncan@well-typed.com>**20110826114227
  Ignore-this: 3367b284ce71a684573a03f641900246
@@ -422,3 +417,8 @@ Mikolaj Konarski <mikolaj@well-typed.com>**20110907095350
  Ignore-this: 5b9d1f837d3aeebd453367ab73408cd5
 ] 
 hash: 0000000648-a1417ae4e1d022f52f84e1dc4f0d3a87257bfc25837207bd8f51895d957d588a
+[reconstruct the missing GHC.RTS.Events.Merge file; now compiles
+Mikolaj Konarski <mikolaj@well-typed.com>**20110907100223
+ Ignore-this: 3daa946ebf4f6a8c7e0d31beea8c4c5c
+] 
+hash: 0000003677-7c0d1069e07cbff23556f3ed521be07edacc276c1d673f57d60529dde4c5be7a
