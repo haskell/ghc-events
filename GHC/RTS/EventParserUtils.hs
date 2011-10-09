@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, PatternGuards #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 
 module GHC.RTS.EventParserUtils (
@@ -196,4 +196,3 @@ noEventTypeParser num mb_size = do
              Nothing -> getE :: GetEvents Word16
   skip bytes
   return UnknownEvent{ ref = fromIntegral num }
-

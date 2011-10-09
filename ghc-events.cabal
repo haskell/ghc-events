@@ -36,11 +36,12 @@ library
                     GHC.RTS.Events.Merge
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
-  extensions:	    CPP
+  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 executable ghc-events
   main-is:          GhcEvents.hs
   build-depends:    base, mtl, containers, binary, bytestring, array
+  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
