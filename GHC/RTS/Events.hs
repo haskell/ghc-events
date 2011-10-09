@@ -1,13 +1,13 @@
-{-# LANGUAGE CPP,BangPatterns,PatternGuards #-}
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
 {-
  - Authors: Donnie Jones, Simon Marlow, Paul Bone, Duncan Coutts
  - Events.hs
  -   Parser functions for GHC RTS EventLog framework.
  -}
- 
+
 module GHC.RTS.Events (
-       -- * The event log types                       
+       -- * The event log types
        EventLog(..),
        EventType(..),
        Event(..),
@@ -60,41 +60,41 @@ import GHC.RTS.EventParserUtils
 -- Binary instances
 
 getEventType :: GetHeader EventType
-getEventType = do 
+getEventType = do
            etNum <- getH
            size <- getH :: GetHeader EventTypeSize
            let etSize = if size == 0xffff then Nothing else Just size
            -- 0xffff indicates variable-sized event
            etDescLen <- getH :: GetHeader EventTypeDescLen
-           etDesc <- getEtDesc (fromIntegral etDescLen) 
+           etDesc <- getEtDesc (fromIntegral etDescLen)
            etExtraLen <- getH :: GetHeader Word32
            lift $ G.skip (fromIntegral etExtraLen)
            ete <- getH :: GetHeader Marker
            when (ete /= EVENT_ET_END) $
               throwError ("Event Type end marker not found.")
            return (EventType etNum etDesc etSize)
-           where 
+           where
              getEtDesc :: Int -> GetHeader [Char]
              getEtDesc s = replicateM s (getH :: GetHeader Char)
 
 getHeader :: GetHeader Header
-getHeader = do 
+getHeader = do
            hdrb <- getH :: GetHeader Marker
            when (hdrb /= EVENT_HEADER_BEGIN) $
                 throwError "Header begin marker not found"
            hetm <- getH :: GetHeader Marker
-           when (hetm /= EVENT_HET_BEGIN) $ 
+           when (hetm /= EVENT_HET_BEGIN) $
                 throwError "Header Event Type begin marker not found"
            ets <- getEventTypes
            emark <- getH :: GetHeader Marker
            when (emark /= EVENT_HEADER_END) $
                 throwError "Header end marker not found"
            return (Header ets)
-     where    
+     where
        getEventTypes :: GetHeader [EventType]
        getEventTypes = do
            m <- getH :: GetHeader Marker
-           case () of 
+           case () of
             _ | m == EVENT_ET_BEGIN -> do
                    et <- getEventType
                    nextET <- getEventTypes
@@ -105,9 +105,9 @@ getHeader = do
                    throwError "Malformed list of Event Types in header"
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
-getEvent (EventParsers parsers) = do 
+getEvent (EventParsers parsers) = do
   etRef <- getE :: GetEvents EventTypeNum
-  if (etRef == EVENT_DATA_END) 
+  if (etRef == EVENT_DATA_END)
      then return Nothing
      else do !ts   <- getE
              -- trace ("event: " ++ show etRef) $ do
@@ -128,17 +128,17 @@ standardParsers = [
       block_size <- getE :: GetEvents BlockSize
       end_time <- getE :: GetEvents Timestamp
       c <- getE :: GetEvents CapNo
-      lbs <- lift . lift $ getLazyByteString ((fromIntegral block_size) - 
+      lbs <- lift . lift $ getLazyByteString ((fromIntegral block_size) -
                                               (fromIntegral sz_block_event))
       eparsers <- ask
       let e_events = runGet (runErrorT $ runReaderT (getEventBlock eparsers) eparsers) lbs
       return EventBlock{ end_time=end_time,
-                         cap= fromIntegral c, 
+                         cap= fromIntegral c,
                          block_events=case e_events of
                                         Left s -> error s
                                         Right es -> es }
    )),
- 
+
  (simpleEvent EVENT_SHUTDOWN Shutdown),
 
  (simpleEvent EVENT_REQUEST_SEQ_GC RequestSeqGC),
@@ -154,18 +154,18 @@ standardParsers = [
  (simpleEvent EVENT_GC_DONE GCDone),
 
  (simpleEvent EVENT_GC_END EndGC),
- 
+
  (FixedSizeParser EVENT_CAPSET_CREATE (sz_capset + sz_capset_type) (do -- (capset, capset_type)
       cs <- getE
       ct <- fmap mkCapsetType getE
       return CapsetCreate{capset=cs,capsetType=ct}
    )),
- 
+
  (FixedSizeParser EVENT_CAPSET_DELETE sz_capset (do -- (capset)
       cs <- getE
       return CapsetDelete{capset=cs}
    )),
- 
+
  (FixedSizeParser EVENT_CAPSET_ASSIGN_CAP (sz_capset + sz_cap) (do -- (capset, cap)
       cs <- getE
       cp <- getE :: GetEvents CapNo
@@ -247,7 +247,7 @@ ghc7Parsers = [
       -- (thread, status)
       t <- getE
       s <- getE :: GetEvents RawThreadStopStatus
-      return StopThread{thread=t, status = if s > maxThreadStopStatus 
+      return StopThread{thread=t, status = if s > maxThreadStopStatus
                                               then NoStatus
                                               else mkStopStatus s}
    )),
@@ -255,7 +255,7 @@ ghc7Parsers = [
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) (do
       -- (thread, status, info)
       t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus 
+      s <- getE :: GetEvents RawThreadStopStatus
       i <- getE :: GetEvents ThreadId
       return StopThread{thread = t,
                         status = case () of
@@ -331,12 +331,12 @@ ghc7Parsers = [
 
  -----------------------
  -- GHC 6.12 compat: GHC 6.12 reported the wrong sizes for some events,
- -- so we have to recognise those wrong sizes here for backwards 
+ -- so we have to recognise those wrong sizes here for backwards
  -- compatibility.
 ghc6Parsers :: [EventParser EventInfo]
 ghc6Parsers = [
  (FixedSizeParser EVENT_STARTUP 0 (do
-      -- BUG in GHC 6.12: the startup event was incorrectly 
+      -- BUG in GHC 6.12: the startup event was incorrectly
       -- declared as size 0, so we accept it here.
       c <- getE :: GetEvents CapNo
       return Startup{ n_caps = fromIntegral c }
@@ -403,7 +403,7 @@ ghc6Parsers = [
  ]
 
 mercuryParsers = [
- (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION 
+ (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION
     (sz_par_conj_dyn_id + sz_par_conj_static_id)
     (do dyn_id <- getE
         static_id <- getE
@@ -458,7 +458,7 @@ mercuryParsers = [
 
  (simpleEvent EVENT_MER_ENGINE_SLEEPING MerCapSleeping),
  (simpleEvent EVENT_MER_CALLING_MAIN MerCallingMain)
- 
+
  ]
 
 getData :: GetEvents Data
@@ -466,7 +466,7 @@ getData = do
    db <- getE :: GetEvents Marker
    when (db /= EVENT_DATA_BEGIN) $ throwError "Data begin marker not found"
    eparsers <- ask
-   let 
+   let
        getEvents :: [Event] -> GetEvents Data
        getEvents events = do
          mb_e <- getEvent eparsers
@@ -494,7 +494,7 @@ getEventLog = do
         -- This test is complete, no-one has extended this event yet and all future
         -- extensions will use newly allocated event IDs.
         is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
-                                         size create_et 
+                                         size create_et
         {-
         -- GHC6 writes an invalid header, we handle it here by using a
         -- different set of event parsers.  Note that the ghc7 event parsers
@@ -526,10 +526,10 @@ sortEvents = sortGroups . groupEvents
 -- capability that generated it.
 sortGroups :: [(Maybe Int, [Event])] -> [CapEvent]
 sortGroups groups = mergesort' (compare `on` (time . ce_event)) $
-                      [ [ CapEvent cap e | e <- es ] 
+                      [ [ CapEvent cap e | e <- es ]
                       | (cap, es) <- groups ]
      -- sorting is made much faster by the way that the event stream is
-     -- divided into blocks of events.  
+     -- divided into blocks of events.
      --  - All events in a block belong to a particular capability
      --  - The events in a block are ordered by time
      --  - blocks for the same capability appear in time order in the event
@@ -540,7 +540,7 @@ sortGroups groups = mergesort' (compare `on` (time . ce_event)) $
      -- merge the resulting lists.
 
 groupEvents :: [Event] -> [(Maybe Int, [Event])]
-groupEvents es = (Nothing, n_events) : 
+groupEvents es = (Nothing, n_events) :
                  [ (Just (cap (head blocks)), concatMap block_events blocks)
                  | blocks <- groups ]
   where
@@ -1073,4 +1073,3 @@ splitNull :: String -> [String]
 splitNull [] = []
 splitNull xs = case span (/= '\0') xs of
                 (x, xs') -> x : splitNull (drop 1 xs')
-
