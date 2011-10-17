@@ -225,8 +225,8 @@ standardParsers = [
  (VariableSizeParser EVENT_INTERN_STRING (do -- (str, id)
       num <- getE :: GetEvents Word16
       string <- getString (num - sz_string_id)
-      id <- getE :: GetEvents StringId
-      return (InternString string id)
+      sId <- getE :: GetEvents StringId
+      return (InternString string sId)
     ))
  ]
 
@@ -662,8 +662,8 @@ showEventInfo spec =
           printf "capset %d: env: %s" cs (show env)
         UnknownEvent n ->
           printf "Unknown event type %d" n
-        InternString str id ->
-          printf "Interned string: \"%s\" with id %d" str id
+        InternString str sId ->
+          printf "Interned string: \"%s\" with id %d" str sId
         MerStartParConjunction dyn_id static_id ->
           printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
         MerEndParConjunction dyn_id ->
