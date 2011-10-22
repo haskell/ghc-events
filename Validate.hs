@@ -69,7 +69,8 @@ main = do
       exitWith (ExitFailure 1)
  where
   usage :: String
-  usage = "usage: MODE? FILE\n where\n  MODE ::= thread | threadRun | capability"
+  usage = "usage: MODE? FILE\n where\n  MODE ::= " ++
+          "thread | capabilityThreadPool | capabilityThreadRun | profile"
 
   showValidate showState showInput (Left (state, input)) =
     "Invalid eventlog:\n"
@@ -94,4 +95,3 @@ main = do
       (M.toList m)
 
   showProfile = showIndexed
-
