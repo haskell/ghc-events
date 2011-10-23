@@ -45,6 +45,15 @@ evenMachine = Machine
   , delta   = \_ e -> Just $ even e
   }
 
+-- | This machine always accepts, never terminates, and always has unit state.
+unitMachine :: Machine () i
+unitMachine = Machine
+  { initial  = ()
+  , final    = const False
+  , alpha    = const True
+  , delta    = (\s i -> Just ())
+  }
+
 -- | The `step` function runs a machine in a state against a single input. The
 -- result is `Left state input` if some `state` failed for an `ìnput`, and
 -- `Right state` for a successful state.
@@ -91,13 +100,28 @@ runIndexed :: (Ord k, Show k, Show i)
            -> Machine s i               -- ^ The machine to index
            -> [i]                       -- ^ The list of inputs
            -> Map k r                   -- ^ Indexed results
-runIndexed index eval machine is = M.map (eval machine)
-                                 . M.fromListWith (++) . reverse -- Note: fromListWith reverses
-                                 . catMaybes
-                                 $ zipWith leftPrune ks is'
+runIndexed index eval machine is =
+  runIndexedMachine (const index) unitMachine eval machine is
+
+-- | This produces an indexed result based on the state of a muxer machine
+-- and the input.
+runIndexedMachine :: (Ord k, Show k, Show i)
+                  => (t -> i -> Maybe k)
+                  -> Machine t i
+                  -> (Machine s i -> [i] -> r)
+                  -> Machine s i
+                  -> [i]
+                  -> Map k r
+runIndexedMachine index muxer eval machine is
+  = M.map (eval machine)
+  . M.fromListWith (++) . reverse  -- fromListWith reverses input
+  . catMaybes
+  $ zipWith leftPrune ks is'
  where
-  ks   = map index is
-  is'  = map return is
+  ks  = map (uncurry index) tis
+  is' = map return is
+  tis = zip ts is
+  ts  = rights . simulate muxer $ is
 
   leftPrune :: Maybe k -> i -> Maybe (k, i)
   leftPrune (Just k) i = Just (k, i)
@@ -132,6 +156,8 @@ profiledMachine machine = Machine
 
 -- | An indexed machine takes a function that multiplexes the input to a key
 -- and then takes a machine description to an indexed machine.
+-- It is usually better to use runIndexed than to have an indexedMachine,
+-- since indexed information is clearer.
 indexedMachine :: Ord k
                => (i -> Maybe k)        -- ^ An indexing function
                -> Machine s i           -- ^ A machine to index with

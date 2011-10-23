@@ -81,4 +81,3 @@ capabilityThreadRunMachine = Machine
     stopThread threadId m
       | notElem threadId . M.elems $ m = Nothing -- The thread doesn't exist
       | otherwise                      = Just $ M.filter (/= threadId) m
-
