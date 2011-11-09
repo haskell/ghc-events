@@ -299,5 +299,5 @@ data CapEvent
                -- we could UNPACK ce_event, but the Event constructor
                -- might be shared, in which case we could end up
                -- increasing the space usage.
-             }
+             } deriving Show
 

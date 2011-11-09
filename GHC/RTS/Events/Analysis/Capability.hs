@@ -1,6 +1,7 @@
 module GHC.RTS.Events.Analysis.Capability
   ( capabilityThreadPoolMachine
   , capabilityThreadRunMachine
+  , capabilityThreadIndexer
   )
  where
 
@@ -59,6 +60,7 @@ capabilityThreadRunMachine = Machine
  where
   threadRunAlpha capEvent = case spec . ce_event $ capEvent of
     -- TODO: can threads be migrated while they are running?
+    -- TODO: take into account paused threads
     (RunThread _)     -> True
     (StopThread _ _ ) -> True
     _                 -> False
@@ -81,3 +83,16 @@ capabilityThreadRunMachine = Machine
     stopThread threadId m
       | notElem threadId . M.elems $ m = Nothing -- The thread doesn't exist
       | otherwise                      = Just $ M.filter (/= threadId) m
+
+capabilityThreadIndexer :: Map Int ThreadId -> CapEvent -> Maybe ThreadId
+capabilityThreadIndexer m capEvent = case spec . ce_event $ capEvent of
+  (CreateSparkThread threadId) -> Just threadId
+  (CreateThread threadId)      -> Just threadId
+  (RunThread threadId)         -> Just threadId
+  (StopThread threadId _)      -> Just threadId
+  (ThreadRunnable threadId)    -> Just threadId
+  (MigrateThread threadId _)   -> Just threadId
+  (WakeupThread threadId _)    -> Just threadId
+  _                            -> mThreadId
+ where
+  mThreadId = ce_cap capEvent >>= (\capId -> M.lookup capId m)

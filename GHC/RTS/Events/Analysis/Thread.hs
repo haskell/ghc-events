@@ -63,4 +63,3 @@ threadIndexer event = case event of
   (ThreadRunnable threadId) -> Just threadId
   (WakeupThread threadId _) -> Just threadId
   _                         -> Nothing
-
