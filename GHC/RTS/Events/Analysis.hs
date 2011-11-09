@@ -1,13 +1,20 @@
 module GHC.RTS.Events.Analysis
   ( Machine (..)
   , validate
+  , validates
   , simulate
   , Profile (..)
   , profile
-  , runIndexed
-  , refineInput
-  , profiledMachine
-  , indexedMachine
+  , profileIndexed
+  , profileRouted
+  , extractIndexed
+  , refineM
+  , profileM
+  , indexM
+  , toList
+  , toMaybe
+  , Process (..)
+  , routeM
   )
  where
 
@@ -35,16 +42,6 @@ data Machine s i = Machine
   , delta   :: s -> i -> Maybe s -- ^ State transition function
   }
 
--- | As a simple example, the following machine takes numbers that are less
--- than 100, and has state True when it accepts an even number:
-evenMachine :: Machine Bool Int
-evenMachine = Machine
-  { initial = True
-  , final   = id
-  , alpha   = (< 100)
-  , delta   = \_ e -> Just $ even e
-  }
-
 -- | This machine always accepts, never terminates, and always has unit state.
 unitMachine :: Machine () i
 unitMachine = Machine
@@ -54,7 +51,8 @@ unitMachine = Machine
   , delta    = (\s i -> Just ())
   }
 
--- | The `step` function runs a machine in a state against a single input. The
+-- | The `step` function runs a machine in a state against a single input.
+-- The state remains fixed once a final state is encountered. The
 -- result is `Left state input` if some `state` failed for an `ìnput`, and
 -- `Right state` for a successful state.
 step :: Machine s i -> s -> i -> Either (s, i) s
@@ -66,72 +64,67 @@ step m s i
   | otherwise = Right s
 
 -- | The `validate` function takes a machine and a list of inputs. The machine
--- is started from its initial state and run agains the inputs in turn. If
--- there is an error, then Left is returned, otherwise Right.
+-- is started from its initial state and run agains the inputs in turn.
+-- It returns the state and input on failure, and just the state on success.
 validate :: Machine s i -> [i] -> Either (s, i) s
 validate m = foldl (>>=) (Right (initial m)) . map (flip (step m))
 
--- | The `simulate` function keeps track of the states that the machine
--- goes through as it consumes input.
-simulate :: Machine s i -> [i] -> [Either (s, i) s]
-simulate m = scanl (>>=) (Right (initial m)) . map (flip (step m))
+-- | This function is similar to `validate`, but outputs each intermediary
+-- state as well. For an incremental version, use `simulate`.
+validates :: Machine s i -> [i] -> [Either (s, i) s]
+validates m = scanl (>>=) (Right (initial m)) . map (flip (step m))
 
--- | A state augmented by Timestamp information is held in `profileState`.
--- When the state changes, `profileMap` stores a map between each state
--- and its cumulative time.
-data Profile s = Profile
-  { profileState :: (s, Timestamp)  -- ^ The current state and entry time
-  , profileMap   :: Map s Timestamp -- ^ The cumulative time in each state
-  }
+--------------------------------------------------------------------------------
+-- A Process is a list of successful values, followed by an error if one
+-- occured. This captures the idea that a computation may produce a list of
+-- elements before possibly failing. This gives us an incremental interface
+-- to data processed from machine transitions.
+data Process e a
+  = Done
+  | Fail e
+  | Prod a (Process e a)
+ deriving Show
 
--- | A profile is generated from a machine with a profiling state.
-profile :: Eq s
-        => Machine (Profile s) (i, Timestamp)
-        -> [(i, Timestamp)]
-        -> Map s Timestamp
-profile machine = profileMap . either fst id . validate machine
+toList :: Process e a -> [a]
+toList (Fail _)    = []
+toList Done        = []
+toList (Prod a as) = a : toList as
 
--- | An indexed result is one where a set of identical indexed machines
--- are given input depending on an indexing function. The results are
--- then collected in a map, one per index.
-runIndexed :: (Ord k, Show k, Show i)
-           => (i -> Maybe k)            -- ^ An indexing function
-           -> (Machine s i -> [i] -> r) -- ^ The evaluation function
-           -> Machine s i               -- ^ The machine to index
-           -> [i]                       -- ^ The list of inputs
-           -> Map k r                   -- ^ Indexed results
-runIndexed index eval machine is =
-  runIndexedMachine (const index) unitMachine eval machine is
+toMaybe :: Process e a -> Maybe e
+toMaybe (Fail e)    = Just e
+toMaybe Done        = Nothing
+toMaybe (Prod _ as) = toMaybe as
 
--- | This produces an indexed result based on the state of a muxer machine
--- and the input.
-runIndexedMachine :: (Ord k, Show k, Show i)
-                  => (t -> i -> Maybe k)
-                  -> Machine t i
-                  -> (Machine s i -> [i] -> r)
-                  -> Machine s i
-                  -> [i]
-                  -> Map k r
-runIndexedMachine index muxer eval machine is
-  = M.map (eval machine)
-  . M.fromListWith (++) . reverse  -- fromListWith reverses input
-  . catMaybes
-  $ zipWith leftPrune ks is'
+-- | A machine can be analysed while it is accepting input in order to extract
+-- some information. This function takes a machine and a function that extracts
+-- data and produces output. On failure, the machine state and input are
+-- produced. Note that when an input is not in the machine's alphabet,
+-- then there is no transition, and so no output is produced in response
+-- to that input.
+analyse :: Machine s i          -- ^ The machine used
+        -> (s -> i -> Maybe o)  -- ^ An extraction function that may produce output
+        -> [i]                  -- ^ A list of input
+        -> Process (s, i) o     -- ^ A process that produces output
+analyse machine extract is = go (initial machine) is
  where
-  ks  = map (uncurry index) tis
-  is' = map return is
-  tis = zip ts is
-  ts  = rights . simulate muxer $ is
-
-  leftPrune :: Maybe k -> i -> Maybe (k, i)
-  leftPrune (Just k) i = Just (k, i)
-  leftPrune Nothing  _ = Nothing
+  -- go :: s -> [i] -> Process (s, i) o
+  go _ [] = Done
+  go s (i:is)
+    | final machine s = Done
+    | alpha machine i =
+        case delta machine s i of
+          Nothing -> Fail (s, i)
+          Just s' ->
+            case extract s i of
+              Nothing -> go s' is
+              Just o  -> Prod o (go s' is)
+    | otherwise = go s is
 
 -- | Machines sometimes need to operate on coarser input than they are defined
 -- for. This function takes a function that refines input and a machine that
 -- works on refined input, and produces a machine that can work on coarse input.
-refineInput :: (i -> j) -> Machine s j -> Machine s i
-refineInput refine machine = Machine
+refineM :: (i -> j) -> Machine s j -> Machine s i
+refineM refine machine = Machine
   { initial = initial machine
   , final   = final machine
   , alpha   = alpha machine . refine
@@ -139,47 +132,145 @@ refineInput refine machine = Machine
   }
 
 --------------------------------------------------------------------------------
+-- | This function produces a process that outputs all the states that a
+-- machine goes through.
+simulate :: Machine s i -> [i] -> Process (s, i) (s, i)
+simulate machine = analyse machine (\s i -> delta machine s i >>= \s' -> return (s', i))
+
+--------------------------------------------------------------------------------
+-- | A state augmented by Timestamp information is held in `profileState`.
+-- When the state changes, `profileMap` stores a map between each state
+-- and its cumulative time.
+data Profile s = Profile
+  { profileState :: s               -- ^ The current state
+  , profileTime  :: Timestamp       -- ^ The entry time of the state
+  } deriving (Show)
+
+-- TODO: a newtype here?
+type TimeDiff = Timestamp
+
 -- | This function takes a machine and profiles its state.
--- TODO: It seems a shame to lose all profiling data when something has gone
--- wrong. The profile itself might have type Maybe ...
-profiledMachine :: Ord s => Machine s i -> Machine (Profile s) (i, Timestamp)
-profiledMachine machine = Machine
-  { initial = Profile (initial machine, 0) M.empty
-  , final   = final machine . fst . profileState
-  , alpha   = alpha machine . fst
-  , delta   = profiledMachineDelta
+profileM :: Ord s
+         => (i -> Timestamp)
+         -> Machine s i
+         -> Machine (Profile s) i
+profileM timer machine = Machine
+  { initial = Profile (initial machine) 0
+  , final   = final machine . profileState
+  , alpha   = alpha machine
+  , delta   = profileMDelta
   }
  where
-  profiledMachineDelta (Profile (s, ts) m) (i, ts') = do
+  profileMDelta (Profile s _) i = do
     s' <- delta machine s i
-    return $ Profile (s', ts') (M.insertWith (+) s (ts' - ts) m)
+    return $ Profile s' (timer i)
+
+extractProfile :: (i -> Timestamp) -> Profile s -> i -> Maybe (s, TimeDiff)
+extractProfile timer p i = Just (profileState p, timer i - profileTime p)
+
+profile :: (Ord s, Eq s)
+        => Machine s i       -- ^ A machine to profile
+        -> (i -> Timestamp)  -- ^ Converts input to timestamps
+        -> [i]               -- ^ The list of input
+        -> Process (Profile s, i) (s, TimeDiff)
+profile machine timer =
+  analyse (profileM timer machine)
+          (extractProfile timer)
+
+profileIndexed :: (Ord k, Ord s, Eq s)
+               => Machine s i
+               -> (i -> Maybe k)
+               -> (i -> Timestamp)
+               -> [i]
+               -> Process (Map k (Profile s), i) (k, (s, TimeDiff))
+profileIndexed machine index timer =
+  analyse (indexM index (profileM timer machine))
+          (extractIndexed (extractProfile timer) index)
+
+extractIndexed :: Ord k => (s -> i -> Maybe o) -> (i -> Maybe k) -> (Map k s -> i -> Maybe (k, o))
+extractIndexed extract index m i = do
+  k <- index i
+  s <- M.lookup k m
+  o <- extract s i
+  return (k, o)
 
 -- | An indexed machine takes a function that multiplexes the input to a key
 -- and then takes a machine description to an indexed machine.
--- It is usually better to use runIndexed than to have an indexedMachine,
--- since indexed information is clearer.
-indexedMachine :: Ord k
-               => (i -> Maybe k)        -- ^ An indexing function
-               -> Machine s i           -- ^ A machine to index with
-               -> Machine (Map k s) i   -- ^ The indexed machine
-indexedMachine index machine = Machine
+indexM :: Ord k
+       => (i -> Maybe k)        -- ^ An indexing function
+       -> Machine s i           -- ^ A machine to index with
+       -> Machine (Map k s) i   -- ^ The indexed machine
+indexM index machine = Machine
   { initial = M.empty
-  , final   = indexedMachineFinal
-  , alpha   = indexedMachineAlpha
-  , delta   = indexedMachineDelta
+  , final   = indexMFinal
+  , alpha   = indexMAlpha
+  , delta   = indexMDelta
   }
  where
   -- The indexer is in a final state if all its elements are.
-  indexedMachineFinal m = all (final machine) . M.elems $ m
+  -- We also consider an empty mapping to be incomplete.
+  indexMFinal m = not (M.null m) && (all (final machine) . M.elems $ m)
 
   -- The alphabet of the indexer is that of its elements.
-  indexedMachineAlpha = alpha machine
+  indexMAlpha = alpha machine
 
   -- If the index is not yet in the mapping, we start a new machine in its
   -- initial state. The indexer fails if indexed state fails.
-  indexedMachineDelta m i = do
+  indexMDelta m i = do
     k <- index i
     let state = fromMaybe (initial machine) (M.lookup k m)
     state' <- delta machine state i
     return $ M.insert k state' m
+
+profileRouted :: (Ord k, Ord s, Eq s, Eq r)
+              => Machine s i
+              -> Machine r i
+              -> (r -> i -> Maybe k)
+              -> (i -> Timestamp)
+              -> [i]
+              -> Process ((Map k (Profile s), r), i) (k, (s, TimeDiff))
+profileRouted machine router index timer =
+  analyse (routeM router index (profileM timer machine))
+          (extractRouted (extractProfile timer) index)
+
+extractRouted :: Ord k => (s -> i -> Maybe o) -> (r -> i -> Maybe k) -> ((Map k s, r)  -> i -> Maybe (k, o))
+extractRouted extract index (m, r) i = do
+  k <- index r i
+  s <- M.lookup k m
+  o <- extract s i
+  return (k, o)
+
+
+-- | A machine can be indexed not only by the inputs, but also by the state
+-- of an intermediary routing machine. This is a generalisation of indexM.
+routeM :: (Ord k)
+       => Machine r i
+       -> (r -> i -> Maybe k)
+       -> Machine s i
+       -> Machine (Map k s, r) i
+routeM router index machine = Machine
+  { initial = (M.empty, initial router)
+  , final   = routeMFinal
+  , alpha   = routeMAlpha
+  , delta   = routeMDelta
+  }
+ where
+  -- As with indexers, the machine is final when all the constituent parts are.
+  routeMFinal (m, _) = not (M.null m) && (all (final machine) . M.elems $ m)
+
+  -- The alphabet is that of the router combined with the machine
+  routeMAlpha i = alpha router i || alpha machine i
+
+  routeMDelta (m, r) i = do
+    r' <- if alpha router i
+          then delta router r i
+          else return r
+    m' <- if alpha machine i
+          then case index r' i of
+            Just k -> do
+              s' <- delta machine (fromMaybe (initial machine) (M.lookup k m)) i
+              return $ M.insert k s' m
+            Nothing -> return m
+          else return m
+    return (m', r')
 
