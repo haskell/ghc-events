@@ -146,9 +146,6 @@ data Profile s = Profile
   , profileTime  :: Timestamp       -- ^ The entry time of the state
   } deriving (Show)
 
--- TODO: a newtype here?
-type TimeDiff = Timestamp
-
 -- | This function takes a machine and profiles its state.
 profileM :: Ord s
          => (i -> Timestamp)
@@ -165,14 +162,19 @@ profileM timer machine = Machine
     s' <- delta machine s i
     return $ Profile s' (timer i)
 
-extractProfile :: (i -> Timestamp) -> Profile s -> i -> Maybe (s, TimeDiff)
-extractProfile timer p i = Just (profileState p, timer i - profileTime p)
+-- | extractProfile returns the state, the time this state was made,
+-- and the time spent in this state.
+extractProfile :: (i -> Timestamp)                -- ^ Extracts current timestamp
+               -> Profile s                       -- ^ A profiled state
+               -> i                               -- ^ Some input
+               -> Maybe (s, Timestamp, Timestamp) -- ^ (state, currentTime, elapsedTime)
+extractProfile timer p i = Just (profileState p, profileTime p, timer i - profileTime p)
 
 profile :: (Ord s, Eq s)
         => Machine s i       -- ^ A machine to profile
         -> (i -> Timestamp)  -- ^ Converts input to timestamps
         -> [i]               -- ^ The list of input
-        -> Process (Profile s, i) (s, TimeDiff)
+        -> Process (Profile s, i) (s, Timestamp, Timestamp)
 profile machine timer =
   analyse (profileM timer machine)
           (extractProfile timer)
@@ -182,7 +184,7 @@ profileIndexed :: (Ord k, Ord s, Eq s)
                -> (i -> Maybe k)
                -> (i -> Timestamp)
                -> [i]
-               -> Process (Map k (Profile s), i) (k, (s, TimeDiff))
+               -> Process (Map k (Profile s), i) (k, (s, Timestamp, Timestamp))
 profileIndexed machine index timer =
   analyse (indexM index (profileM timer machine))
           (extractIndexed (extractProfile timer) index)
@@ -228,7 +230,7 @@ profileRouted :: (Ord k, Ord s, Eq s, Eq r)
               -> (r -> i -> Maybe k)
               -> (i -> Timestamp)
               -> [i]
-              -> Process ((Map k (Profile s), r), i) (k, (s, TimeDiff))
+              -> Process ((Map k (Profile s), r), i) (k, (s, Timestamp, Timestamp))
 profileRouted machine router index timer =
   analyse (routeM router index (profileM timer machine))
           (extractRouted (extractProfile timer) index)

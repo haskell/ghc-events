@@ -1,5 +1,5 @@
 module GHC.RTS.Events.Analysis.SparkThread
-  ( SparkThreadState
+  ( SparkThreadState (..)
   , sparkThreadMachine
   , capabilitySparkThreadMachine
   , capabilitySparkThreadIndexer

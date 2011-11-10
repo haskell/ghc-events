@@ -11,6 +11,7 @@ author:           Donnie Jones <donnie@darthik.com>,
                   Simon Marlow <marlowsd@gmail.com>,
                   Paul Bone <pbone@csse.unimelb.edu.au>,
                   Duncan Coutts <duncan@well-typed.com>
+                  Nicolas Wu <nick@well-typed.com>
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      http://trac.haskell.org/ThreadScope/
 build-type:       Simple
@@ -32,8 +33,11 @@ library
                     bytestring == 0.9.*,
                     array      == 0.3.*
   exposed-modules:  GHC.RTS.Events,
-                    GHC.RTS.Events.Sparks,
                     GHC.RTS.Events.Merge
+                    GHC.RTS.Events.Analysis
+                    GHC.RTS.Events.Analysis.Capability
+                    GHC.RTS.Events.Analysis.SparkThread
+                    GHC.RTS.Events.Analysis.Thread
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
