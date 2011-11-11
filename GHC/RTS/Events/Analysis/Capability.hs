@@ -92,7 +92,7 @@ capabilityThreadIndexer m capEvent = case spec . ce_event $ capEvent of
   (StopThread threadId _)      -> Just threadId
   (ThreadRunnable threadId)    -> Just threadId
   (MigrateThread threadId _)   -> Just threadId
-  (WakeupThread threadId _)    -> Just threadId
+  -- (WakeupThread threadId _)    -> Just threadId
   _                            -> mThreadId
  where
   mThreadId = ce_cap capEvent >>= (\capId -> M.lookup capId m)
