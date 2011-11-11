@@ -70,8 +70,8 @@ command ["sparks-csv", file] = do
 
 command ["validate", "threads", file] = do
     eventLog <- readLogOrDie file
-    let eventInfos = map (spec . ce_event) . sortEvents . events . dat $ eventLog
-    let result = validate (indexM threadIndexer threadMachine) eventInfos
+    let capEvents = map ce_event . sortEvents . events . dat $ eventLog
+    let result = validate (refineM spec (indexM (threadIndexer) threadMachine)) capEvents
     putStrLn $ showValidate (showIndexed show show) show result
 
 command ["validate", "threadpool", file] = do
@@ -97,31 +97,31 @@ command ["validate", "sparks", file] = do
 
 command ["simulate", "threads", file] = do
     eventLog <- readLogOrDie file
-    let eventInfos = map (spec . ce_event) . sortEvents . events . dat $ eventLog
-    let result = toList $ simulate (indexM threadIndexer threadMachine) eventInfos
-    putStrLn . show $ result
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = simulate (refineM (spec . ce_event) (indexM threadIndexer threadMachine)) capEvents
+    putStrLn . showProcess $ result
 
 command ["simulate", "threadpool", file] = do
     eventLog <- readLogOrDie file
     let capEvents = sortEvents . events . dat $ eventLog
-    let result = toList $ simulate capabilityThreadPoolMachine capEvents
-    putStrLn . show $ result
+    let result = simulate capabilityThreadPoolMachine capEvents
+    putStrLn . showProcess $ result
 
 command ["simulate", "threadrun", file] = do
     eventLog <- readLogOrDie file
     let capEvents = sortEvents . events . dat $ eventLog
-    let result = toList $ simulate capabilityThreadRunMachine capEvents
-    putStrLn . show $ result
+    let result = simulate capabilityThreadRunMachine capEvents
+    putStrLn . showProcess $ result
 
 command ["simulate", "sparks", file] = do
     eventLog <- readLogOrDie file
     let capEvents = sortEvents . events . dat $ eventLog
-    let result = toList $ simulate
+    let result = simulate
               (routeM capabilitySparkThreadMachine
                   capabilitySparkThreadIndexer
                   (refineM (spec . ce_event) sparkThreadMachine))
               capEvents
-    putStrLn . show $ result
+    putStrLn . showProcess $ result
 
 command ["profile", "threads", file] = do
     eventLog <- readLogOrDie file
@@ -131,7 +131,7 @@ command ["profile", "threads", file] = do
                    (threadIndexer . spec)
                    time
                    es
-    putStrLn . show $ result
+    putStrLn . showProcess $ result
 
 command ["profile", "sparks", file] = do
     eventLog <- readLogOrDie file
@@ -142,7 +142,7 @@ command ["profile", "sparks", file] = do
                    capabilitySparkThreadIndexer
                    (time . ce_event)
                    capEvents
-    putStrLn . show $ result
+    putStrLn . showProcess $ result
 
 command _ = putStr usage >> die "Unrecognized command"
 
@@ -201,6 +201,13 @@ showValidate showState showInput (Left (state, input)) =
   ++ "\nInput:\n" ++ ( showInput input )
 showValidate showState _ (Right state) =
   "Valid eventlog: " ++ ( showState state )
+
+showProcess :: (Show e, Show a) => Process e a -> String
+showProcess process =
+  "Trace:\n"
+  ++ (unlines . map show . toList) process
+  ++ "\n"
+  ++ (maybe "Valid." (("Invalid:\n" ++) . show) . toMaybe) process
 
 showIndexed :: (k -> String) -> (v -> String) -> Map k v -> String
 showIndexed showKey showValue m
