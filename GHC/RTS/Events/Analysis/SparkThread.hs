@@ -46,8 +46,9 @@ sparkThreadMachine = Machine
   -- sparkThreadDelta SparkThreadInitial (CreateSparkThread _) = Just SparkThreadInitial
   sparkThreadDelta SparkThreadInitial (RunThread _)         = Just SparkThreadCreated
   -- SparkThreadCreated
-  sparkThreadDelta SparkThreadCreated SparkRun       = Just (SparkThreadRunning 0)
-  sparkThreadDelta SparkThreadCreated (SparkSteal _) = Just (SparkThreadRunning 0)
+  sparkThreadDelta SparkThreadCreated SparkRun                      = Just (SparkThreadRunning 0)
+  sparkThreadDelta SparkThreadCreated (SparkSteal _)                = Just (SparkThreadRunning 0)
+  sparkThreadDelta SparkThreadCreated (StopThread _ ThreadFinished) = Just SparkThreadFinal
   -- SparkThreadRunning
   sparkThreadDelta (SparkThreadRunning n) (StopThread _ ThreadFinished) = Just SparkThreadFinal
   sparkThreadDelta (SparkThreadRunning n) (StopThread _ _)              = Just (SparkThreadPaused n)
