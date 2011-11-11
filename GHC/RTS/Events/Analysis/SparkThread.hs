@@ -104,7 +104,7 @@ capabilitySparkThreadIndexer (m, s) capEvent = case spec . ce_event $ capEvent o
   (RunThread threadId)      -> inSparkThreadPool threadId
   (StopThread threadId _)   -> inSparkThreadPool threadId
   (ThreadRunnable threadId) -> inSparkThreadPool threadId
-  (WakeupThread threadId _) -> inSparkThreadPool threadId
+  -- (WakeupThread threadId _) -> inSparkThreadPool threadId
   _                         -> ce_cap capEvent >>= (\capId -> M.lookup capId m)
  where
   inSparkThreadPool :: ThreadId -> Maybe ThreadId
