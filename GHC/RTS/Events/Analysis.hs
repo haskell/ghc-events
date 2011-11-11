@@ -209,9 +209,14 @@ indexM index machine = Machine
   , delta   = indexMDelta
   }
  where
-  -- The indexer is in a final state if all its elements are.
-  -- We also consider an empty mapping to be incomplete.
-  indexMFinal m = not (M.null m) && (all (final machine) . M.elems $ m)
+  -- An indexer never reaches a final state: it is always possible that
+  -- an event comes along that is accepted by a machine that is not
+  -- yet in in the index.
+  --
+  -- An alternative view is that the indexer is in a final state if all its
+  -- elements are, but this would not allow the creation of new indexes:
+  --     indexMFinal m = not (M.null m) && (all (final machine) . M.elems $ m)
+  indexMFinal = const False
 
   -- The alphabet of the indexer is that of its elements.
   indexMAlpha = alpha machine
@@ -257,8 +262,8 @@ routeM router index machine = Machine
   , delta   = routeMDelta
   }
  where
-  -- As with indexers, the machine is final when all the constituent parts are.
-  routeMFinal (m, _) = not (M.null m) && (all (final machine) . M.elems $ m)
+  -- As with indexers, there is no final state.
+  routeMFinal = const False
 
   -- The alphabet is that of the router combined with the machine
   routeMAlpha i = alpha router i || alpha machine i
