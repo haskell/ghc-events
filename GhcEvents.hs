@@ -70,9 +70,15 @@ command ["sparks-csv", file] = do
 
 command ["validate", "threads", file] = do
     eventLog <- readLogOrDie file
-    let capEvents = map ce_event . sortEvents . events . dat $ eventLog
-    let result = validate (refineM spec (indexM (threadIndexer) threadMachine)) capEvents
-    putStrLn $ showValidate (showIndexed show show) show result
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = validate (routeM capabilityThreadRunMachine
+                                  capabilityThreadIndexer
+                                  (refineM (spec . ce_event) threadMachine))
+                          capEvents
+    putStrLn $ showValidate (\(m, n) ->
+                               "\nThread States:\n" ++ showIndexed show show m ++
+                               "\nCap States:\n" ++ showIndexed show show n)
+                            show result
 
 command ["validate", "threadpool", file] = do
     eventLog <- readLogOrDie file
@@ -98,7 +104,10 @@ command ["validate", "sparks", file] = do
 command ["simulate", "threads", file] = do
     eventLog <- readLogOrDie file
     let capEvents = sortEvents . events . dat $ eventLog
-    let result = simulate (refineM (spec . ce_event) (indexM threadIndexer threadMachine)) capEvents
+    let result = simulate (routeM capabilityThreadRunMachine
+                                  capabilityThreadIndexer
+                                  (refineM (spec . ce_event) threadMachine))
+                          capEvents
     putStrLn . showProcess $ result
 
 command ["simulate", "threadpool", file] = do
@@ -125,12 +134,13 @@ command ["simulate", "sparks", file] = do
 
 command ["profile", "threads", file] = do
     eventLog <- readLogOrDie file
-    let es = map ce_event . sortEvents . events . dat $ eventLog
-    let result = profileIndexed
-                   (refineM spec threadMachine)
-                   (threadIndexer . spec)
-                   time
-                   es
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = profileRouted
+                   (refineM (spec. ce_event) threadMachine)
+                   capabilityThreadRunMachine
+                   capabilityThreadIndexer
+                   (time . ce_event)
+                   capEvents
     putStrLn . showProcess $ result
 
 command ["profile", "sparks", file] = do
@@ -195,6 +205,7 @@ csvMaps ms = unlines . map (intercalate ",") $ headLine : map bodyLine ms
   headLine   = map show hs
   bodyLine m = map (maybe "" show . flip M.lookup m) hs
 
+showValidate :: (s -> String) -> (i -> String) -> Either (s, i) s -> String
 showValidate showState showInput (Left (state, input)) =
   "Invalid eventlog:"
   ++ "\nState:\n" ++ ( showState state )

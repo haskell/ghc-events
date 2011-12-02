@@ -1,7 +1,6 @@
-module GHC.RTS.Events.Analysis.Thread 
+module GHC.RTS.Events.Analysis.Thread
   ( ThreadState (..)
   , threadMachine
-  , threadIndexer
   )
  where
 
@@ -33,16 +32,14 @@ threadMachine = Machine
   threadAlpha (CreateThread _)   = True
   threadAlpha (RunThread _)      = True
   threadAlpha (StopThread _ _)   = True
-  -- threadAlpha (WakeupThread _ _) = True
-  threadAlpha (ThreadRunnable _) = True
+  threadAlpha (WakeupThread _ _) = True
   threadAlpha _                  = False
 
   -- ThreadInitial
   threadDelta ThreadInitial (CreateThread _) = Just ThreadQueued
   -- ThreadQueued
   threadDelta ThreadQueued (RunThread _)      = Just ThreadRunning
-  threadDelta ThreadQueued (ThreadRunnable _) = Just ThreadQueued
-  -- threadDelta ThreadQueued (WakeupThread _ _) = Just ThreadQueued
+  threadDelta ThreadQueued (WakeupThread _ _) = Just ThreadQueued
   -- ThreadRunning
   threadDelta ThreadRunning (StopThread _ StackOverflow)  = Just ThreadQueued
   threadDelta ThreadRunning (StopThread _ HeapOverflow)   = Just ThreadQueued
@@ -50,16 +47,7 @@ threadMachine = Machine
   threadDelta ThreadRunning (StopThread _ ThreadFinished) = Just ThreadFinal
   threadDelta ThreadRunning (StopThread _ _)              = Just ThreadStopped
   -- ThreadStopped
-  threadDelta ThreadStopped (ThreadRunnable _) = Just ThreadQueued
-  -- threadDelta ThreadStopped (WakeupThread _ _) = Just ThreadQueued
+  threadDelta ThreadStopped (RunThread _)      = Just ThreadRunning
+  threadDelta ThreadStopped (WakeupThread _ _) = Just ThreadQueued
   -- Unknown
   threadDelta _ _ = Nothing
-
-threadIndexer :: EventInfo -> Maybe ThreadId
-threadIndexer event = case event of
-  (CreateThread threadId)   -> Just threadId
-  (RunThread threadId)      -> Just threadId
-  (StopThread threadId _)   -> Just threadId
-  (ThreadRunnable threadId) -> Just threadId
-  -- (WakeupThread threadId _) -> Just threadId
-  _                         -> Nothing
