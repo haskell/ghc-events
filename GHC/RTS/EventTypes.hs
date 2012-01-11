@@ -18,6 +18,7 @@ type Marker = Word32
 type BlockSize = Word32
 type RawThreadStopStatus = Word16
 type StringId = Word32
+type Capset   = Word32
 
 -- These types are used by Mercury events.
 type ParConjDynId = Word64
@@ -155,35 +156,35 @@ data EventInfo
   | EndGC              { }
 
   -- capability sets
-  | CapsetCreate       { capset     :: {-# UNPACK #-}!Word32
+  | CapsetCreate       { capset     :: {-# UNPACK #-}!Capset
                        , capsetType :: CapsetType
                        }
-  | CapsetDelete       { capset :: {-# UNPACK #-}!Word32
+  | CapsetDelete       { capset :: {-# UNPACK #-}!Capset
                        }
-  | CapsetAssignCap    { capset :: {-# UNPACK #-}!Word32
+  | CapsetAssignCap    { capset :: {-# UNPACK #-}!Capset
                        , cap    :: {-# UNPACK #-}!Int
                        }
-  | CapsetRemoveCap    { capset :: {-# UNPACK #-}!Word32
+  | CapsetRemoveCap    { capset :: {-# UNPACK #-}!Capset
                        , cap    :: {-# UNPACK #-}!Int
                        }
 
   -- program/process info
-  | RtsIdentifier      { capset :: {-# UNPACK #-}!Word32
+  | RtsIdentifier      { capset :: {-# UNPACK #-}!Capset
                        , rtsident :: String
                        }
-  | ProgramArgs        { capset :: {-# UNPACK #-}!Word32
+  | ProgramArgs        { capset :: {-# UNPACK #-}!Capset
                        , args   :: [String]
                        }
-  | ProgramEnv         { capset :: {-# UNPACK #-}!Word32
+  | ProgramEnv         { capset :: {-# UNPACK #-}!Capset
                        , env    :: [String]
                        }
-  | OsProcessPid       { capset :: {-# UNPACK #-}!Word32
+  | OsProcessPid       { capset :: {-# UNPACK #-}!Capset
                        , pid    :: {-# UNPACK #-}!Word32
                        }
-  | OsProcessParentPid { capset :: {-# UNPACK #-}!Word32
+  | OsProcessParentPid { capset :: {-# UNPACK #-}!Capset
                        , ppid   :: {-# UNPACK #-}!Word32
                        }
-  | WallClockTime      { capset :: {-# UNPACK #-}!Word32
+  | WallClockTime      { capset :: {-# UNPACK #-}!Capset
                        , sec    :: {-# UNPACK #-}!Word64
                        , nsec   :: {-# UNPACK #-}!Word32
                        }
