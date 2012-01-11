@@ -126,6 +126,9 @@ data EventInfo
   | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
                          otherCap :: {-# UNPACK #-}!Int
                        }
+  | ThreadLabel        { thread :: {-# UNPACK #-}!ThreadId,
+                         threadlabel :: String
+                       }
 
   -- par sparks
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
@@ -179,6 +182,10 @@ data EventInfo
                        }
   | OsProcessParentPid { capset :: {-# UNPACK #-}!Word32
                        , ppid   :: {-# UNPACK #-}!Word32
+                       }
+  | WallClockTime      { capset :: {-# UNPACK #-}!Word32
+                       , sec    :: {-# UNPACK #-}!Word64
+                       , nsec   :: {-# UNPACK #-}!Word32
                        }
 
   -- messages
