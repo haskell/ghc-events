@@ -675,7 +675,7 @@ showEventInfo spec =
         WallClockTime cs sec nsec ->
           printf "capset %d: wall clock time %ds %dns (unix epoch)" cs sec nsec
         RtsIdentifier cs i ->
-          printf "capset %d: RTS version %s" cs i
+          printf "capset %d: RTS version \"%s\"" cs i
         ProgramArgs cs args ->
           printf "capset %d: args: %s" cs (show args)
         ProgramEnv cs env ->
