@@ -783,6 +783,9 @@ putCap c = putE (fromIntegral c :: CapNo)
 putMarker :: Word32 -> PutEvents ()
 putMarker = putE
 
+putEStr :: String -> PutEvents ()
+putEStr = mapM_ putE
+
 putEventLog :: EventLog -> PutEvents ()
 putEventLog (EventLog hdr es) = do
     putHeader hdr
@@ -967,7 +970,7 @@ putEventSpec (WakeupThread t c) = do
 putEventSpec (ThreadLabel t l) = do
     putE (fromIntegral (length l) + sz_tid :: Word16)
     putE t
-    mapM_ putE l
+    putEStr l
 
 putEventSpec Shutdown = do
     return ()
@@ -1015,7 +1018,7 @@ putEventSpec (CapsetRemoveCap cs cp) = do
 putEventSpec (RtsIdentifier cs rts) = do
     putE (fromIntegral (length rts) + 4 :: Word16)
     putE cs
-    mapM_ putE rts
+    putEStr rts
 
 putEventSpec (ProgramArgs cs as) = do
     let as' = unsep as
