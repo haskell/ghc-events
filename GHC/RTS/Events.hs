@@ -190,6 +190,14 @@ standardParsers = [
       return OsProcessParentPid{capset=cs,ppid=pd}
   )),
 
+ (FixedSizeParser EVENT_WALL_CLOCK_TIME (sz_capset + 8 + 4) (do -- (capset, unix_epoch_seconds, nanoseconds)
+      cs <- getE
+      s  <- getE
+      ns <- getE
+      return WallClockTime{capset=cs,sec=s,nsec=ns}
+  )),
+
+
  (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
       num <- getE :: GetEvents Word16
       string <- getString num
@@ -227,6 +235,14 @@ standardParsers = [
       string <- getString (num - sz_string_id)
       sId <- getE :: GetEvents StringId
       return (InternString string sId)
+    )),
+
+ (VariableSizeParser EVENT_THREAD_LABEL (do -- (thread, str)
+      num <- getE :: GetEvents Word16
+      tid <- getE
+      str <- getString (num - sz_tid)
+      return ThreadLabel{ thread      = tid
+                        , threadlabel = str }
     ))
  ]
 
@@ -624,6 +640,8 @@ showEventInfo spec =
           printf "shutting down"
         WakeupThread thread otherCap ->
           printf "waking up thread %d on cap %d" thread otherCap
+        ThreadLabel thread label ->
+          printf "thread %d has label \"%s\"" thread label
         RequestSeqGC ->
           printf "requesting sequential GC"
         RequestParGC ->
@@ -654,6 +672,8 @@ showEventInfo spec =
           printf "capset %d: pid %d" cs pid
         OsProcessParentPid cs ppid ->
           printf "capset %d: parent pid %d" cs ppid
+        WallClockTime cs sec nsec ->
+          printf "capset %d: wall clock time %ds %dns (unix epoch)" cs sec nsec
         RtsIdentifier cs i ->
           printf "capset %d: RTS version %s" cs i
         ProgramArgs cs args ->
@@ -801,6 +821,7 @@ eventTypeNum e = case e of
     MigrateThread {} -> EVENT_MIGRATE_THREAD
     Shutdown {} -> EVENT_SHUTDOWN
     WakeupThread {} -> EVENT_THREAD_WAKEUP
+    ThreadLabel {}  -> EVENT_THREAD_LABEL
     StartGC {} -> EVENT_GC_START
     EndGC {} -> EVENT_GC_END
     RequestSeqGC {} -> EVENT_REQUEST_SEQ_GC
@@ -830,6 +851,7 @@ eventTypeNum e = case e of
     ProgramEnv {} -> EVENT_PROGRAM_ENV
     OsProcessPid {} -> EVENT_OSPROCESS_PID
     OsProcessParentPid{} -> EVENT_OSPROCESS_PPID
+    WallClockTime{} -> EVENT_WALL_CLOCK_TIME
     UnknownEvent {} -> error "eventTypeNum UnknownEvent"
     InternString {} -> EVENT_INTERN_STRING
     MerStartParConjunction {} -> EVENT_MER_START_PAR_CONJUNCTION
@@ -942,6 +964,11 @@ putEventSpec (WakeupThread t c) = do
     putE t
     putCap c
 
+putEventSpec (ThreadLabel t l) = do
+    putE (fromIntegral (length l) + sz_tid :: Word16)
+    putE t
+    mapM_ putE l
+
 putEventSpec Shutdown = do
     return ()
 
@@ -1009,6 +1036,11 @@ putEventSpec (OsProcessPid cs pid) = do
 putEventSpec (OsProcessParentPid cs ppid) = do
     putE cs
     putE ppid
+
+putEventSpec (WallClockTime cs sec nsec) = do
+    putE cs
+    putE sec
+    putE nsec
 
 putEventSpec (Message s) = do
     putE (fromIntegral (length s) :: Word16)
