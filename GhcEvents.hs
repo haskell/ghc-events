@@ -2,7 +2,6 @@ module Main where
 
 import GHC.RTS.Events
 import GHC.RTS.Events.Merge
-import GHC.RTS.Events.Sparks
 import GHC.RTS.Events.Analysis
 import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
@@ -63,10 +62,6 @@ command ["merge", out, file1, file2] = do
     log2 <- readLogOrDie file2
     let m = mergeEventLogs log1 log2
     writeEventLogToFile out m
-
-command ["sparks-csv", file] = do
-    EventLog _ (Data es) <- readLogOrDie file
-    putStr . csvSparks . sparkInfo $ es
 
 command ["validate", "threads", file] = do
     eventLog <- readLogOrDie file
@@ -191,19 +186,6 @@ readLogOrDie file = do
         Right log -> return log
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
-
-csvSparks :: [SparkEvalInfo] -> String
-csvSparks sp = unlines . map (intercalate ",") $ firstline : map aline sp
- where
-    firstline =                      ["started"  , "finished"  , "idle"  , "duration"]
-    aline sei = map (show . ($ sei)) [timeStarted, timeFinished, timeIdle, sparkDuration]
-
-csvMaps :: (Eq k, Ord k, Show k, Show s) => [Map k s] -> String
-csvMaps ms = unlines . map (intercalate ",") $ headLine : map bodyLine ms
- where
-  hs         = sort . nub . concatMap M.keys $ ms
-  headLine   = map show hs
-  bodyLine m = map (maybe "" show . flip M.lookup m) hs
 
 showValidate :: (s -> String) -> (i -> String) -> Either (s, i) s -> String
 showValidate showState showInput (Left (state, input)) =
