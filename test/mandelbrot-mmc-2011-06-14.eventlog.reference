@@ -36,7 +36,7 @@ Event Types:
 
 Events:
         0: created capset 0 of type CapsetOsProcess
-        0: capset 0: RTS version mmc-DEV
+        0: capset 0: RTS version "mmc-DEV"
         0: startup: 4 capabilities
         0: Register an id->string mapping
         0: Register an id->string mapping
