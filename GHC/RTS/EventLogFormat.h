@@ -169,6 +169,23 @@
  * see http://www.mathematik.uni-marburg.de/~eden/
  */
 
+/* these are used by eden but are replaced by new alternatives for ghc */
+#define EVENT_VERSION                   23 /* (version_string) */
+#define EVENT_PROGRAM_INVOCATION        24 /* (commandline_string) */
+
+/* start of parallel trace events */
+#define EVENT_EDEN_START_RECEIVE         60 /* () */
+#define EVENT_EDEN_END_RECEIVE           61 /* () */
+#define EVENT_CREATE_PROCESS             62 /* (process) */
+#define EVENT_KILL_PROCESS               63 /* (process) */
+#define EVENT_ASSIGN_THREAD_TO_PROCESS   64 /* (thread, process) */
+#define EVENT_CREATE_MACHINE             65 /* (machine, startupTime(in 10^-8 seconds after 19xx)) */
+#define EVENT_KILL_MACHINE               66 /* (machine) */
+#define EVENT_SEND_MESSAGE               67 /* (tag, sender_process, sender_thread, receiver_machine, receiver_process, receiver_inport) */
+#define EVENT_RECEIVE_MESSAGE            68 /* (tag, receiver_process, receiver_inport, sender_machine, sender_process, sender_outport, message_size) */
+#define EVENT_SEND_RECEIVE_LOCAL_MESSAGE 69 /* (tag, sender_process, sender_thread, receiver_process, receiver_inport) */
+
+
 /* Range 100 - 139 is reserved for Mercury, see below. */
 
 /* Range 140 - 159 is reserved for Perf events, see below. */
@@ -178,7 +195,7 @@
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_GHC_EVENT_TAGS        59
+#define NUM_GHC_EVENT_TAGS        70
 
 
 /* DEPRECATED EVENTS: */
@@ -193,9 +210,6 @@
 /* ghc changed how it handles sparks so these are no longer applicable */
 #define EVENT_CREATE_SPARK        13 /* (cap, thread) */
 #define EVENT_SPARK_TO_THREAD     14 /* (cap, thread, spark_thread) */
-/* these are used by eden but are replaced by new alternatives for ghc */
-#define EVENT_VERSION             23 /* (version_string) */
-#define EVENT_PROGRAM_INVOCATION  24 /* (commandline_string) */
 #endif
 
 
@@ -276,6 +290,10 @@ typedef StgWord16 EventPayloadSize; /* variable-size events */
 typedef StgWord16 EventThreadStatus; /* status for EVENT_STOP_THREAD */
 typedef StgWord32 EventCapsetID;
 typedef StgWord16 EventCapsetType;   /* types for EVENT_CAPSET_CREATE */
+
+typedef StgWord32 EventProcessID;
+typedef StgWord16 EventMachineID;
+typedef EventThreadID EventPortID;
 
 #endif
 

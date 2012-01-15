@@ -18,6 +18,12 @@ module GHC.RTS.Events (
        ThreadId,
        TaskId,
        KernelThreadId(..),
+       -- some types for the parallel RTS
+       ProcessId,
+       MachineId,
+       PortId,
+       MessageSize,
+       MessageTag(..),
 
        -- * Reading and writing event logs
        readEventLogFromFile,
@@ -512,6 +518,103 @@ ghc6Parsers = [
    ))
  ]
 
+-- Parsers for parallel events. Parameter is the thread_id size, to create
+-- ghc6-parsers (using the wrong size) where necessary.
+parRTSParsers :: EventTypeSize -> [EventParser EventInfo]
+parRTSParsers sz_tid = [
+ (VariableSizeParser EVENT_VERSION (do -- (version)
+      num <- getE :: GetEvents Word16
+      string <- getString num
+      return Version{ version = string }
+   )),
+
+ (VariableSizeParser EVENT_PROGRAM_INVOCATION (do -- (cmd. line)
+      num <- getE :: GetEvents Word16
+      string <- getString num
+      return ProgramInvocation{ commandline = string }
+   )),
+
+ (simpleEvent EVENT_EDEN_START_RECEIVE EdenStartReceive),
+ (simpleEvent EVENT_EDEN_END_RECEIVE   EdenEndReceive),
+
+ (FixedSizeParser EVENT_CREATE_PROCESS sz_procid
+    (do p <- getE
+        return CreateProcess{ process = p })
+ ),
+
+ (FixedSizeParser EVENT_KILL_PROCESS sz_procid
+    (do p <- getE
+        return KillProcess{ process = p })
+ ),
+
+ (FixedSizeParser EVENT_ASSIGN_THREAD_TO_PROCESS (sz_tid + sz_procid)
+    (do t <- getE
+        p <- getE
+        return AssignThreadToProcess { thread = t, process = p })
+ ),
+
+ (FixedSizeParser EVENT_CREATE_MACHINE (sz_mid + sz_realtime)
+    (do m <- getE
+        t <- getE
+        return CreateMachine { machine = m, realtime = t })
+ ),
+
+ (FixedSizeParser EVENT_KILL_MACHINE sz_mid
+    (do m <- getE :: GetEvents MachineId
+        return KillMachine { machine = m })
+ ),
+
+ (FixedSizeParser EVENT_SEND_MESSAGE
+    (sz_msgtag + 2*sz_procid + 2*sz_tid + sz_mid)
+    (do tag <- getE :: GetEvents RawMsgTag
+        sP  <- getE :: GetEvents ProcessId
+        sT  <- getE :: GetEvents ThreadId
+        rM  <- getE :: GetEvents MachineId
+        rP  <- getE :: GetEvents ProcessId
+        rIP <- getE :: GetEvents PortId
+        return SendMessage { mesTag = toMsgTag tag,
+                             senderProcess = sP,
+                             senderThread = sT,
+                             receiverMachine = rM,
+                             receiverProcess = rP,
+                             receiverInport = rIP
+                           })
+ ),
+
+ (FixedSizeParser EVENT_RECEIVE_MESSAGE
+    (sz_msgtag + 2*sz_procid + 2*sz_tid + sz_mid + sz_mes)
+    (do tag <- getE :: GetEvents Word8
+        rP  <- getE :: GetEvents ProcessId
+        rIP <- getE :: GetEvents PortId
+        sM  <- getE :: GetEvents MachineId
+        sP  <- getE :: GetEvents ProcessId
+        sT  <- getE :: GetEvents ThreadId
+        mS  <- getE :: GetEvents MessageSize
+        return  ReceiveMessage { mesTag = toMsgTag tag,
+                                 receiverProcess = rP,
+                                 receiverInport = rIP,
+                                 senderMachine = sM,
+                                 senderProcess = sP,
+                                 senderThread= sT,
+                                 messageSize = mS
+                               })
+ ),
+
+ (FixedSizeParser EVENT_SEND_RECEIVE_LOCAL_MESSAGE
+    (sz_msgtag + 2*sz_procid + 2*sz_tid)
+    (do tag <- getE :: GetEvents Word8
+        sP  <- getE :: GetEvents ProcessId
+        sT  <- getE :: GetEvents ThreadId
+        rP  <- getE :: GetEvents ProcessId
+        rIP <- getE :: GetEvents PortId
+        return SendReceiveLocalMessage { mesTag = toMsgTag tag,
+                                         senderProcess = sP,
+                                         senderThread = sT,
+                                         receiverProcess = rP,
+                                         receiverInport = rIP
+                                       })
+ )]
+
 mercuryParsers = [
  (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION
     (sz_par_conj_dyn_id + sz_par_conj_static_id)
@@ -634,9 +737,11 @@ getEventLog = do
         -- make use of threadscope.
         -}
         event_parsers = if is_ghc_6
-                            then standardParsers ++ ghc6Parsers
-                            else standardParsers ++ ghc7Parsers
-                                 ++ mercuryParsers ++ perfParsers
+                            then standardParsers ++ ghc6Parsers ++
+                                parRTSParsers sz_old_tid
+                            else standardParsers ++ ghc7Parsers ++
+                                parRTSParsers sz_tid ++
+                                mercuryParsers ++ perfParsers
         parsers = mkEventTypeParsers imap event_parsers
     dat <- runReaderT getData (EventParsers parsers)
     return (EventLog header dat)
@@ -830,6 +935,38 @@ showEventInfo spec =
           printf "Unknown event type %d" n
         InternString str sId ->
           printf "Interned string: \"%s\" with id %d" str sId
+        -- events for the parallel RTS
+        Version version ->
+          printf "compiler version is %s" version
+        ProgramInvocation  commandline ->
+          printf "program invocation: %s" commandline
+        EdenStartReceive ->
+          printf "starting to receive"
+        EdenEndReceive ->
+          printf "stop receiving"
+        CreateProcess  process ->
+          printf "creating process %d" process
+        KillProcess process ->
+          printf "killing process %d" process
+        AssignThreadToProcess thread process ->
+          printf "assigning thread %d to process %d" thread process
+        CreateMachine machine realtime ->
+          printf "creating machine %d at %d" machine realtime
+        KillMachine machine ->
+          printf "killing machine %d" machine
+        SendMessage mesTag senderProcess senderThread
+          receiverMachine receiverProcess receiverInport ->
+            printf "sending message with tag %s from process %d, thread %d to machine %d, process %d on inport %d"
+            (show mesTag) senderProcess senderThread receiverMachine receiverProcess receiverInport
+        ReceiveMessage mesTag receiverProcess receiverInport
+          senderMachine senderProcess senderThread messageSize ->
+            printf "receiving message with tag %s at process %d, inport %d from machine %d, process %d, thread %d with size %d"
+            (show mesTag) receiverProcess receiverInport
+            senderMachine senderProcess senderThread messageSize
+        SendReceiveLocalMessage mesTag senderProcess senderThread
+          receiverProcess receiverInport ->
+            printf "sending/receiving message with tag %s from process %d, thread %d to process %d on inport %d"
+            (show mesTag) senderProcess senderThread receiverProcess receiverInport
         MerStartParConjunction dyn_id static_id ->
           printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
         MerEndParConjunction dyn_id ->
@@ -1025,6 +1162,18 @@ eventTypeNum e = case e of
     WallClockTime{} -> EVENT_WALL_CLOCK_TIME
     UnknownEvent {} -> error "eventTypeNum UnknownEvent"
     InternString {} -> EVENT_INTERN_STRING
+    Version {} -> EVENT_VERSION
+    ProgramInvocation {} -> EVENT_PROGRAM_INVOCATION
+    EdenStartReceive {} -> EVENT_EDEN_START_RECEIVE
+    EdenEndReceive {} -> EVENT_EDEN_END_RECEIVE
+    CreateProcess {} -> EVENT_CREATE_PROCESS
+    KillProcess {} -> EVENT_KILL_PROCESS
+    AssignThreadToProcess {} -> EVENT_ASSIGN_THREAD_TO_PROCESS
+    CreateMachine {} -> EVENT_CREATE_MACHINE
+    KillMachine {} -> EVENT_KILL_MACHINE
+    SendMessage {} -> EVENT_SEND_MESSAGE
+    ReceiveMessage {} -> EVENT_RECEIVE_MESSAGE
+    SendReceiveLocalMessage {} -> EVENT_SEND_RECEIVE_LOCAL_MESSAGE
     MerStartParConjunction {} -> EVENT_MER_START_PAR_CONJUNCTION
     MerEndParConjunction _ -> EVENT_MER_STOP_PAR_CONJUNCTION
     MerEndParConjunct _ -> EVENT_MER_STOP_PAR_CONJUNCT
@@ -1299,6 +1448,62 @@ putEventSpec (InternString str id) = do
     mapM_ putE str
     putE id
   where len = (fromIntegral (length str) :: Word16) + sz_string_id
+
+putEventSpec (Version s) = do
+    putE (fromIntegral (length s) :: Word16)
+    mapM_ putE s
+
+putEventSpec (ProgramInvocation s) = do
+    putE (fromIntegral (length s) :: Word16)
+    mapM_ putE s
+
+putEventSpec ( EdenStartReceive ) = return ()
+
+putEventSpec ( EdenEndReceive ) = return ()
+
+putEventSpec ( CreateProcess  process ) = do
+    putE process
+
+putEventSpec ( KillProcess process ) = do
+    putE process
+
+putEventSpec ( AssignThreadToProcess thread process ) = do
+    putE thread
+    putE process
+
+putEventSpec ( CreateMachine machine realtime ) = do
+    putE machine
+    putE realtime
+
+putEventSpec ( KillMachine machine ) = do
+    putE machine
+
+putEventSpec ( SendMessage mesTag senderProcess senderThread
+                 receiverMachine receiverProcess receiverInport ) = do
+    putE (fromMsgTag mesTag)
+    putE senderProcess
+    putE senderThread
+    putE receiverMachine
+    putE receiverProcess
+    putE receiverInport
+
+putEventSpec ( ReceiveMessage mesTag receiverProcess receiverInport
+                 senderMachine senderProcess senderThread messageSize ) = do
+    putE (fromMsgTag mesTag)
+    putE receiverProcess
+    putE receiverInport
+    putE senderMachine
+    putE senderProcess
+    putE senderThread
+    putE messageSize
+
+putEventSpec ( SendReceiveLocalMessage mesTag senderProcess senderThread
+                 receiverProcess receiverInport ) = do
+    putE (fromMsgTag mesTag)
+    putE senderProcess
+    putE senderThread
+    putE receiverProcess
+    putE receiverInport
 
 putEventSpec (MerStartParConjunction dyn_id static_id) = do
     putE dyn_id

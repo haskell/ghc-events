@@ -30,6 +30,13 @@ instance Binary KernelThreadId where
   put (KernelThreadId tid) = put tid
   get = fmap KernelThreadId get
 
+-- Types for Parallel-RTS Extension
+type ProcessId = Word32
+type MachineId = Word16
+type PortId = ThreadId
+type MessageSize = Word32
+type RawMsgTag = Word8
+
 -- These types are used by Mercury events.
 type ParConjDynId = Word64
 type ParConjStaticId = StringId
@@ -68,6 +75,14 @@ sz_string_id :: EventTypeSize
 sz_string_id = 4
 sz_perf_num :: EventTypeSize
 sz_perf_num = 4
+
+-- Sizes for Parallel-RTS event fields
+sz_procid, sz_mid, sz_mes, sz_realtime, sz_msgtag :: EventTypeSize
+sz_procid  = 4
+sz_mid  = 2
+sz_mes  = 4
+sz_realtime = 8
+sz_msgtag  = 1
 
 -- Sizes for Mercury event fields.
 sz_par_conj_dyn_id :: EventTypeSize
@@ -260,6 +275,45 @@ data EventInfo
   | UserMessage        { msg :: String }
   | UserMarker         { markername :: String }
 
+  -- Events emitted by a parallel RTS
+   -- Programme /process info (tools might prefer newer variants above)
+  | Version            { version :: String }
+  | ProgramInvocation  { commandline :: String }
+   -- startup and shutdown (incl. real start time, not first log entry)
+  | CreateMachine      { machine :: {-# UNPACK #-} !MachineId,
+                         realtime    :: {-# UNPACK #-} !Timestamp}
+  | KillMachine        { machine ::  {-# UNPACK #-} !MachineId }
+   -- Haskell processes mgmt (thread groups that share heap and communicate)
+  | CreateProcess      { process :: {-# UNPACK #-} !ProcessId }
+  | KillProcess        { process :: {-# UNPACK #-} !ProcessId }
+  | AssignThreadToProcess { thread :: {-# UNPACK #-} !ThreadId,
+                            process :: {-# UNPACK #-} !ProcessId
+                          }
+   -- communication between processes
+  | EdenStartReceive   { }
+  | EdenEndReceive     { }
+  | SendMessage        { mesTag :: !MessageTag,
+                         senderProcess :: {-# UNPACK #-} !ProcessId,
+                         senderThread :: {-# UNPACK #-} !ThreadId,
+                         receiverMachine ::  {-# UNPACK #-} !MachineId,
+                         receiverProcess :: {-# UNPACK #-} !ProcessId,
+                         receiverInport :: {-# UNPACK #-} !PortId
+                       }
+  | ReceiveMessage     { mesTag :: !MessageTag,
+                         receiverProcess :: {-# UNPACK #-} !ProcessId,
+                         receiverInport :: {-# UNPACK #-} !PortId,
+                         senderMachine ::  {-# UNPACK #-} !MachineId,
+                         senderProcess :: {-# UNPACK #-} !ProcessId,
+                         senderThread :: {-# UNPACK #-} !ThreadId,
+                         messageSize :: {-# UNPACK #-} !MessageSize
+                       }
+  | SendReceiveLocalMessage { mesTag :: !MessageTag,
+                              senderProcess :: {-# UNPACK #-} !ProcessId,
+                              senderThread :: {-# UNPACK #-} !ThreadId,
+                              receiverProcess :: {-# UNPACK #-} !ProcessId,
+                              receiverInport :: {-# UNPACK #-} !PortId
+                            }
+
   -- These events have been added for Mercury's benifit but are generally
   -- useful.
   | InternString       { str :: String, sId :: {-# UNPACK #-}!StringId }
@@ -387,3 +441,23 @@ data CapEvent
                -- might be shared, in which case we could end up
                -- increasing the space usage.
              } deriving Show
+
+--sync with ghc/parallel/PEOpCodes.h
+data MessageTag
+  = Ready | NewPE | PETIDS | Finish
+  | FailPE | RFork | Connect | DataMes
+  | Head | Constr | Part | Terminate
+  | Packet
+  -- with GUM and its variants, add:
+  -- | Fetch | Resume | Ack
+  -- | Fish | Schedule | Free | Reval | Shark
+  deriving (Enum, Show)
+offset :: RawMsgTag
+offset = 0x50
+
+-- decoder and encoder
+toMsgTag :: RawMsgTag -> MessageTag
+toMsgTag = toEnum . fromIntegral . (\n -> n - offset)
+
+fromMsgTag :: MessageTag -> RawMsgTag
+fromMsgTag = (+ offset) . fromIntegral . fromEnum
