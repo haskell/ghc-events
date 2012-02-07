@@ -3,16 +3,16 @@
  * (c) The GHC Team, 2008-2009
  *
  * Event log format
- * 
+ *
  * The log format is designed to be extensible: old tools should be
  * able to parse (but not necessarily understand all of) new versions
  * of the format, and new tools will be able to understand old log
  * files.
- * 
+ *
  * Each event has a specific format.  If you add new events, give them
  * new numbers: we never re-use old event numbers.
  *
- * - The format is endian-independent: all values are represented in 
+ * - The format is endian-independent: all values are represented in
  *    bigendian order.
  *
  * - The format is extensible:
@@ -51,7 +51,7 @@
  *       Word8*         -- extra info (for future extensions)
  *       EVENT_ET_END
  *
- * Event : 
+ * Event :
  *       Word16         -- event_type
  *       Word64         -- time (nanosecs)
  *       [Word16]       -- length of the rest (for variable-sized events only)
@@ -132,7 +132,7 @@
 #define EVENT_PROGRAM_ENV         31 /* (capset, environment_vector)  */
 #define EVENT_OSPROCESS_PID       32 /* (capset, pid)          */
 #define EVENT_OSPROCESS_PPID      33 /* (capset, parent_pid)   */
-#define EVENT_SPARK_COUNTERS      34 /* (crt,dud,ovf,cnv,fiz,gcd,rem) */
+#define EVENT_SPARK_COUNTERS      34 /* (crt,dud,ovf,cnv,gcd,fiz,rem) */
 #define EVENT_SPARK_CREATE        35 /* ()                     */
 #define EVENT_SPARK_DUD           36 /* ()                     */
 #define EVENT_SPARK_OVERFLOW      37 /* ()                     */

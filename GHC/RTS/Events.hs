@@ -313,16 +313,17 @@ ghc7Parsers = [
       return CreateSparkThread{sparkThread=st}
    )),
 
- (FixedSizeParser EVENT_SPARK_COUNTERS (7*8) (do -- (crt,dud,ovf,cnv,fiz,gcd,rem)
+ (FixedSizeParser EVENT_SPARK_COUNTERS (7*8) (do -- (crt,dud,ovf,cnv,gcd,fiz,rem)
       crt <- getE :: GetEvents Word64
       dud <- getE :: GetEvents Word64
       ovf <- getE :: GetEvents Word64
       cnv <- getE :: GetEvents Word64
-      fiz <- getE :: GetEvents Word64
       gcd <- getE :: GetEvents Word64
+      fiz <- getE :: GetEvents Word64
       rem <- getE :: GetEvents Word64
       return SparkCounters{sparksCreated    = crt, sparksDud       = dud,
                            sparksOverflowed = ovf, sparksConverted = cnv,
+                           -- Warning: order of fiz and gcd reversed!
                            sparksFizzled    = fiz, sparksGCd       = gcd,
                            sparksRemaining  = rem}
    )),
@@ -938,8 +939,9 @@ putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
     putE dud
     putE ovf
     putE cnv
-    putE fiz
+    -- Warning: order of fiz and gcd reversed!
     putE gcd
+    putE fiz
     putE rem
 
 putEventSpec SparkCreate = do
