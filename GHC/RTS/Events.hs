@@ -323,7 +323,8 @@ ghc7Parsers = [
       rem <- getE :: GetEvents Word64
       return SparkCounters{sparksCreated    = crt, sparksDud       = dud,
                            sparksOverflowed = ovf, sparksConverted = cnv,
-                           sparksGCd        = gcd, sparksFizzled   = fiz,
+                           -- Warning: order of fiz and gcd reversed!
+                           sparksFizzled    = fiz, sparksGCd       = gcd,
                            sparksRemaining  = rem}
    )),
 
@@ -620,7 +621,7 @@ showEventInfo spec =
           printf "migrating thread %d to cap %d" thread newCap
         CreateSparkThread sparkThread ->
           printf "creating spark thread %d" sparkThread
-        SparkCounters crt dud ovf cnv gcd fiz rem ->
+        SparkCounters crt dud ovf cnv fiz gcd rem ->
           printf "spark stats: %d created, %d converted, %d remaining (%d overflowed, %d dud, %d GC'd, %d fizzled)" crt cnv rem ovf dud gcd fiz
         SparkCreate ->
           printf "spark created"
@@ -933,11 +934,12 @@ putEventSpec (MigrateThread t c) = do
 putEventSpec (CreateSparkThread t) = do
     putE t
 
-putEventSpec (SparkCounters crt dud ovf cnv gcd fiz rem) = do
+putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
     putE crt
     putE dud
     putE ovf
     putE cnv
+    -- Warning: order of fiz and gcd reversed!
     putE gcd
     putE fiz
     putE rem

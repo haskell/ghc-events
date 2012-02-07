@@ -135,7 +135,7 @@ data EventInfo
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
   | SparkCounters      { sparksCreated, sparksDud, sparksOverflowed,
-                         sparksConverted, sparksGCd, sparksFizzled,
+                         sparksConverted, sparksFizzled, sparksGCd,
                          sparksRemaining :: {-# UNPACK #-}! Word64
                        }
   | SparkCreate        { }
@@ -308,3 +308,4 @@ data CapEvent
                -- might be shared, in which case we could end up
                -- increasing the space usage.
              } deriving Show
+
