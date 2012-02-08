@@ -104,8 +104,7 @@
 #define EVENT_STOP_THREAD          2 /* (thread, status, blockinfo) */
 #define EVENT_THREAD_RUNNABLE      3 /* (thread)               */
 #define EVENT_MIGRATE_THREAD       4 /* (thread, new_cap)      */
-/* 5, 6 deprecated */
-#define EVENT_SHUTDOWN             7 /* ()                     */
+/* 5, 6, 7 deprecated */
 #define EVENT_THREAD_WAKEUP        8 /* (thread, other_cap)    */
 #define EVENT_GC_START             9 /* ()                     */
 #define EVENT_GC_END              10 /* ()                     */
@@ -114,6 +113,7 @@
 /* 13, 14 deprecated */
 #define EVENT_CREATE_SPARK_THREAD 15 /* (spark_thread)         */
 #define EVENT_LOG_MSG             16 /* (message ...)          */
+/* EVENT_STARTUP should be deprecated at some point */
 #define EVENT_STARTUP             17 /* (num_capabilities)     */
 #define EVENT_BLOCK_MARKER        18 /* (size, end_time, capability) */
 #define EVENT_USER_MSG            19 /* (message ...)          */
@@ -140,11 +140,21 @@
 #define EVENT_SPARK_STEAL         39 /* (victim_cap)           */
 #define EVENT_SPARK_FIZZLE        40 /* ()                     */
 #define EVENT_SPARK_GC            41 /* ()                     */
-#define EVENT_INTERN_STRING       42 /* (string, id) */
+#define EVENT_INTERN_STRING       42 /* (string, id) {not used by ghc} */
 #define EVENT_WALL_CLOCK_TIME     43 /* (capset, unix_epoch_seconds, nanoseconds) */
 #define EVENT_THREAD_LABEL        44 /* (thread, name_string)  */
+#define EVENT_CAP_CREATE          45 /* (cap)                  */
+#define EVENT_CAP_DELETE          46 /* (cap)                  */
+#define EVENT_CAP_DISABLE         47 /* (cap)                  */
+#define EVENT_CAP_ENABLE          48 /* (cap)                  */
+#define EVENT_HEAP_ALLOCATED      49 /* (heap_capset, alloc_bytes) */
+#define EVENT_HEAP_SIZE           50 /* (heap_capset, size_bytes) */
+#define EVENT_HEAP_LIVE           51 /* (heap_capset, live_bytes) */
+#define EVENT_HEAP_INFO_GHC       52 /* (heap_capset, gens, max, nursary) */
+#define EVENT_GC_STATS_GHC        53 /* (heap_capset, gen, copied, slop, frag
+                                         par, max_copied, avg_copied) */
 
-/* Range 45 - 59 is available for new GHC and common events */
+/* Range 54 - 59 is available for new GHC and common events */
 
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/
@@ -157,7 +167,7 @@
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_GHC_EVENT_TAGS        45
+#define NUM_GHC_EVENT_TAGS        54
 
 
 /* DEPRECATED EVENTS: */
@@ -166,6 +176,8 @@
    still need to parse them, see GHC.RTS.Events.ghc6Parsers for details. */
 #define EVENT_RUN_SPARK            5 /* (thread)               */
 #define EVENT_STEAL_SPARK          6 /* (thread, victim_cap)   */
+/* shutdown replaced by EVENT_CAP_DELETE */
+#define EVENT_SHUTDOWN             7 /* ()                     */
 #if 0
 /* ghc changed how it handles sparks so these are no longer applicable */
 #define EVENT_CREATE_SPARK        13 /* (cap, thread) */
