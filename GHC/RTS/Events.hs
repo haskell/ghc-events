@@ -139,6 +139,8 @@ standardParsers = [
                                         Right es -> es }
    )),
 
+ -- EVENT_SHUTDOWN is replaced by EVENT_CAP_DELETE and GHC 7.6+
+ -- no longer generate the event; should be removed at some point
  (simpleEvent EVENT_SHUTDOWN Shutdown),
 
  (simpleEvent EVENT_REQUEST_SEQ_GC RequestSeqGC),
@@ -154,6 +156,64 @@ standardParsers = [
  (simpleEvent EVENT_GC_DONE GCDone),
 
  (simpleEvent EVENT_GC_END EndGC),
+
+ (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 1) (do  -- (heap_capset, gen, copied, slop, frag, par, max_copied, avg_copied)
+      heapCapset <- getE
+      gen        <- getE :: GetEvents Word16
+      copied     <- getE :: GetEvents Word64
+      slop       <- getE :: GetEvents Word64
+      frag       <- getE :: GetEvents Word64
+      wasPar     <- getE :: GetEvents Word8
+      maxCopied  <- getE :: GetEvents Word64
+      avgCopied  <- getE :: GetEvents Word64
+      return GCStatsGHC{gen = fromIntegral gen, wasPar = (wasPar /= 0), ..}
+ )),
+
+ (FixedSizeParser EVENT_HEAP_ALLOCATED (sz_capset + 8) (do  -- (heap_capset, alloc_bytes)
+      heapCapset <- getE
+      allocBytes <- getE
+      return HeapAllocated{..}
+ )),
+
+ (FixedSizeParser EVENT_HEAP_SIZE (sz_capset + 8) (do  -- (heap_capset, size_bytes)
+      heapCapset <- getE
+      sizeBytes  <- getE
+      return HeapSize{..}
+ )),
+
+ (FixedSizeParser EVENT_HEAP_LIVE (sz_capset + 8) (do  -- (heap_capset, live_bytes)
+      heapCapset <- getE
+      liveBytes  <- getE
+      return HeapLive{..}
+ )),
+
+ (FixedSizeParser EVENT_HEAP_INFO_GHC (sz_capset + 2 + 2*8) (do  -- (heap_capset, gen, copied, slop, frag, par, max_copied, avg_copied)
+      heapCapset  <- getE
+      gens        <- getE :: GetEvents Word16
+      maxHeapSize <- getE :: GetEvents Word64
+      nurserySize <- getE :: GetEvents Word64
+      return HeapInfoGHC{gens = fromIntegral gens, ..}
+ )),
+
+ (FixedSizeParser EVENT_CAP_CREATE (sz_cap) (do  -- (cap)
+      cap <- getE :: GetEvents CapNo
+      return CapCreate{cap = fromIntegral cap}
+ )),
+
+ (FixedSizeParser EVENT_CAP_DELETE (sz_cap) (do  -- (cap)
+      cap <- getE :: GetEvents CapNo
+      return CapDelete{cap = fromIntegral cap}
+ )),
+
+ (FixedSizeParser EVENT_CAP_DISABLE (sz_cap) (do  -- (cap)
+      cap <- getE :: GetEvents CapNo
+      return CapDisable{cap = fromIntegral cap}
+ )),
+
+ (FixedSizeParser EVENT_CAP_ENABLE (sz_cap) (do  -- (cap)
+      cap <- getE :: GetEvents CapNo
+      return CapEnable{cap = fromIntegral cap}
+ )),
 
  (FixedSizeParser EVENT_CAPSET_CREATE (sz_capset + sz_capset_type) (do -- (capset, capset_type)
       cs <- getE
@@ -657,6 +717,24 @@ showEventInfo spec =
           printf "GC idle"
         GCDone ->
           printf "GC done"
+        GCStatsGHC{..} ->
+          printf "GC stats for heap capset %d: generation %d, %d copied, %d slop, %d fragmentation, was a %s GC, %d maxCopied, %d avgCopied" heapCapset gen copied slop frag (if wasPar then "parallel" else "sequential") maxCopied avgCopied
+        HeapAllocated{..} ->
+          printf "allocated on heap capset %d: %d total bytes" heapCapset allocBytes
+        HeapSize{..} ->
+          printf "size of heap capset %d: %d bytes" heapCapset sizeBytes
+        HeapLive{..} ->
+          printf "live data in heap capset %d: %d bytes" heapCapset liveBytes
+        HeapInfoGHC{..} ->
+          printf "heap stats for heap capset %d: generations %d, %d max heap size, %d nursery size" heapCapset gens maxHeapSize nurserySize
+        CapCreate{cap} ->
+          printf "created cap %d" cap
+        CapDelete{cap} ->
+          printf "deleted cap %d" cap
+        CapDisable{cap} ->
+          printf "disabled cap %d" cap
+        CapEnable{cap} ->
+          printf "enabled cap %d" cap
         Message msg ->
           msg
         UserMessage msg ->
@@ -846,6 +924,15 @@ eventTypeNum e = case e of
     GCIdle {} -> EVENT_GC_IDLE
     GCWork {} -> EVENT_GC_WORK
     GCDone {} -> EVENT_GC_DONE
+    GCStatsGHC{} -> EVENT_GC_STATS_GHC
+    HeapAllocated{} -> EVENT_HEAP_ALLOCATED
+    HeapSize{} -> EVENT_HEAP_SIZE
+    HeapLive{} -> EVENT_HEAP_LIVE
+    HeapInfoGHC{} -> EVENT_HEAP_INFO_GHC
+    CapCreate{} -> EVENT_CAP_CREATE
+    CapDelete{} -> EVENT_CAP_DELETE
+    CapDisable{} -> EVENT_CAP_DISABLE
+    CapEnable{} -> EVENT_CAP_ENABLE
     CapsetCreate {} -> EVENT_CAPSET_CREATE
     CapsetDelete {} -> EVENT_CAPSET_DELETE
     CapsetAssignCap {} -> EVENT_CAPSET_ASSIGN_CAP
@@ -997,6 +1084,46 @@ putEventSpec GCDone = do
 
 putEventSpec EndGC = do
     return ()
+
+putEventSpec GCStatsGHC{..} = do
+    putE heapCapset
+    putE gen
+    putE copied
+    putE slop
+    putE frag
+    putE $ if wasPar then 1 :: Word8 else 0
+    putE maxCopied
+    putE avgCopied
+
+putEventSpec HeapAllocated{..} = do
+    putE heapCapset
+    putE allocBytes
+
+putEventSpec HeapSize{..} = do
+    putE heapCapset
+    putE sizeBytes
+
+putEventSpec HeapLive{..} = do
+    putE heapCapset
+    putE liveBytes
+
+putEventSpec HeapInfoGHC{..} = do
+    putE heapCapset
+    putE gens
+    putE maxHeapSize
+    putE nurserySize
+
+putEventSpec CapCreate{cap} = do
+    putCap cap
+
+putEventSpec CapDelete{cap} = do
+    putCap cap
+
+putEventSpec CapDisable{cap} = do
+    putCap cap
+
+putEventSpec CapEnable{cap} = do
+    putCap cap
 
 putEventSpec (CapsetCreate cs ct) = do
     putE cs

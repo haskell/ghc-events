@@ -109,6 +109,8 @@ data EventInfo
   -- init and shutdown
   | Startup            { n_caps :: Int
                        }
+  -- EVENT_SHUTDOWN is replaced by EVENT_CAP_DELETE and GHC 7.6+
+  -- no longer generate the event; should be removed at some point
   | Shutdown           { }
 
   -- thread scheduling
@@ -154,6 +156,39 @@ data EventInfo
   | GCIdle             { }
   | GCDone             { }
   | EndGC              { }
+  | GCStatsGHC         { heapCapset           :: {-# UNPACK #-}!Capset
+                       , gen                  :: {-# UNPACK #-}!Int
+                       , copied               :: {-# UNPACK #-}!Word64
+                       , slop, frag           :: {-# UNPACK #-}!Word64
+                       , wasPar               :: !Bool
+                       , maxCopied, avgCopied :: {-# UNPACK #-}!Word64
+                       }
+
+  -- heap statistics
+  | HeapAllocated      { heapCapset  :: {-# UNPACK #-}!Capset
+                       , allocBytes  :: {-# UNPACK #-}!Word64
+                       }
+  | HeapSize           { heapCapset  :: {-# UNPACK #-}!Capset
+                       , sizeBytes   :: {-# UNPACK #-}!Word64
+                       }
+  | HeapLive           { heapCapset  :: {-# UNPACK #-}!Capset
+                       , liveBytes   :: {-# UNPACK #-}!Word64
+                       }
+  | HeapInfoGHC        { heapCapset  :: {-# UNPACK #-}!Capset
+                       , gens        :: {-# UNPACK #-}!Int
+                       , maxHeapSize :: {-# UNPACK #-}!Word64
+                       , nurserySize :: {-# UNPACK #-}!Word64
+                       }
+
+  -- adjusting the number of capabilities on the fly
+  | CapCreate          { cap :: {-# UNPACK #-}!Int
+                       }
+  | CapDelete          { cap :: {-# UNPACK #-}!Int
+                       }
+  | CapDisable         { cap :: {-# UNPACK #-}!Int
+                       }
+  | CapEnable          { cap :: {-# UNPACK #-}!Int
+                       }
 
   -- capability sets
   | CapsetCreate       { capset     :: {-# UNPACK #-}!Capset
@@ -308,4 +343,3 @@ data CapEvent
                -- might be shared, in which case we could end up
                -- increasing the space usage.
              } deriving Show
-
