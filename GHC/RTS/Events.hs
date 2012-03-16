@@ -26,7 +26,7 @@ module GHC.RTS.Events (
        MessageTag(..),
 
        -- * Reading and writing event logs
-       readEventLogFromFile,
+       readEventLogFromFile, getEventLog,
        writeEventLogToFile,
 
        -- * Utilities
