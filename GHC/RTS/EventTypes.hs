@@ -156,12 +156,13 @@ data EventInfo
   | GCIdle             { }
   | GCDone             { }
   | EndGC              { }
-  | GCStatsGHC         { heapCapset           :: {-# UNPACK #-}!Capset
-                       , gen                  :: {-# UNPACK #-}!Int
-                       , copied               :: {-# UNPACK #-}!Word64
-                       , slop, frag           :: {-# UNPACK #-}!Word64
-                       , wasPar               :: !Bool
-                       , maxCopied, avgCopied :: {-# UNPACK #-}!Word64
+  | GCStatsGHC         { heapCapset   :: {-# UNPACK #-}!Capset
+                       , gen          :: {-# UNPACK #-}!Int
+                       , copied       :: {-# UNPACK #-}!Word64
+                       , slop, frag   :: {-# UNPACK #-}!Word64
+                       , parNThreads  :: {-# UNPACK #-}!Int
+                       , parMaxCopied :: {-# UNPACK #-}!Word64
+                       , parTotCopied :: {-# UNPACK #-}!Word64
                        }
 
   -- heap statistics
@@ -174,10 +175,12 @@ data EventInfo
   | HeapLive           { heapCapset  :: {-# UNPACK #-}!Capset
                        , liveBytes   :: {-# UNPACK #-}!Word64
                        }
-  | HeapInfoGHC        { heapCapset  :: {-# UNPACK #-}!Capset
-                       , gens        :: {-# UNPACK #-}!Int
-                       , maxHeapSize :: {-# UNPACK #-}!Word64
-                       , nurserySize :: {-# UNPACK #-}!Word64
+  | HeapInfoGHC        { heapCapset    :: {-# UNPACK #-}!Capset
+                       , gens          :: {-# UNPACK #-}!Int
+                       , maxHeapSize   :: {-# UNPACK #-}!Word64
+                       , allocAreaSize :: {-# UNPACK #-}!Word64
+                       , mblockSize    :: {-# UNPACK #-}!Word64
+                       , blockSize     :: {-# UNPACK #-}!Word64
                        }
 
   -- adjusting the number of capabilities on the fly

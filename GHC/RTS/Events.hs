@@ -157,16 +157,18 @@ standardParsers = [
 
  (simpleEvent EVENT_GC_END EndGC),
 
- (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 1) (do  -- (heap_capset, gen, copied, slop, frag, par, max_copied, avg_copied)
-      heapCapset <- getE
-      gen        <- getE :: GetEvents Word16
-      copied     <- getE :: GetEvents Word64
-      slop       <- getE :: GetEvents Word64
-      frag       <- getE :: GetEvents Word64
-      wasPar     <- getE :: GetEvents Word8
-      maxCopied  <- getE :: GetEvents Word64
-      avgCopied  <- getE :: GetEvents Word64
-      return GCStatsGHC{gen = fromIntegral gen, wasPar = (wasPar /= 0), ..}
+ (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 4) (do  -- (heap_capset, generation, copied_bytes, slop_bytes, frag_bytes, par_n_threads, par_max_copied, par_tot_copied)
+      heapCapset   <- getE
+      gen          <- getE :: GetEvents Word16
+      copied       <- getE :: GetEvents Word64
+      slop         <- getE :: GetEvents Word64
+      frag         <- getE :: GetEvents Word64
+      parNThreads  <- getE :: GetEvents Word32
+      parMaxCopied <- getE :: GetEvents Word64
+      parTotCopied <- getE :: GetEvents Word64
+      return GCStatsGHC{ gen = fromIntegral gen
+                       , parNThreads = fromIntegral parNThreads
+                       , ..}
  )),
 
  (FixedSizeParser EVENT_HEAP_ALLOCATED (sz_capset + 8) (do  -- (heap_capset, alloc_bytes)
@@ -187,11 +189,13 @@ standardParsers = [
       return HeapLive{..}
  )),
 
- (FixedSizeParser EVENT_HEAP_INFO_GHC (sz_capset + 2 + 2*8) (do  -- (heap_capset, gen, copied, slop, frag, par, max_copied, avg_copied)
-      heapCapset  <- getE
-      gens        <- getE :: GetEvents Word16
-      maxHeapSize <- getE :: GetEvents Word64
-      nurserySize <- getE :: GetEvents Word64
+ (FixedSizeParser EVENT_HEAP_INFO_GHC (sz_capset + 2 + 4*8) (do  -- (heap_capset, n_generations, max_heap_size, alloc_area_size, mblock_size, block_size)
+      heapCapset    <- getE
+      gens          <- getE :: GetEvents Word16
+      maxHeapSize   <- getE :: GetEvents Word64
+      allocAreaSize <- getE :: GetEvents Word64
+      mblockSize    <- getE :: GetEvents Word64
+      blockSize     <- getE :: GetEvents Word64
       return HeapInfoGHC{gens = fromIntegral gens, ..}
  )),
 
@@ -718,15 +722,15 @@ showEventInfo spec =
         GCDone ->
           printf "GC done"
         GCStatsGHC{..} ->
-          printf "GC stats for heap capset %d: generation %d, %d copied, %d slop, %d fragmentation, was a %s GC, %d maxCopied, %d avgCopied" heapCapset gen copied slop frag (if wasPar then "parallel" else "sequential") maxCopied avgCopied
+          printf "GC stats for heap capset %d: generation %d, %d bytes copied, %d bytes slop, %d bytes fragmentation, %d par threads, %d bytes max par copied, %d bytes total par copied" heapCapset gen copied slop frag parNThreads parMaxCopied parTotCopied
         HeapAllocated{..} ->
-          printf "allocated on heap capset %d: %d total bytes" heapCapset allocBytes
+          printf "allocated on heap capset %d: %d total bytes till now" heapCapset allocBytes
         HeapSize{..} ->
           printf "size of heap capset %d: %d bytes" heapCapset sizeBytes
         HeapLive{..} ->
           printf "live data in heap capset %d: %d bytes" heapCapset liveBytes
         HeapInfoGHC{..} ->
-          printf "heap stats for heap capset %d: generations %d, %d max heap size, %d nursery size" heapCapset gens maxHeapSize nurserySize
+          printf "heap stats for heap capset %d: generations %d, %d bytes max heap size, %d bytes alloc area size, %d bytes mblock size, %d bytes block size" heapCapset gens maxHeapSize allocAreaSize mblockSize blockSize
         CapCreate{cap} ->
           printf "created cap %d" cap
         CapDelete{cap} ->
@@ -1091,9 +1095,9 @@ putEventSpec GCStatsGHC{..} = do
     putE copied
     putE slop
     putE frag
-    putE $ if wasPar then 1 :: Word8 else 0
-    putE maxCopied
-    putE avgCopied
+    putE parNThreads
+    putE parMaxCopied
+    putE parTotCopied
 
 putEventSpec HeapAllocated{..} = do
     putE heapCapset
@@ -1111,7 +1115,9 @@ putEventSpec HeapInfoGHC{..} = do
     putE heapCapset
     putE gens
     putE maxHeapSize
-    putE nurserySize
+    putE allocAreaSize
+    putE mblockSize
+    putE blockSize
 
 putEventSpec CapCreate{cap} = do
     putCap cap

@@ -150,9 +150,13 @@
 #define EVENT_HEAP_ALLOCATED      49 /* (heap_capset, alloc_bytes) */
 #define EVENT_HEAP_SIZE           50 /* (heap_capset, size_bytes) */
 #define EVENT_HEAP_LIVE           51 /* (heap_capset, live_bytes) */
-#define EVENT_HEAP_INFO_GHC       52 /* (heap_capset, gens, max, nursery) */
-#define EVENT_GC_STATS_GHC        53 /* (heap_capset, gen, copied, slop, frag,
-                                         par, max_copied, avg_copied) */
+#define EVENT_HEAP_INFO_GHC       52 /* (heap_capset, n_generations,
+                                         max_heap_size, alloc_area_size,
+                                         mblock_size, block_size) */
+#define EVENT_GC_STATS_GHC        53 /* (heap_capset, generation,
+                                         copied_bytes, slop_bytes, frag_bytes,
+                                         par_n_threads,
+                                         par_max_copied, par_tot_copied) */
 
 /* Range 54 - 59 is available for new GHC and common events */
 
