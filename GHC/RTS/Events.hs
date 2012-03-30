@@ -157,6 +157,8 @@ standardParsers = [
 
  (simpleEvent EVENT_GC_END EndGC),
 
+ (simpleEvent EVENT_GC_GLOBAL_SYNC GlobalSyncGC),
+
  (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 4) (do  -- (heap_capset, generation, copied_bytes, slop_bytes, frag_bytes, par_n_threads, par_max_copied, par_tot_copied)
       heapCapset   <- getE
       gen          <- getE :: GetEvents Word16
@@ -721,6 +723,8 @@ showEventInfo spec =
           printf "GC idle"
         GCDone ->
           printf "GC done"
+        GlobalSyncGC ->
+          printf "all caps stopped for GC"
         GCStatsGHC{..} ->
           printf "GC stats for heap capset %d: generation %d, %d bytes copied, %d bytes slop, %d bytes fragmentation, %d par threads, %d bytes max par copied, %d bytes total par copied" heapCapset gen copied slop frag parNThreads parMaxCopied parTotCopied
         HeapAllocated{..} ->
@@ -910,6 +914,7 @@ eventTypeNum e = case e of
     ThreadLabel {}  -> EVENT_THREAD_LABEL
     StartGC {} -> EVENT_GC_START
     EndGC {} -> EVENT_GC_END
+    GlobalSyncGC {} -> EVENT_GC_GLOBAL_SYNC
     RequestSeqGC {} -> EVENT_REQUEST_SEQ_GC
     RequestParGC {} -> EVENT_REQUEST_PAR_GC
     CreateSparkThread {} -> EVENT_CREATE_SPARK_THREAD
@@ -1087,6 +1092,9 @@ putEventSpec GCDone = do
     return ()
 
 putEventSpec EndGC = do
+    return ()
+
+putEventSpec GlobalSyncGC = do
     return ()
 
 putEventSpec GCStatsGHC{..} = do

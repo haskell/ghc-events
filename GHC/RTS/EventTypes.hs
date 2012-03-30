@@ -156,6 +156,7 @@ data EventInfo
   | GCIdle             { }
   | GCDone             { }
   | EndGC              { }
+  | GlobalSyncGC       { }
   | GCStatsGHC         { heapCapset   :: {-# UNPACK #-}!Capset
                        , gen          :: {-# UNPACK #-}!Int
                        , copied       :: {-# UNPACK #-}!Word64
