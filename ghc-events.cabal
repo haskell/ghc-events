@@ -28,9 +28,9 @@ source-repository head
 library
   build-depends:    base       == 4.*,
                     mtl        >= 1.1 && < 2.1,
-                    containers >= 0.2 && < 0.5,
+                    containers >= 0.2 && < 0.6,
                     binary     == 0.5.*,
-                    bytestring == 0.9.*,
+                    bytestring >= 0.9.0,
                     array      >= 0.2 && < 0.5
   exposed-modules:  GHC.RTS.Events,
                     GHC.RTS.Events.Merge
