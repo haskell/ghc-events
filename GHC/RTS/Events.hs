@@ -404,6 +404,32 @@ ghc7Parsers = [
  (simpleEvent EVENT_SPARK_FIZZLE   SparkFizzle),
  (simpleEvent EVENT_SPARK_GC       SparkGC),
 
+ (VariableSizeParser EVENT_TASK_CREATE (do  -- (taskID, cap, pid_t)
+      num <- getE :: GetEvents Word16
+      string <- getString num
+      cap <- getE :: GetEvents CapNo
+      pid_t <- getE :: GetEvents ThreadId
+      return TaskCreate{ taskID = map (toEnum . fromEnum) string
+                       , cap = fromIntegral cap
+                       , pid_t
+                       }
+   )),
+ (VariableSizeParser EVENT_TASK_MIGRATE (do  -- (taskID, cap, new_cap)
+      num <- getE :: GetEvents Word16
+      string <- getString num
+      cap <- getE :: GetEvents CapNo
+      new_cap <- getE :: GetEvents CapNo
+      return TaskMigrate{ taskID = map (toEnum . fromEnum) string
+                        , cap = fromIntegral cap
+                        , new_cap = fromIntegral new_cap
+                        }
+   )),
+ (VariableSizeParser EVENT_TASK_DELETE (do  -- (taskID)
+      num <- getE :: GetEvents Word16
+      string <- getString num
+      return TaskDelete{ taskID = map (toEnum . fromEnum) string }
+   )),
+
  (FixedSizeParser EVENT_THREAD_WAKEUP (sz_tid + sz_cap) (do  -- (thread, other_cap)
       t <- getE
       oc <- getE :: GetEvents CapNo
@@ -723,6 +749,14 @@ showEventInfo spec =
           printf "spark fizzled"
         SparkGC ->
           printf "spark GCed"
+        TaskCreate taskID cap pid_t ->
+          printf "task %s created on cap %d with OS thread %d"
+                 (showPthread_t taskID) cap pid_t
+        TaskMigrate taskID cap new_cap ->
+          printf "task %s migrated from cap %d to cap %d"
+                 (showPthread_t taskID) cap new_cap
+        TaskDelete taskID ->
+          printf "task %s deleted" (showPthread_t taskID)
         Shutdown ->
           printf "shutting down"
         WakeupThread thread otherCap ->
@@ -849,6 +883,9 @@ showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
 showThreadStopStatus NoStatus = "No stop thread status"
 
+showPthread_t :: Pthread_t -> String
+showPthread_t l = concat $ map (\ w -> printf "%02x" ) l
+
 ppEventLog :: EventLog -> String
 ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
     [ ["Event Types:"]
@@ -952,6 +989,9 @@ eventTypeNum e = case e of
     SparkSteal    {} -> EVENT_SPARK_STEAL
     SparkFizzle   {} -> EVENT_SPARK_FIZZLE
     SparkGC       {} -> EVENT_SPARK_GC
+    TaskCreate  {} -> EVENT_TASK_CREATE
+    TaskMigrate {} -> EVENT_TASK_MIGRATE
+    TaskDelete  {} -> EVENT_TASK_DELETE
     Message {} -> EVENT_LOG_MSG
     Startup {} -> EVENT_STARTUP
     EventBlock {} -> EVENT_BLOCK_MARKER
@@ -1125,6 +1165,22 @@ putEventSpec EndGC = do
 
 putEventSpec GlobalSyncGC = do
     return ()
+
+putEventSpec (TaskCreate taskID cap pid_t) = do
+    putE (fromIntegral (length taskID) :: Word16)
+    mapM_ putE taskID
+    putCap cap
+    putE pid_t
+
+putEventSpec (TaskMigrate taskID cap new_cap) = do
+    putE (fromIntegral (length taskID) :: Word16)
+    mapM_ putE taskID
+    putCap cap
+    putCap new_cap
+
+putEventSpec (TaskDelete taskID) = do
+    putE (fromIntegral (length taskID) :: Word16)
+    mapM_ putE taskID
 
 putEventSpec GCStatsGHC{..} = do
     putE heapCapset

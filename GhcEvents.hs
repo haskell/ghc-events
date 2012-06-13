@@ -30,7 +30,7 @@ command ["show", file] = do
 
 command ["show", "threads", file] = do
     eventLog <- readLogOrDie file
-    let eventTypeMap = buildEventTypeMap . eventTypes .  header $ eventLog
+    let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
     let capEvents = sortEvents . events . dat $ eventLog
     let mappings  = rights . validates capabilityThreadRunMachine $ capEvents
     let indexes = map (uncurry capabilityThreadIndexer) $ zip mappings capEvents
@@ -45,7 +45,7 @@ command ["show", "threads", file] = do
 
 command ["show", "caps", file] = do
     eventLog <- readLogOrDie file
-    let eventTypeMap = buildEventTypeMap . eventTypes .  header $ eventLog
+    let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
     let capEvents = sortEvents . events . dat $ eventLog
     let indexes = map ce_cap capEvents
     let capMap = M.fromListWith (++) . reverse $ zip indexes (map return capEvents)

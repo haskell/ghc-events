@@ -64,7 +64,7 @@ step m s i
   | otherwise = Right s
 
 -- | The `validate` function takes a machine and a list of inputs. The machine
--- is started from its initial state and run agains the inputs in turn.
+-- is started from its initial state and run against the inputs in turn.
 -- It returns the state and input on failure, and just the state on success.
 validate :: Machine s i -> [i] -> Either (s, i) s
 validate m = foldl (>>=) (Right (initial m)) . map (flip (step m))
@@ -280,4 +280,3 @@ routeM router index machine = Machine
             Nothing -> return m
           else return m
     return (m', r')
-

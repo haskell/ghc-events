@@ -2,7 +2,7 @@
 
 module GHC.RTS.EventTypes where
 
-import Data.Word (Word16, Word32, Word64)
+import Data.Word (Word8, Word16, Word32, Word64)
 
 -- EventType.
 type EventTypeNum = Word16
@@ -20,6 +20,7 @@ type RawThreadStopStatus = Word16
 type StringId = Word32
 type Capset   = Word32
 type PerfEventTypeNum = Word32
+type Pthread_t = [Word8]  -- TODO: consider bytestrings if 8 bytes is too slow
 
 -- These types are used by Mercury events.
 type ParConjDynId = Word64
@@ -150,6 +151,17 @@ data EventInfo
   | SparkSteal         { victimCap :: {-# UNPACK #-}!Int }
   | SparkFizzle        { }
   | SparkGC            { }
+
+  -- tasks
+  | TaskCreate         { taskID :: Pthread_t,
+                         cap :: {-# UNPACK #-}!Int,
+                         pid_t :: {-# UNPACK #-}!ThreadId
+                       }
+  | TaskMigrate        { taskID :: Pthread_t,
+                         cap :: {-# UNPACK #-}!Int,
+                         new_cap :: {-# UNPACK #-}!Int
+                       }
+  | TaskDelete         { taskID :: Pthread_t }
 
   -- garbage collection
   | RequestSeqGC       { }
