@@ -263,7 +263,6 @@ standardParsers = [
       return WallClockTime{capset=cs,sec=s,nsec=ns}
   )),
 
-
  (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
       num <- getE :: GetEvents Word16
       string <- getString num
@@ -544,6 +543,27 @@ mercuryParsers = [
 
  ]
 
+perfParsers = [
+ (VariableSizeParser EVENT_PERF_NAME (do -- (perf_num, name)
+      num     <- getE :: GetEvents Word16
+      perfNum <- getE
+      name    <- getString (num - sz_perf_num)
+      return PerfName{perfNum, name}
+   )),
+
+ (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + 8) (do -- (perf_num, count)
+      perfNum <- getE
+      count   <- getE
+      return PerfCounter{perfNum, count}
+  )),
+
+ (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_tid) (do -- (perf_num, thread)
+      perfNum <- getE
+      thread  <- getE
+      return PerfTracepoint{perfNum, thread}
+  ))
+ ]
+
 getData :: GetEvents Data
 getData = do
    db <- getE :: GetEvents Marker
@@ -586,8 +606,8 @@ getEventLog = do
         -}
         event_parsers = if is_ghc_6
                             then standardParsers ++ ghc6Parsers
-                            else standardParsers ++ ghc7Parsers ++
-                                mercuryParsers
+                            else standardParsers ++ ghc7Parsers
+                                 ++ mercuryParsers ++ perfParsers
         parsers = mkEventTypeParsers imap event_parsers
     dat <- runReaderT getData (EventParsers parsers)
     return (EventLog header dat)
@@ -799,6 +819,12 @@ showEventInfo spec =
           "Capability going to sleep"
         MerCallingMain ->
           "About to call the program entry point"
+        PerfName{perfNum, name} ->
+          printf "perf event %d named \"%s\"" perfNum name
+        PerfCounter{perfNum, count} ->
+          printf "perf event counter %d: %d" perfNum count
+        PerfTracepoint{perfNum, thread} ->
+          printf "perf event tracepoint %d reached in thread %d" perfNum thread
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -968,6 +994,9 @@ eventTypeNum e = case e of
     MerReleaseThread _ -> EVENT_MER_RELEASE_CONTEXT
     MerCapSleeping -> EVENT_MER_ENGINE_SLEEPING
     MerCallingMain -> EVENT_MER_CALLING_MAIN
+    PerfName       {} -> EVENT_PERF_NAME
+    PerfCounter    {} -> EVENT_PERF_COUNTER
+    PerfTracepoint {} -> EVENT_PERF_TRACEPOINT
 
 putEvent :: Event -> PutEvents ()
 putEvent (Event t spec) = do
@@ -1159,19 +1188,19 @@ putEventSpec (CapsetRemoveCap cs cp) = do
     putCap cp
 
 putEventSpec (RtsIdentifier cs rts) = do
-    putE (fromIntegral (length rts) + 4 :: Word16)
+    putE (fromIntegral (length rts) + sz_capset :: Word16)
     putE cs
     putEStr rts
 
 putEventSpec (ProgramArgs cs as) = do
     let as' = unsep as
-    putE (fromIntegral (length as') + 4 :: Word16)
+    putE (fromIntegral (length as') + sz_capset :: Word16)
     putE cs
     mapM_ putE as'
 
 putEventSpec (ProgramEnv cs es) = do
     let es' = unsep es
-    putE (fromIntegral (length es') + 4 :: Word16)
+    putE (fromIntegral (length es') + sz_capset :: Word16)
     putE cs
     mapM_ putE es'
 
@@ -1240,6 +1269,19 @@ putEventSpec (MerReleaseThread thread_id) = do
 
 putEventSpec MerCapSleeping = return ()
 putEventSpec MerCallingMain = return ()
+
+putEventSpec PerfName{..} = do
+    putE (fromIntegral (length name) + sz_perf_num :: Word16)
+    putE perfNum
+    mapM_ putE name
+
+putEventSpec PerfCounter{..} = do
+    putE perfNum
+    putE count
+
+putEventSpec PerfTracepoint{..} = do
+    putE perfNum
+    putE thread
 
 -- [] == []
 -- [x] == x\0

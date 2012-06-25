@@ -19,6 +19,7 @@ type BlockSize = Word32
 type RawThreadStopStatus = Word16
 type StringId = Word32
 type Capset   = Word32
+type PerfEventTypeNum = Word32
 
 -- These types are used by Mercury events.
 type ParConjDynId = Word64
@@ -52,6 +53,8 @@ sz_th_stop_status :: EventTypeSize
 sz_th_stop_status = 2
 sz_string_id :: EventTypeSize
 sz_string_id = 4
+sz_perf_num :: EventTypeSize
+sz_perf_num = 4
 
 -- Sizes for Mercury event fields.
 sz_par_conj_dyn_id :: EventTypeSize
@@ -272,6 +275,17 @@ data EventInfo
     }
   | MerCapSleeping
   | MerCallingMain
+
+  -- perf events
+  | PerfName           { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
+                       , name    :: String
+                       }
+  | PerfCounter        { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
+                       , count   :: {-# UNPACK #-}!Word64
+                       }
+  | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
+                       , thread  :: {-# UNPACK #-}!ThreadId
+                       }
 
   deriving Show
 

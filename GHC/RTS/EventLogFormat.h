@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------------------
  *
- * (c) The GHC Team, 2008-2009
+ * (c) The GHC Team, 2008-2012
  *
  * Event log format
  *
@@ -167,6 +167,8 @@
 
 /* Range 100 - 139 is reserved for Mercury, see below. */
 
+/* Range 140 - 159 is reserved for Perf events, see below. */
+
 /*
  * The highest event code +1 that ghc itself emits. Note that some event
  * ranges higher than this are reserved but not currently emitted by ghc.
@@ -216,6 +218,18 @@
 #define EVENT_MER_RELEASE_CONTEXT       110 /* (context id) */
 #define EVENT_MER_ENGINE_SLEEPING       111 /* () */
 #define EVENT_MER_CALLING_MAIN          113 /* () */
+
+
+/*
+ * These event types are parsed from hardware performance counters logs,
+ * such as the Linux Performance Counters data available through
+ * the perf subsystem.
+ */
+
+#define EVENT_PERF_NAME           140 /* (perf_num, name) */
+#define EVENT_PERF_COUNTER        141 /* (perf_num, count) */
+#define EVENT_PERF_TRACEPOINT     142 /* (perf_num, thread) */
+
 
 /*
  * Status values for EVENT_STOP_THREAD
