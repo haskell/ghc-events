@@ -404,14 +404,14 @@ ghc7Parsers = [
  (simpleEvent EVENT_SPARK_FIZZLE   SparkFizzle),
  (simpleEvent EVENT_SPARK_GC       SparkGC),
 
- (VariableSizeParser EVENT_TASK_CREATE (do  -- (taskID, cap, pid_t)
+ (VariableSizeParser EVENT_TASK_CREATE (do  -- (taskID, cap, tid)
       num <- getE :: GetEvents Word16
       string <- getString num
       cap <- getE :: GetEvents CapNo
-      pid_t <- getE :: GetEvents ThreadId
+      tid <- getE :: GetEvents OS_TID
       return TaskCreate{ taskID = map (toEnum . fromEnum) string
                        , cap = fromIntegral cap
-                       , pid_t
+                       , tid
                        }
    )),
  (VariableSizeParser EVENT_TASK_MIGRATE (do  -- (taskID, cap, new_cap)
@@ -583,10 +583,10 @@ perfParsers = [
       return PerfCounter{perfNum, count}
   )),
 
- (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_tid) (do -- (perf_num, thread)
+ (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_os_tid) (do -- (perf_num, tid)
       perfNum <- getE
-      thread  <- getE
-      return PerfTracepoint{perfNum, thread}
+      tid     <- getE :: GetEvents OS_TID
+      return PerfTracepoint{perfNum, tid}
   ))
  ]
 
@@ -749,9 +749,9 @@ showEventInfo spec =
           printf "spark fizzled"
         SparkGC ->
           printf "spark GCed"
-        TaskCreate taskID cap pid_t ->
+        TaskCreate taskID cap tid ->
           printf "task %s created on cap %d with OS thread %d"
-                 (showPthread_t taskID) cap pid_t
+                 (showPthread_t taskID) cap (os_tid tid)
         TaskMigrate taskID cap new_cap ->
           printf "task %s migrated from cap %d to cap %d"
                  (showPthread_t taskID) cap new_cap
@@ -857,8 +857,9 @@ showEventInfo spec =
           printf "perf event %d named \"%s\"" perfNum name
         PerfCounter{perfNum, count} ->
           printf "perf event counter %d: %d" perfNum count
-        PerfTracepoint{perfNum, thread} ->
-          printf "perf event tracepoint %d reached in thread %d" perfNum thread
+        PerfTracepoint{perfNum, tid} ->
+          printf "perf event tracepoint %d reached in OS thread %d"
+                 perfNum (os_tid tid)
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -1166,11 +1167,11 @@ putEventSpec EndGC = do
 putEventSpec GlobalSyncGC = do
     return ()
 
-putEventSpec (TaskCreate taskID cap pid_t) = do
+putEventSpec (TaskCreate taskID cap tid) = do
     putE (fromIntegral (length taskID) :: Word16)
     mapM_ putE taskID
     putCap cap
-    putE pid_t
+    putE tid
 
 putEventSpec (TaskMigrate taskID cap new_cap) = do
     putE (fromIntegral (length taskID) :: Word16)
@@ -1337,7 +1338,7 @@ putEventSpec PerfCounter{..} = do
 
 putEventSpec PerfTracepoint{..} = do
     putE perfNum
-    putE thread
+    putE tid
 
 -- [] == []
 -- [x] == x\0

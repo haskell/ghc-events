@@ -3,6 +3,7 @@
 module GHC.RTS.EventTypes where
 
 import Data.Word (Word8, Word16, Word32, Word64)
+import Data.Binary
 
 -- EventType.
 type EventTypeNum = Word16
@@ -21,6 +22,13 @@ type StringId = Word32
 type Capset   = Word32
 type PerfEventTypeNum = Word32
 type Pthread_t = [Word8]  -- TODO: consider bytestrings if 8 bytes is too slow
+type PID = Word32
+
+newtype OS_TID = OS_TID { os_tid :: Word64 }
+  deriving (Eq, Ord, Show)
+instance Binary OS_TID where
+  put (OS_TID tid) = put tid
+  get = fmap OS_TID get
 
 -- These types are used by Mercury events.
 type ParConjDynId = Word64
@@ -50,6 +58,8 @@ sz_block_event = fromIntegral (sz_event_type_num + sz_time + sz_block_size
     + sz_time + sz_cap)
 sz_pid :: EventTypeSize
 sz_pid = 4
+sz_os_tid :: EventTypeSize
+sz_os_tid = 8
 sz_th_stop_status :: EventTypeSize
 sz_th_stop_status = 2
 sz_string_id :: EventTypeSize
@@ -155,7 +165,7 @@ data EventInfo
   -- tasks
   | TaskCreate         { taskID :: Pthread_t,
                          cap :: {-# UNPACK #-}!Int,
-                         pid_t :: {-# UNPACK #-}!ThreadId
+                         tid :: {-# UNPACK #-}!OS_TID
                        }
   | TaskMigrate        { taskID :: Pthread_t,
                          cap :: {-# UNPACK #-}!Int,
@@ -233,10 +243,10 @@ data EventInfo
                        , env    :: [String]
                        }
   | OsProcessPid       { capset :: {-# UNPACK #-}!Capset
-                       , pid    :: {-# UNPACK #-}!Word32
+                       , pid    :: {-# UNPACK #-}!PID
                        }
   | OsProcessParentPid { capset :: {-# UNPACK #-}!Capset
-                       , ppid   :: {-# UNPACK #-}!Word32
+                       , ppid   :: {-# UNPACK #-}!PID
                        }
   | WallClockTime      { capset :: {-# UNPACK #-}!Capset
                        , sec    :: {-# UNPACK #-}!Word64
@@ -296,7 +306,7 @@ data EventInfo
                        , count   :: {-# UNPACK #-}!Word64
                        }
   | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
-                       , thread  :: {-# UNPACK #-}!ThreadId
+                       , tid     :: {-# UNPACK #-}!OS_TID
                        }
 
   deriving Show
