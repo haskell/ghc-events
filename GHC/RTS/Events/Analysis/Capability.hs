@@ -2,6 +2,8 @@ module GHC.RTS.Events.Analysis.Capability
   ( capabilityThreadPoolMachine
   , capabilityThreadRunMachine
   , capabilityThreadIndexer
+  , capabilityTaskPoolMachine
+  , capabilityTaskOSMachine
   )
  where
 
@@ -98,3 +100,101 @@ capabilityThreadIndexer m capEvent = case spec . ce_event $ capEvent of
   _                             -> mThreadId
  where
   mThreadId = ce_cap capEvent >>= (\capId -> M.lookup capId m)
+
+-- | This state machine tracks Haskell tasks, represented by Pthread_t,
+-- residing on capabilities.
+-- Each Haskell task can only reside on one capability, but can be migrated
+-- between them.
+capabilityTaskPoolMachine :: Machine (Map Pthread_t Int) CapEvent
+capabilityTaskPoolMachine = Machine
+  { initial = M.empty
+  , final   = const False
+  , alpha   = capabilityTaskPoolMachineAlpha
+  , delta   = capabilityTaskPoolMachineDelta
+  }
+ where
+  capabilityTaskPoolMachineAlpha capEvent = case spec . ce_event $ capEvent of
+     TaskCreate{}  -> True
+     TaskDelete{}  -> True
+     TaskMigrate{} -> True
+     _             -> False
+
+  capabilityTaskPoolMachineDelta mapping capEvent = do
+    case spec . ce_event $ capEvent of
+      TaskCreate {taskID, cap}      -> insertTask taskID cap mapping
+      TaskDelete {taskID}           -> deleteTask taskID mapping
+      TaskMigrate {taskID, new_cap} -> deleteTask taskID mapping >>=
+                                         insertTask taskID new_cap
+      _                             -> Nothing
+   where
+    insertTask :: Pthread_t -> Int -> Map Pthread_t Int
+               -> Maybe (Map Pthread_t Int)
+    insertTask taskID cap m
+      | taskID `elem` M.keys m = Nothing -- The task already exists.
+      | otherwise              = Just $ M.insert taskID cap m
+
+    deleteTask :: Pthread_t -> Map Pthread_t Int -> Maybe (Map Pthread_t Int)
+    deleteTask taskID m
+      | notElem taskID . M.keys $ m = Nothing -- The task doesn't exist.
+      | otherwise                   = Just $ M.delete taskID m
+
+-- | This state machine tracks Haskell tasks (represented by the OS_TID
+-- of their OS thread) residing on capabilities and additionally
+-- tracks the (immutable) assignment of OS thread ids (OS_TID)
+-- to tasks ids (Pthread_t).
+-- Each Haskell task can only reside on one capability, but can be migrated
+-- between them.
+--
+-- Data invariat for the @(Map OS_TID Int, Map Pthread_t OS_TID)@ type:
+-- the second map is an injection (verified by the machine in insertTaskOS) and
+-- the following sets are equal: keys of the fist map and values of the second
+-- (follows from the construction of the maps by the machine).
+--
+-- The machine verifies as much as capabilityTaskPoolMachine and additionally
+-- the data invariant, and offers a richer verification profile.
+capabilityTaskOSMachine :: Machine (Map OS_TID Int, Map Pthread_t OS_TID)
+                                   CapEvent
+capabilityTaskOSMachine = Machine
+  { initial = (M.empty, M.empty)
+  , final   = const False
+  , alpha   = capabilityTaskOSMachineAlpha
+  , delta   = capabilityTaskOSMachineDelta
+  }
+ where
+  capabilityTaskOSMachineAlpha capEvent = case spec . ce_event $ capEvent of
+     TaskCreate{}  -> True
+     TaskDelete{}  -> True
+     TaskMigrate{} -> True
+     _             -> False
+
+  capabilityTaskOSMachineDelta mapping capEvent = do
+    case spec . ce_event $ capEvent of
+      TaskCreate {taskID, cap, tid} -> insertTaskOS taskID cap tid mapping
+      TaskDelete {taskID}           -> deleteTaskOS taskID mapping
+      TaskMigrate {taskID, new_cap} -> migrateTaskOS taskID new_cap mapping
+      _                             -> Nothing
+   where
+    insertTaskOS :: Pthread_t -> Int -> OS_TID
+                 -> (Map OS_TID Int, Map Pthread_t OS_TID)
+                 -> Maybe (Map OS_TID Int, Map Pthread_t OS_TID)
+    insertTaskOS taskID cap tid (m, ma)
+      | taskID `elem` M.keys ma = Nothing  -- The task already exists.
+      | tid `elem` M.keys m     = Nothing  -- The OS thread already exists.
+      | otherwise               = Just (M.insert tid cap m,
+                                        M.insert taskID tid ma)
+
+    deleteTaskOS :: Pthread_t -> (Map OS_TID Int, Map Pthread_t OS_TID)
+                 -> Maybe (Map OS_TID Int, Map Pthread_t OS_TID)
+    deleteTaskOS taskID (m, ma) =
+      case M.lookup taskID ma of
+        Nothing  -> Nothing  -- The task doesn't exist.
+        Just tid -> Just (M.delete tid m,
+                          M.delete taskID ma)
+
+    migrateTaskOS :: Pthread_t -> Int -> (Map OS_TID Int, Map Pthread_t OS_TID)
+                  -> Maybe (Map OS_TID Int, Map Pthread_t OS_TID)
+    migrateTaskOS taskID new_cap (m, ma) =
+      case M.lookup taskID ma of
+        Nothing -> Nothing  -- The task doesn't exist.
+        Just tid -> Just (M.insert tid new_cap m,
+                          ma)  -- The assignment is immutable.

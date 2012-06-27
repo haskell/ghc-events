@@ -18,6 +18,8 @@ module GHC.RTS.Events (
        CapsetType(..),
        Timestamp,
        ThreadId,
+       Pthread_t,
+       OS_TID(..),
 
        -- * Reading and writing event logs
        readEventLogFromFile,

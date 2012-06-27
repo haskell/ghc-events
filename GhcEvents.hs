@@ -87,6 +87,18 @@ command ["validate", "threadrun", file] = do
     let result = validate capabilityThreadRunMachine capEvents
     putStrLn $ showValidate show show result
 
+command ["validate", "taskpool", file] = do
+    eventLog <- readLogOrDie file
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = validate capabilityTaskPoolMachine capEvents
+    putStrLn $ showValidate show show result
+
+command ["validate", "tasks", file] = do
+    eventLog <- readLogOrDie file
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = validate capabilityTaskOSMachine capEvents
+    putStrLn $ showValidate show show result
+
 command ["validate", "sparks", file] = do
     eventLog <- readLogOrDie file
     let capEvents = sortEvents . events . dat $ eventLog
@@ -115,6 +127,18 @@ command ["simulate", "threadrun", file] = do
     eventLog <- readLogOrDie file
     let capEvents = sortEvents . events . dat $ eventLog
     let result = simulate capabilityThreadRunMachine capEvents
+    putStrLn . showProcess $ result
+
+command ["simulate", "taskpool", file] = do
+    eventLog <- readLogOrDie file
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = simulate capabilityTaskPoolMachine capEvents
+    putStrLn . showProcess $ result
+
+command ["simulate", "tasks", file] = do
+    eventLog <- readLogOrDie file
+    let capEvents = sortEvents . events . dat $ eventLog
+    let result = simulate capabilityTaskOSMachine capEvents
     putStrLn . showProcess $ result
 
 command ["simulate", "sparks", file] = do
@@ -168,11 +192,13 @@ usage = unlines $ map pad strings
               , ("ghc-events validate threads <file>:",    "Validate thread states.")
               , ("ghc-events validate threadpool <file>:", "Validate thread pool state.")
               , ("ghc-events validate threadrun <file>:",  "Validate thread running state.")
+              , ("ghc-events validate tasks <file>:",      "Validate task states.")
               , ("ghc-events validate sparks <file>:",     "Validate spark thread states.")
 
               , ("ghc-events simulate threads <file>:",    "Simulate thread states.")
               , ("ghc-events simulate threadpool <file>:", "Simulate thread pool state.")
               , ("ghc-events simulate threadrun <file>:",  "Simulate thread running state.")
+              , ("ghc-events simulate tasks <file>:",      "Simulate task states.")
               , ("ghc-events simulate sparks <file>:",     "Simulate spark thread states.")
 
               , ("ghc-events profile threads <file>:",     "Profile thread states.")
