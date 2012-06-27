@@ -42,13 +42,13 @@ capabilityThreadPoolMachine = Machine
    where
     insertThread :: ThreadId -> Int -> Map ThreadId Int -> Maybe (Map ThreadId Int)
     insertThread threadId capId m
-      | threadId `elem` M.keys m = Nothing -- The thread already exists
-      | otherwise                = Just $ M.insert threadId capId m
+      | threadId `M.member` m = Nothing -- The thread already exists
+      | otherwise             = Just $ M.insert threadId capId m
 
     deleteThread :: ThreadId -> Map ThreadId Int -> Maybe (Map ThreadId Int)
     deleteThread threadId m
-      | notElem threadId . M.keys $ m = Nothing -- The thread doesn't exist
-      | otherwise                     = Just $ M.delete threadId m
+      | threadId `M.notMember` m = Nothing -- The thread doesn't exist
+      | otherwise                = Just $ M.delete threadId m
 
 -- | This state machine tracks threads running on capabilities, only one thread
 -- may run on a capability at a time.
@@ -78,7 +78,7 @@ capabilityThreadRunMachine = Machine
    where
     runThread :: Int -> ThreadId -> Map Int ThreadId -> Maybe (Map Int ThreadId)
     runThread capId threadId m
-      | M.member capId m          = Nothing -- A thread is already on this cap
+      | capId `M.member` m        = Nothing -- A thread is already on this cap
       | threadId `elem` M.elems m = Nothing -- This thread is already on a cap
       | otherwise                 = Just $ M.insert capId threadId m
     stopThread :: ThreadId -> Map Int ThreadId -> Maybe (Map Int ThreadId)
@@ -130,13 +130,13 @@ capabilityTaskPoolMachine = Machine
     insertTask :: Pthread_t -> Int -> Map Pthread_t Int
                -> Maybe (Map Pthread_t Int)
     insertTask taskID cap m
-      | taskID `elem` M.keys m = Nothing -- The task already exists.
-      | otherwise              = Just $ M.insert taskID cap m
+      | taskID `M.member` m = Nothing -- The task already exists.
+      | otherwise           = Just $ M.insert taskID cap m
 
     deleteTask :: Pthread_t -> Map Pthread_t Int -> Maybe (Map Pthread_t Int)
     deleteTask taskID m
-      | notElem taskID . M.keys $ m = Nothing -- The task doesn't exist.
-      | otherwise                   = Just $ M.delete taskID m
+      | taskID `M.notMember` m = Nothing -- The task doesn't exist.
+      | otherwise              = Just $ M.delete taskID m
 
 -- | This state machine tracks Haskell tasks (represented by the OS_TID
 -- of their OS thread) residing on capabilities and additionally
@@ -178,10 +178,10 @@ capabilityTaskOSMachine = Machine
                  -> (Map OS_TID Int, Map Pthread_t OS_TID)
                  -> Maybe (Map OS_TID Int, Map Pthread_t OS_TID)
     insertTaskOS taskID cap tid (m, ma)
-      | taskID `elem` M.keys ma = Nothing  -- The task already exists.
-      | tid `elem` M.keys m     = Nothing  -- The OS thread already exists.
-      | otherwise               = Just (M.insert tid cap m,
-                                        M.insert taskID tid ma)
+      | taskID `M.member` ma = Nothing  -- The task already exists.
+      | tid `M.member` m     = Nothing  -- The OS thread already exists.
+      | otherwise            = Just (M.insert tid cap m,
+                                     M.insert taskID tid ma)
 
     deleteTaskOS :: Pthread_t -> (Map OS_TID Int, Map Pthread_t OS_TID)
                  -> Maybe (Map OS_TID Int, Map Pthread_t OS_TID)
