@@ -579,10 +579,11 @@ perfParsers = [
       return PerfName{perfNum, name}
    )),
 
- (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + 8) (do -- (perf_num, count)
+ (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + sz_os_tid + 8) (do -- (perf_num, tid, period)
       perfNum <- getE
-      count   <- getE
-      return PerfCounter{perfNum, count}
+      tid     <- getE :: GetEvents OS_TID
+      period  <- getE
+      return PerfCounter{perfNum, tid, period}
   )),
 
  (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_os_tid) (do -- (perf_num, tid)
@@ -857,8 +858,9 @@ showEventInfo spec =
           "About to call the program entry point"
         PerfName{perfNum, name} ->
           printf "perf event %d named \"%s\"" perfNum name
-        PerfCounter{perfNum, count} ->
-          printf "perf event counter %d: %d" perfNum count
+        PerfCounter{perfNum, tid, period} ->
+          printf "perf event counter %d incremented by %d in OS thread %d"
+                 perfNum (period + 1) (os_tid tid)
         PerfTracepoint{perfNum, tid} ->
           printf "perf event tracepoint %d reached in OS thread %d"
                  perfNum (os_tid tid)
@@ -1336,7 +1338,8 @@ putEventSpec PerfName{..} = do
 
 putEventSpec PerfCounter{..} = do
     putE perfNum
-    putE count
+    putE tid
+    putE period
 
 putEventSpec PerfTracepoint{..} = do
     putE perfNum

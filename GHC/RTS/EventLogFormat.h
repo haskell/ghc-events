@@ -230,7 +230,7 @@
  */
 
 #define EVENT_PERF_NAME           140 /* (perf_num, name) */
-#define EVENT_PERF_COUNTER        141 /* (perf_num, count) */
+#define EVENT_PERF_COUNTER        141 /* (perf_num, tid, period) */
 #define EVENT_PERF_TRACEPOINT     142 /* (perf_num, tid) */
 
 

@@ -303,7 +303,8 @@ data EventInfo
                        , name    :: String
                        }
   | PerfCounter        { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
-                       , count   :: {-# UNPACK #-}!Word64
+                       , tid     :: {-# UNPACK #-}!OS_TID
+                       , period  :: {-# UNPACK #-}!Word64
                        }
   | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
                        , tid     :: {-# UNPACK #-}!OS_TID
