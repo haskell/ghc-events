@@ -18,8 +18,8 @@ module GHC.RTS.Events (
        CapsetType(..),
        Timestamp,
        ThreadId,
-       Pthread_t,
-       OS_TID(..),
+       TaskId,
+       KernelThreadId(..),
 
        -- * Reading and writing event logs
        readEventLogFromFile,
@@ -406,30 +406,23 @@ ghc7Parsers = [
  (simpleEvent EVENT_SPARK_FIZZLE   SparkFizzle),
  (simpleEvent EVENT_SPARK_GC       SparkGC),
 
- (VariableSizeParser EVENT_TASK_CREATE (do  -- (taskID, cap, tid)
-      num <- getE :: GetEvents Word16
-      string <- getString num
-      cap <- getE :: GetEvents CapNo
-      tid <- getE :: GetEvents OS_TID
-      return TaskCreate{ taskID = map (toEnum . fromEnum) string
-                       , cap = fromIntegral cap
-                       , tid
-                       }
+ (FixedSizeParser EVENT_TASK_CREATE (sz_taskid + sz_cap + sz_kernel_tid) (do  -- (taskID, cap, tid)
+      taskId <- getE :: GetEvents TaskId
+      cap    <- getE :: GetEvents CapNo
+      tid    <- getE :: GetEvents KernelThreadId
+      return TaskCreate{ taskId, cap = fromIntegral cap, tid }
    )),
- (VariableSizeParser EVENT_TASK_MIGRATE (do  -- (taskID, cap, new_cap)
-      num <- getE :: GetEvents Word16
-      string <- getString num
-      cap <- getE :: GetEvents CapNo
+ (FixedSizeParser EVENT_TASK_MIGRATE (sz_taskid + sz_cap*2) (do  -- (taskID, cap, new_cap)
+      taskId  <- getE :: GetEvents TaskId
+      cap     <- getE :: GetEvents CapNo
       new_cap <- getE :: GetEvents CapNo
-      return TaskMigrate{ taskID = map (toEnum . fromEnum) string
-                        , cap = fromIntegral cap
-                        , new_cap = fromIntegral new_cap
+      return TaskMigrate{ taskId, cap = fromIntegral cap
+                                , new_cap = fromIntegral new_cap
                         }
    )),
- (VariableSizeParser EVENT_TASK_DELETE (do  -- (taskID)
-      num <- getE :: GetEvents Word16
-      string <- getString num
-      return TaskDelete{ taskID = map (toEnum . fromEnum) string }
+ (FixedSizeParser EVENT_TASK_DELETE (sz_taskid) (do  -- (taskID)
+      taskId <- getE :: GetEvents TaskId
+      return TaskDelete{ taskId }
    )),
 
  (FixedSizeParser EVENT_THREAD_WAKEUP (sz_tid + sz_cap) (do  -- (thread, other_cap)
@@ -579,16 +572,16 @@ perfParsers = [
       return PerfName{perfNum, name}
    )),
 
- (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + sz_os_tid + 8) (do -- (perf_num, tid, period)
+ (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + sz_kernel_tid + 8) (do -- (perf_num, tid, period)
       perfNum <- getE
-      tid     <- getE :: GetEvents OS_TID
+      tid     <- getE
       period  <- getE
       return PerfCounter{perfNum, tid, period}
   )),
 
- (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_os_tid) (do -- (perf_num, tid)
+ (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_kernel_tid) (do -- (perf_num, tid)
       perfNum <- getE
-      tid     <- getE :: GetEvents OS_TID
+      tid     <- getE
       return PerfTracepoint{perfNum, tid}
   ))
  ]
@@ -752,14 +745,14 @@ showEventInfo spec =
           printf "spark fizzled"
         SparkGC ->
           printf "spark GCed"
-        TaskCreate taskID cap tid ->
-          printf "task %s created on cap %d with OS thread %d"
-                 (showPthread_t taskID) cap (os_tid tid)
-        TaskMigrate taskID cap new_cap ->
-          printf "task %s migrated from cap %d to cap %d"
-                 (showPthread_t taskID) cap new_cap
-        TaskDelete taskID ->
-          printf "task %s deleted" (showPthread_t taskID)
+        TaskCreate taskId cap tid ->
+          printf "task %d created on cap %d with OS kernel thread %d"
+                 taskId cap (kernelThreadId tid)
+        TaskMigrate taskId cap new_cap ->
+          printf "task %d migrated from cap %d to cap %d"
+                 taskId cap new_cap
+        TaskDelete taskId ->
+          printf "task %d deleted" taskId
         Shutdown ->
           printf "shutting down"
         WakeupThread thread otherCap ->
@@ -860,10 +853,10 @@ showEventInfo spec =
           printf "perf event %d named \"%s\"" perfNum name
         PerfCounter{perfNum, tid, period} ->
           printf "perf event counter %d incremented by %d in OS thread %d"
-                 perfNum (period + 1) (os_tid tid)
+                 perfNum (period + 1) (kernelThreadId tid)
         PerfTracepoint{perfNum, tid} ->
           printf "perf event tracepoint %d reached in OS thread %d"
-                 perfNum (os_tid tid)
+                 perfNum (kernelThreadId tid)
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -887,9 +880,6 @@ showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
 showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
 showThreadStopStatus NoStatus = "No stop thread status"
-
-showPthread_t :: Pthread_t -> String
-showPthread_t l = concat $ map (\ w -> printf "%02x" ) l
 
 ppEventLog :: EventLog -> String
 ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
@@ -1171,21 +1161,18 @@ putEventSpec EndGC = do
 putEventSpec GlobalSyncGC = do
     return ()
 
-putEventSpec (TaskCreate taskID cap tid) = do
-    putE (fromIntegral (length taskID) :: Word16)
-    mapM_ putE taskID
+putEventSpec (TaskCreate taskId cap tid) = do
+    putE taskId
     putCap cap
     putE tid
 
-putEventSpec (TaskMigrate taskID cap new_cap) = do
-    putE (fromIntegral (length taskID) :: Word16)
-    mapM_ putE taskID
+putEventSpec (TaskMigrate taskId cap new_cap) = do
+    putE taskId
     putCap cap
     putCap new_cap
 
-putEventSpec (TaskDelete taskID) = do
-    putE (fromIntegral (length taskID) :: Word16)
-    mapM_ putE taskID
+putEventSpec (TaskDelete taskId) = do
+    putE taskId
 
 putEventSpec GCStatsGHC{..} = do
     putE heapCapset

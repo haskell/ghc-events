@@ -21,14 +21,14 @@ type RawThreadStopStatus = Word16
 type StringId = Word32
 type Capset   = Word32
 type PerfEventTypeNum = Word32
-type Pthread_t = [Word8]  -- TODO: consider bytestrings if 8 bytes is too slow
+type TaskId = Word64
 type PID = Word32
 
-newtype OS_TID = OS_TID { os_tid :: Word64 }
+newtype KernelThreadId = KernelThreadId { kernelThreadId :: Word64 }
   deriving (Eq, Ord, Show)
-instance Binary OS_TID where
-  put (OS_TID tid) = put tid
-  get = fmap OS_TID get
+instance Binary KernelThreadId where
+  put (KernelThreadId tid) = put tid
+  get = fmap KernelThreadId get
 
 -- These types are used by Mercury events.
 type ParConjDynId = Word64
@@ -58,8 +58,10 @@ sz_block_event = fromIntegral (sz_event_type_num + sz_time + sz_block_size
     + sz_time + sz_cap)
 sz_pid :: EventTypeSize
 sz_pid = 4
-sz_os_tid :: EventTypeSize
-sz_os_tid = 8
+sz_taskid :: EventTypeSize
+sz_taskid = 8
+sz_kernel_tid :: EventTypeSize
+sz_kernel_tid = 8
 sz_th_stop_status :: EventTypeSize
 sz_th_stop_status = 2
 sz_string_id :: EventTypeSize
@@ -163,15 +165,15 @@ data EventInfo
   | SparkGC            { }
 
   -- tasks
-  | TaskCreate         { taskID :: Pthread_t,
+  | TaskCreate         { taskId :: TaskId,
                          cap :: {-# UNPACK #-}!Int,
-                         tid :: {-# UNPACK #-}!OS_TID
+                         tid :: {-# UNPACK #-}!KernelThreadId
                        }
-  | TaskMigrate        { taskID :: Pthread_t,
+  | TaskMigrate        { taskId :: TaskId,
                          cap :: {-# UNPACK #-}!Int,
                          new_cap :: {-# UNPACK #-}!Int
                        }
-  | TaskDelete         { taskID :: Pthread_t }
+  | TaskDelete         { taskId :: TaskId }
 
   -- garbage collection
   | RequestSeqGC       { }
@@ -303,11 +305,11 @@ data EventInfo
                        , name    :: String
                        }
   | PerfCounter        { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
-                       , tid     :: {-# UNPACK #-}!OS_TID
+                       , tid     :: {-# UNPACK #-}!KernelThreadId
                        , period  :: {-# UNPACK #-}!Word64
                        }
   | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
-                       , tid     :: {-# UNPACK #-}!OS_TID
+                       , tid     :: {-# UNPACK #-}!KernelThreadId
                        }
 
   deriving Show
