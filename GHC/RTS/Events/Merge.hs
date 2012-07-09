@@ -5,6 +5,7 @@ module GHC.RTS.Events.Merge (mergeEventLogs) where
 import GHC.RTS.Events
 import Data.Monoid
 import Data.List (foldl')
+import qualified Data.Map as M
 import Data.Word (Word32, Word16)
 
 {-
@@ -17,9 +18,16 @@ preserved.
 -}
 
 mergeEventLogs :: EventLog -> EventLog -> EventLog
-mergeEventLogs (EventLog h1 (Data xs)) (EventLog h2 (Data ys)) | h1 == h2
-  = EventLog h1 . Data . mergeOn time xs $ shift (maxVars xs) ys
-mergeEventLogs _ _ = error "can't merge eventlogs with non-matching headers"
+mergeEventLogs (EventLog h1 (Data xs)) (EventLog h2 (Data ys)) =
+  let headerMap = M.fromList . map (\ et@EventType {num} -> (num, et))
+      m1 = headerMap $ eventTypes h1
+      m2 = headerMap $ eventTypes h2
+      combine et1 et2 | et1 == et2 = et1
+      combine _ _ = error "can't merge eventlogs with inconsistent headers"
+      m = M.unionWith combine m1 m2
+      h = Header $ M.elems m
+  in h == h `seq`  -- Detect inconsistency ASAP.
+     EventLog h . Data . mergeOn time xs $ shift (maxVars xs) ys
 
 mergeOn :: Ord b => (a -> b) -> [a] -> [a] -> [a]
 mergeOn f [] ys = ys
