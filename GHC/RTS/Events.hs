@@ -31,7 +31,11 @@ module GHC.RTS.Events (
 
        -- * Printing
        showEventInfo, showThreadStopStatus,
-       ppEventLog, ppEventType, ppEvent
+       ppEventLog, ppEventType, ppEvent,
+
+       -- * Perf events
+       nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT,
+       sz_perf_num, sz_kernel_tid
   ) where
 
 {- Libraries. -}
@@ -1029,9 +1033,14 @@ eventTypeNum e = case e of
     MerReleaseThread _ -> EVENT_MER_RELEASE_CONTEXT
     MerCapSleeping -> EVENT_MER_ENGINE_SLEEPING
     MerCallingMain -> EVENT_MER_CALLING_MAIN
-    PerfName       {} -> EVENT_PERF_NAME
-    PerfCounter    {} -> EVENT_PERF_COUNTER
-    PerfTracepoint {} -> EVENT_PERF_TRACEPOINT
+    PerfName       {} -> nEVENT_PERF_NAME
+    PerfCounter    {} -> nEVENT_PERF_COUNTER
+    PerfTracepoint {} -> nEVENT_PERF_TRACEPOINT
+
+nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
+nEVENT_PERF_NAME = EVENT_PERF_NAME
+nEVENT_PERF_COUNTER = EVENT_PERF_COUNTER
+nEVENT_PERF_TRACEPOINT = EVENT_PERF_TRACEPOINT
 
 putEvent :: Event -> PutEvents ()
 putEvent (Event t spec) = do
