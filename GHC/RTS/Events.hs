@@ -750,13 +750,13 @@ showEventInfo spec =
         SparkGC ->
           printf "spark GCed"
         TaskCreate taskId cap tid ->
-          printf "task %d created on cap %d with OS kernel thread %d"
+          printf "task 0x%x created on cap %d with OS kernel thread %d"
                  taskId cap (kernelThreadId tid)
         TaskMigrate taskId cap new_cap ->
-          printf "task %d migrated from cap %d to cap %d"
+          printf "task 0x%x migrated from cap %d to cap %d"
                  taskId cap new_cap
         TaskDelete taskId ->
-          printf "task %d deleted" taskId
+          printf "task 0x%x deleted" taskId
         Shutdown ->
           printf "shutting down"
         WakeupThread thread otherCap ->
