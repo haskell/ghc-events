@@ -8,6 +8,12 @@ import Data.List (foldl')
 import qualified Data.Map as M
 import Data.Word (Word32, Word16)
 
+-- TODO: add a merge mode where the events are synchronized using
+-- the wall clock time event at the start of both eventlogs (for newer GHCs).
+-- Such merge is not associative so we either need to take many arguments
+-- or cope with eventlogs with many wall clock time events (assume they
+-- are products of previous merges). To decide.
+
 {-
 GHC numbers caps and capsets in sequential order, starting at 0.  Threads are
 similarly numbered, but start at 1.  In order to merge logs 'x' and 'y', we
