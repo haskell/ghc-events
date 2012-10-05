@@ -48,7 +48,8 @@ data MaxVars = MaxVars { mcapset :: !Word32
 instance Monoid MaxVars where
     -- threads start at 1
     mempty  = MaxVars 0 0 1
-    mappend (MaxVars a b c) (MaxVars x y z) = MaxVars (max a x) (max b y) (max c z)
+    mappend (MaxVars a b c) (MaxVars x y z) =
+      MaxVars (max a x) (b + y) (max c z)
     -- avoid space leaks:
     mconcat = foldl' mappend mempty
 
@@ -57,11 +58,17 @@ instance Monoid MaxVars where
 isCap :: Int -> Bool
 isCap x = fromIntegral x /= ((-1) :: Word16)
 
+-- For caps we find the maximum value by summing the @Startup@ declarations.
+-- TODO: it's not trivial to add CapCreate since we don't know
+-- if created caps are guaranteed to be numbered consecutively or not
+-- (are they? is it asserted in GHC code somewhere?). We might instead
+-- just scan all events mentioning a cap and take the maximum,
+-- but it's a slower and much longer code, requiring constant maintenance.
 maxVars :: [Event] -> MaxVars
 maxVars = mconcat . map (maxSpec . spec)
  where
     -- only checking binding sites right now, sufficient?
-    maxSpec (Startup n) = mempty { mcap = n - 1 }
+    maxSpec (Startup n) = mempty { mcap = n }
     maxSpec (CreateThread t) = mempty { mthread = t }
     maxSpec (CreateSparkThread t) = mempty { mthread = t }
     maxSpec (CapsetCreate cs _) = mempty {mcapset = cs }
@@ -72,8 +79,11 @@ sh :: Num a => a -> a -> a
 sh x y = x + y + 1
 
 shift :: MaxVars -> [Event] -> [Event]
-shift mv@(MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
+shift maxVars = map (\(Event t s) -> Event t $ shift' s)
  where
+    -- MaxVars collection assumes caps are numbered from 1,
+    -- but they are numbered from 0, so we fix it here.
+    mv@(MaxVars mcs mc mt) = maxVars { mcap = mcap maxVars - 1 }
     -- -1 marks a block that isn't attached to a particular capability
     shift' (EventBlock et c bs) = EventBlock et (msh c) $ shift mv bs
      where msh x = if isCap x then sh mc x else x
