@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP,BangPatterns,PatternGuards #-}
 {-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
 {-
- - Authors: Donnie Jones, Simon Marlow, Paul Bone, Duncan Coutts
- - Events.hs
  -   Parser functions for GHC RTS EventLog framework.
  -}
 
