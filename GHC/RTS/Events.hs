@@ -1185,11 +1185,11 @@ putEventSpec (TaskDelete taskId) = do
 
 putEventSpec GCStatsGHC{..} = do
     putE heapCapset
-    putE gen
+    putE (fromIntegral gen :: Word16)
     putE copied
     putE slop
     putE frag
-    putE parNThreads
+    putE (fromIntegral parNThreads :: Word32)
     putE parMaxCopied
     putE parTotCopied
 
@@ -1207,7 +1207,7 @@ putEventSpec HeapLive{..} = do
 
 putEventSpec HeapInfoGHC{..} = do
     putE heapCapset
-    putE gens
+    putE (fromIntegral gens :: Word16)
     putE maxHeapSize
     putE allocAreaSize
     putE mblockSize
