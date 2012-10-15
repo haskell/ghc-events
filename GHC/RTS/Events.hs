@@ -277,6 +277,11 @@ standardParsers = [
       string <- getString num
       return UserMessage{ msg = string }
    )),
+    (VariableSizeParser EVENT_USER_MARKER (do -- (markername)
+      num <- getE :: GetEvents Word16
+      string <- getString num
+      return UserMarker{ markername = string }
+   )),
  (VariableSizeParser EVENT_PROGRAM_ARGS (do -- (capset, [arg])
       num <- getE :: GetEvents Word16
       cs <- getE
@@ -799,6 +804,8 @@ showEventInfo spec =
           msg
         UserMessage msg ->
           msg
+        UserMarker markername ->
+          printf "marker: %s" markername
         CapsetCreate cs ct ->
           printf "created capset %d of type %s" cs (show ct)
         CapsetDelete cs ->
@@ -993,6 +1000,7 @@ eventTypeNum e = case e of
     Startup {} -> EVENT_STARTUP
     EventBlock {} -> EVENT_BLOCK_MARKER
     UserMessage {} -> EVENT_USER_MSG
+    UserMarker  {} -> EVENT_USER_MARKER
     GCIdle {} -> EVENT_GC_IDLE
     GCWork {} -> EVENT_GC_WORK
     GCDone {} -> EVENT_GC_DONE
@@ -1277,6 +1285,10 @@ putEventSpec (Message s) = do
     mapM_ putE s
 
 putEventSpec (UserMessage s) = do
+    putE (fromIntegral (length s) :: Word16)
+    mapM_ putE s
+
+putEventSpec (UserMarker s) = do
     putE (fromIntegral (length s) :: Word16)
     mapM_ putE s
 

@@ -258,6 +258,7 @@ data EventInfo
   -- messages
   | Message            { msg :: String }
   | UserMessage        { msg :: String }
+  | UserMarker         { markername :: String }
 
   -- These events have been added for Mercury's benifit but are generally
   -- useful.
