@@ -16,10 +16,12 @@ import Data.Word (Word32, Word16)
 
 {-
 GHC numbers caps and capsets in sequential order, starting at 0.  Threads are
-similarly numbered, but start at 1.  In order to merge logs 'x' and 'y', we
-find the maximum values of each variable type in 'x', then increment each
-variable in 'y' that amount.  This guarantees that variables in each log don't
-clash, and that the meaning of each reference to a thread/cap/capset is
+similarly numbered, but start at 1.  In order to merge logs 'x' and 'y',
+we find the # of occupied numbers for each variable type in 'x',
+then increment each variable in 'y' by that amount.
+We assume that if a number is occupied, so are all lower numbers.
+This guarantees that variables in each log don't clash,
+and that the meaning of each reference to a thread/cap/capset is
 preserved.
 -}
 
@@ -41,13 +43,13 @@ mergeOn f xs [] = xs
 mergeOn f (x:xs) (y:ys) | f x <= f y = x : mergeOn f xs (y:ys)
                         | otherwise  = y : mergeOn f (x:xs) ys
 
+-- TODO: rename, since these are not maximal values, but numbers of used values
 data MaxVars = MaxVars { mcapset :: !Word32
                        , mcap :: !Int
                        , mthread :: !ThreadId }
 
 instance Monoid MaxVars where
-    -- threads start at 1
-    mempty  = MaxVars 0 0 1
+    mempty  = MaxVars 0 0 0
     mappend (MaxVars a b c) (MaxVars x y z) =
       MaxVars (max a x) (b + y) (max c z)
     -- avoid space leaks:
@@ -69,21 +71,20 @@ maxVars = mconcat . map (maxSpec . spec)
  where
     -- only checking binding sites right now, sufficient?
     maxSpec (Startup n) = mempty { mcap = n }
+    -- Threads start at 1.
     maxSpec (CreateThread t) = mempty { mthread = t }
     maxSpec (CreateSparkThread t) = mempty { mthread = t }
-    maxSpec (CapsetCreate cs _) = mempty {mcapset = cs }
+    -- Capsets start at 0.
+    maxSpec (CapsetCreate cs _) = mempty {mcapset = cs + 1 }
     maxSpec (EventBlock _ _ es) = maxVars es
     maxSpec _  = mempty
 
 sh :: Num a => a -> a -> a
-sh x y = x + y + 1
+sh x y = x + y
 
 shift :: MaxVars -> [Event] -> [Event]
-shift maxVars = map (\(Event t s) -> Event t $ shift' s)
+shift mv@(MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
  where
-    -- MaxVars collection assumes caps are numbered from 1,
-    -- but they are numbered from 0, so we fix it here.
-    mv@(MaxVars mcs mc mt) = maxVars { mcap = mcap maxVars - 1 }
     -- -1 marks a block that isn't attached to a particular capability
     shift' (EventBlock et c bs) = EventBlock et (msh c) $ shift mv bs
      where msh x = if isCap x then sh mc x else x
