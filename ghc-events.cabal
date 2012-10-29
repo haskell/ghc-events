@@ -19,7 +19,6 @@ build-type:       Simple
 tested-with:      GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.1, GHC == 7.6.1
 cabal-version:    >= 1.8
 extra-source-files: GHC/RTS/EventLogFormat.h,
-                    AUTHORS,
                     test/*.eventlog
 
 source-repository head
