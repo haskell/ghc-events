@@ -40,6 +40,7 @@ library
                     GHC.RTS.Events.Analysis.Thread
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
+  include-dirs:     GHC/RTS
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 executable ghc-events
