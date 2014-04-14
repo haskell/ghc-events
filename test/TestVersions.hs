@@ -38,7 +38,7 @@ testFile f = do
             let newlog = ppEventLog newlogdata ++ "\n" in
                 if oldlog == newlog
                     then putStrLn (f ++ ": success") >> return True
-                    else do print $ diffLines oldlog newlog
+                    else do putStrLn $ diffLines oldlog newlog
                             oops "pretty print output does not match"
 
 main = do
@@ -62,5 +62,5 @@ diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++
 diff l (o:os) (n:ns) = if (o == n)
                         then diff (l+1) os ns
                         else "Different lines at line " ++ show l ++ ":\n" ++
-                            "Original: " ++ o ++
+                            "Original: " ++ o ++ "\n" ++
                             "New:      " ++ n
