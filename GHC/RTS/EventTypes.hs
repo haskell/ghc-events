@@ -276,7 +276,7 @@ data EventInfo
   | UserMarker         { markername :: String }
 
   -- Events emitted by a parallel RTS
-   -- Programme /process info (tools might prefer newer variants above)
+   -- Program /process info (tools might prefer newer variants above)
   | Version            { version :: String }
   | ProgramInvocation  { commandline :: String }
    -- startup and shutdown (incl. real start time, not first log entry)
@@ -449,8 +449,8 @@ data MessageTag
   | Head | Constr | Part | Terminate
   | Packet
   -- with GUM and its variants, add:
-  -- | Fetch | Resume | Ack
-  -- | Fish | Schedule | Free | Reval | Shark
+  -- ...| Fetch | Resume | Ack
+  -- ...| Fish | Schedule | Free | Reval | Shark
   deriving (Enum, Show)
 offset :: RawMsgTag
 offset = 0x50
