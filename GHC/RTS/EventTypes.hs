@@ -382,9 +382,9 @@ The parsers in Events.hs have to be adapted accordingly, providing
 special ghc-7.8.2 parsers for the thread-stop event if GHC-7.8.2
 produced the eventlog.
 The EVENT_USER_MARKER was not present in GHC-7.6.3, and a new event
-EVENT_HACK_BUG_T9003 so we take presence of USER_MARKER and absence of
-HACK_BUG_T9003 as an indication that ghc-7.8.2 parsers should be used.
-
+EVENT_HACK_BUG_T9003 was added in GHC-7.8.3, so we take presence of
+USER_MARKER and absence of HACK_BUG_T9003 as an indication that
+ghc-7.8.2 parsers should be used.
 -}
 
 --sync with ghc/includes/Constants.h
@@ -433,7 +433,7 @@ mkStopStatus n = case n of
  15 ->  BlockedOnCCall_NoUnblockExc
  16 ->  BlockedOnMsgThrowTo
  17 ->  ThreadMigrating
- 18 ->  BlockedOnMsgGlobalise -- collision with prior mercury event
+ 18 ->  BlockedOnMsgGlobalise
  19 ->  NoStatus -- yeuch... this one does not actually exist in GHC eventlogs
  20 ->  BlockedOnMVarRead -- since GHC-7.8.3
  _  ->  error "mkStat"

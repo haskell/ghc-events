@@ -23,7 +23,7 @@ files = map ("test/"++)
     , "queens-ghc-7.0.2.eventlog"
     , "mandelbrot-mmc-2011-06-14.eventlog" 
     , "mdlLogMPI1.eventlog"
-    , "warshall0-trace-7.8.2#8.eventlog" ]
+    , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
 
 -- returns True on success
 testFile :: FilePath -> IO Bool
