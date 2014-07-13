@@ -50,8 +50,13 @@ import Data.Binary.Put
 import Control.Monad
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
-import Control.Monad.Reader
-import Control.Monad.Except
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Reader
+#if MIN_VERSION_transformers(0, 4, 1)
+import Control.Monad.Trans.Except
+#else
+import Control.Monad.Trans.Error
+#endif
 import qualified Data.ByteString.Lazy as L
 import Data.Function
 import Data.List
@@ -65,6 +70,13 @@ import GHC.RTS.EventParserUtils
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
+
+#if !(MIN_VERSION_transformers(0, 4, 1))
+-- use Error instead of Except for tranformers-0.3.0.0
+type ExceptT = ErrorT
+throwE = throwError
+runExceptT = runErrorT
+#endif
 
 ------------------------------------------------------------------------------
 -- Binary instances
@@ -81,7 +93,7 @@ getEventType = do
            lift $ G.skip (fromIntegral etExtraLen)
            ete <- getH :: GetHeader Marker
            when (ete /= EVENT_ET_END) $
-              throwError ("Event Type end marker not found.")
+              throwE ("Event Type end marker not found.")
            return (EventType etNum etDesc etSize)
            where
              getEtDesc :: Int -> GetHeader [Char]
@@ -91,14 +103,14 @@ getHeader :: GetHeader Header
 getHeader = do
            hdrb <- getH :: GetHeader Marker
            when (hdrb /= EVENT_HEADER_BEGIN) $
-                throwError "Header begin marker not found"
+                throwE "Header begin marker not found"
            hetm <- getH :: GetHeader Marker
            when (hetm /= EVENT_HET_BEGIN) $
-                throwError "Header Event Type begin marker not found"
+                throwE "Header Event Type begin marker not found"
            ets <- getEventTypes
            emark <- getH :: GetHeader Marker
            when (emark /= EVENT_HEADER_END) $
-                throwError "Header end marker not found"
+                throwE "Header end marker not found"
            return (Header ets)
      where
        getEventTypes :: GetHeader [EventType]
@@ -112,7 +124,7 @@ getHeader = do
               | m == EVENT_HET_END ->
                    return []
               | otherwise ->
-                   throwError "Malformed list of Event Types in header"
+                   throwE "Malformed list of Event Types in header"
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
 getEvent (EventParsers parsers) = do
@@ -751,7 +763,7 @@ perfParsers = [
 getData :: GetEvents Data
 getData = do
    db <- getE :: GetEvents Marker
-   when (db /= EVENT_DATA_BEGIN) $ throwError "Data begin marker not found"
+   when (db /= EVENT_DATA_BEGIN) $ lift $ throwE "Data begin marker not found"
    eparsers <- ask
    let
        getEvents :: [Event] -> GetEvents Data
