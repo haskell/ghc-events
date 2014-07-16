@@ -36,17 +36,17 @@ import Data.List
 import GHC.RTS.EventTypes
 
 -- reader/Get monad that passes around the event types
-type GetEvents a = ReaderT EventParsers (ExceptT String Get) a
+type GetEvents a = ReaderT EventParsers Get a
 
 newtype EventParsers = EventParsers (Array Int (GetEvents EventInfo))
 
-type GetHeader a = ExceptT String Get a
+type GetHeader a = Get a
 
 getH :: Binary a => GetHeader a
-getH = lift get
+getH = get
 
 getE :: Binary a => GetEvents a
-getE = lift $ lift get
+getE = lift get
 
 nBytes :: Integral a => a -> GetEvents [Word8]
 nBytes n = replicateM (fromIntegral n) getE
@@ -57,7 +57,7 @@ getString len = do
     return $ map (chr . fromIntegral) bytes
 
 skip :: Integral a => a -> GetEvents ()
-skip n = lift $ lift $ G.skip (fromIntegral n)
+skip n = lift $ G.skip (fromIntegral n)
 
 --
 -- Code to build the event parser table.
