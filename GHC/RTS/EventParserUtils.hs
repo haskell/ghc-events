@@ -147,7 +147,8 @@ mkEventTypeParsers etypes event_parsers
                     -- But we don't have a valid parser for it.
                     Nothing -> noEventTypeParser num mb_et_size
                 -- This event is not declared in the log file's header
-                Nothing -> undeclared_etype num
+                -- TODO: need to come back to this
+                Nothing -> undefined
 
 -- Find the first variable length parser.
 getVariableParser :: [EventParser a] -> Maybe (EventParser a)
