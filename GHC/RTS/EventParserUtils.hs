@@ -17,7 +17,6 @@ module GHC.RTS.EventParserUtils (
     ) where
 
 import Control.Monad
-import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Array
 import Data.Binary
@@ -126,7 +125,7 @@ mkEventTypeParsers etypes event_parsers
     -- [ (num, parser num etype) | (num, etype) <- M.toList etypes ])
   where
     max_event_num = maximum (M.keys etypes)
-    undeclared_etype num = throwError ("undeclared event type: " ++ show num)
+    undeclared_etype num = fail ("undeclared event type: " ++ show num)
     parser_map = makeParserMap event_parsers
     parser num =
             -- Get the event's size from the header,
