@@ -78,7 +78,7 @@ getEventType = do
            etDescLen <- getH :: GetHeader EventTypeDescLen
            etDesc <- getEtDesc (fromIntegral etDescLen)
            etExtraLen <- getH :: GetHeader Word32
-           lift $ G.skip (fromIntegral etExtraLen)
+           G.skip (fromIntegral etExtraLen)
            ete <- getH :: GetHeader Marker
            when (ete /= EVENT_ET_END) $
               throwError ("Event Type end marker not found.")
@@ -138,15 +138,14 @@ standardParsers = [
       block_size <- getE :: GetEvents BlockSize
       end_time <- getE :: GetEvents Timestamp
       c <- getE :: GetEvents CapNo
-      lbs <- lift . lift $ getLazyByteString ((fromIntegral block_size) -
+      lbs <- lift $ getLazyByteString ((fromIntegral block_size) -
                                               (fromIntegral sz_block_event))
       eparsers <- ask
-      let e_events = runGet (runExceptT $ runReaderT (getEventBlock eparsers) eparsers) lbs
-      return EventBlock{ end_time=end_time,
-                         cap= fromIntegral c,
-                         block_events=case e_events of
-                                        Left s -> error s
-                                        Right es -> es }
+      let e_events = runGet (runReaderT (getEventBlock eparsers) eparsers) lbs
+      return EventBlock { end_time=end_time,
+                          cap= fromIntegral c,
+                          block_events=e_events
+                        }
    )),
 
  -- EVENT_SHUTDOWN is replaced by EVENT_CAP_DELETE and GHC 7.6+
@@ -765,7 +764,7 @@ getData = do
 
 getEventBlock :: EventParsers -> GetEvents [Event]
 getEventBlock parsers = do
-  b <- lift . lift $ isEmpty
+  b <- lift $ isEmpty
   if b then return [] else do
   mb_e <- getEvent parsers
   case mb_e of
@@ -774,7 +773,7 @@ getEventBlock parsers = do
       es <- getEventBlock parsers
       return (e:es)
 
-getEventLog :: ExceptT String Get EventLog
+getEventLog :: Get EventLog
 getEventLog = do
     header <- getHeader
     let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
@@ -817,10 +816,10 @@ getEventLog = do
     dat <- runReaderT getData (EventParsers parsers)
     return (EventLog header dat)
 
-readEventLogFromFile :: FilePath -> IO (Either String EventLog)
+readEventLogFromFile :: FilePath -> IO (EventLog)
 readEventLogFromFile f = do
     s <- L.readFile f
-    return $ runGet (do v <- runExceptT getEventLog
+    return $ runGet (do v <- getEventLog
                         m <- isEmpty
                         m `seq` return v)  s
 
