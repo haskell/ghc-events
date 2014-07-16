@@ -207,9 +207,10 @@ usage = unlines $ map pad strings
 
 readLogOrDie file = do
     e <- readEventLogFromFile file
-    case e of
-        Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
-        Right log -> return log
+    return e
+--     case e of
+--         Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
+--         Right log -> return log
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 
