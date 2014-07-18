@@ -97,14 +97,14 @@ getHeader = do
        getEventTypes :: GetHeader [EventType]
        getEventTypes = do
            m <- getH :: GetHeader Marker
-           case () of
-            _ | m == EVENT_ET_BEGIN -> do
+           case m of
+              EVENT_ET_BEGIN -> do
                    et <- getEventType
                    nextET <- getEventTypes
                    return (et : nextET)
-              | m == EVENT_HET_END ->
+              EVENT_HET_END ->
                    return []
-              | otherwise ->
+              otherwise ->
                    fail "Malformed list of Event Types in header"
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
