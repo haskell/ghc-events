@@ -18,7 +18,11 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
 import System.IO
+#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
+import System.Exit hiding (die)
+#else
 import System.Exit
+#endif
 
 main = getArgs >>= command
 
@@ -175,6 +179,8 @@ command ["profile", "sparks", file] = do
     putStrLn . showProcess $ result
 
 command _ = putStr usage >> die "Unrecognized command"
+
+die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 
 usage = unlines $ map pad strings
  where
