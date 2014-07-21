@@ -1,7 +1,8 @@
 {-# LANGUAGE CPP #-}
 module Main where
 
-import GHC.RTS.Events
+import GHC.RTS.Events 
+import GHC.RTS.EventsIncremental
 import GHC.RTS.Events.Merge
 import GHC.RTS.Events.Analysis
 import GHC.RTS.Events.Analysis.SparkThread
@@ -28,6 +29,14 @@ main = getArgs >>= command
 
 command ["--help"] = do
     putStr usage
+
+command ["inc", file] = do
+    h  <- openBinaryFile file ReadMode
+    eh <- openEventHandle h
+    let hdr = getHdr eh
+        log = EventLog hdr events
+        events = Data []
+    putStrLn $ ppEventLog log
 
 command ["show", file] = do
     log <- readEventLogFromFile file
