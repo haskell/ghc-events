@@ -5,10 +5,9 @@
  module GHC.RTS.EventsIncremental (
   EventHandle,
   openEventHandle,
-  getHeaderIncremental,
-  getEvent,
-  getHdr
-
+  parseHeaderIncremental,
+  getHdr,
+  readEvent,
  ) where
 
 import GHC.RTS.Events 
@@ -21,8 +20,8 @@ import System.Exit (exitFailure)
 
 data EventHandle = EventHandle Header Handle
 
-getHeaderIncremental  :: Handle -> IO Header
-getHeaderIncremental h = do
+parseHeaderIncremental  :: Handle -> IO Header
+parseHeaderIncremental h = do
     loop (runGetIncremental getHeader)
      where
        loop (Fail _ _ errMsg) = putStrLn errMsg >> exitFailure
@@ -38,11 +37,10 @@ getHeaderIncremental h = do
 
 openEventHandle :: Handle -> IO EventHandle
 openEventHandle h = do
-   hdr <- getHeaderIncremental h
+   hdr <- parseHeaderIncremental h
    return $ EventHandle hdr h
 
-getHdr :: EventHandle -> Header
 getHdr (EventHandle h _) = h
 
-getEvent  :: EventHandle -> IO (Maybe Event)
-getEvent h = undefined
+readEvent  :: EventHandle -> IO (Maybe Event)
+readEvent h = undefined
