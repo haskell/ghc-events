@@ -5,7 +5,7 @@
  module GHC.RTS.EventsIncremental (
   EventHandle,
   openEventHandle,
-  parseHeaderIncremental,
+  parseIncremental,
   getHdr,
   readEvent,
  ) where
@@ -20,24 +20,21 @@ import System.Exit (exitFailure)
 
 data EventHandle = EventHandle Header Handle
 
-parseHeaderIncremental  :: Handle -> IO Header
-parseHeaderIncremental h = do
-    loop (runGetIncremental getHeader)
-     where
-       loop (Fail _ _ errMsg) = putStrLn errMsg >> exitFailure
-       loop (Partial k)       = chunk >>= loop . k
-       loop (Done _ _ hdr)    = return hdr
- 
-       chunk = do
-       isEof <- hIsEOF h
-       if isEof
-           then return Nothing
-           else do  dat <- B.hGetSome h 128;
-                    return $ Just dat
+decoder :: Get a -> Decoder a
+decoder = runGetIncremental
+
+parseIncremental  :: Decoder a -> Handle -> Int -> IO a
+parseIncremental dec  h sz = do
+    ch <- B.hGetNonBlocking h sz
+    let dec' =  dec `pushChunk` ch
+    case dec' of 
+      (Fail _ _ errMsg) -> putStrLn errMsg >> exitFailure
+      (Partial cont)    -> parseIncremental dec' h sz
+      (Done _ _ dat)    -> return dat
 
 openEventHandle :: Handle -> IO EventHandle
 openEventHandle h = do
-   hdr <- parseHeaderIncremental h
+   hdr <- parseIncremental (decoder getHeader) h 1024
    return $ EventHandle hdr h
 
 getHdr (EventHandle h _) = h
