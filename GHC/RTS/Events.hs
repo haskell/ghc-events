@@ -5,6 +5,8 @@
  -}
 
 module GHC.RTS.Events (
+       -- * Parsers
+       getHeader,
        -- * The event log types
        EventLog(..),
        EventType(..),
