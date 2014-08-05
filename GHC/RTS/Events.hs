@@ -8,7 +8,6 @@ module GHC.RTS.Events (
        -- * Parsers
        getHeader,
        getEvent,
-       getDataBeginMarker,
        standardParsers,
        ghc6Parsers,
        ghc7Parsers,
@@ -94,15 +93,6 @@ getEventType = do
            where
              getEtDesc :: Int -> GetHeader [Char]
              getEtDesc s = replicateM s (getH :: GetHeader Char)
-
--- for incremental parser
-getDataBeginMarker :: Get Marker
-getDataBeginMarker = do
-    db <- get :: Get Marker
-    when (db /= EVENT_DATA_BEGIN) $ fail "Data begin marker not found" 
-    return db
-
-
 
 getHeader :: GetHeader Header
 getHeader = do
