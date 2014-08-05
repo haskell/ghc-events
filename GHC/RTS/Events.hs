@@ -7,6 +7,13 @@
 module GHC.RTS.Events (
        -- * Parsers
        getHeader,
+       getEvent,
+       getDataBeginMarker,
+       standardParsers,
+       ghc6Parsers,
+       ghc7Parsers,
+       mercuryParsers,
+       perfParsers,
        -- * The event log types
        EventLog(..),
        EventType(..),
@@ -82,32 +89,44 @@ getEventType = do
              getEtDesc :: Int -> GetHeader [Char]
              getEtDesc s = replicateM s (getH :: GetHeader Char)
 
+-- for incremental parser
+getDataBeginMarker :: Get Marker
+getDataBeginMarker = do
+    db <- get :: Get Marker
+    when (db /= EVENT_DATA_BEGIN) $ fail "Data begin marker not found" 
+    return db
+
+
+
 getHeader :: GetHeader Header
 getHeader = do
-           hdrb <- getH :: GetHeader Marker
-           when (hdrb /= EVENT_HEADER_BEGIN) $
-                fail "Header begin marker not found"
-           hetm <- getH :: GetHeader Marker
-           when (hetm /= EVENT_HET_BEGIN) $
-                fail "Header Event Type begin marker not found"
-           ets <- getEventTypes
-           emark <- getH :: GetHeader Marker
-           when (emark /= EVENT_HEADER_END) $
-                fail "Header end marker not found"
-           return (Header ets)
+            hdrb <- getH :: GetHeader Marker
+            when (hdrb /= EVENT_HEADER_BEGIN) $
+                 fail "Header begin marker not found"
+            hetm <- getH :: GetHeader Marker
+            when (hetm /= EVENT_HET_BEGIN) $
+                 fail "Header Event Type begin marker not found"
+            ets <- getEventTypes
+            emark <- getH :: GetHeader Marker
+            when (emark /= EVENT_HEADER_END) $
+                 fail "Header end marker not found"
+            db <- getH :: GetHeader Marker
+            when (db /= EVENT_DATA_BEGIN) $ 
+                  fail "My Data begin marker not found" 
+            return (Header ets)
      where
-       getEventTypes :: GetHeader [EventType]
-       getEventTypes = do
-           m <- getH :: GetHeader Marker
-           case m of
-              EVENT_ET_BEGIN -> do
-                   et <- getEventType
-                   nextET <- getEventTypes
-                   return (et : nextET)
-              EVENT_HET_END ->
-                   return []
-              otherwise ->
-                   fail "Malformed list of Event Types in header"
+      getEventTypes :: GetHeader [EventType]
+      getEventTypes = do
+          m <- getH :: GetHeader Marker
+          case m of
+             EVENT_ET_BEGIN -> do
+                  et <- getEventType
+                  nextET <- getEventTypes
+                  return (et : nextET)
+             EVENT_HET_END ->
+                  return []
+             otherwise ->
+                  fail "Malformed list of Event Types in header"
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
 getEvent (EventParsers parsers) = do
@@ -133,13 +152,10 @@ standardParsers = [
       block_size <- getE :: GetEvents BlockSize
       end_time <- getE :: GetEvents Timestamp
       c <- getE :: GetEvents CapNo
-      lbs <- lift $ getLazyByteString ((fromIntegral block_size) -
-                                              (fromIntegral sz_block_event))
-      eparsers <- ask
-      let e_events = runGet (runReaderT (getEventBlock eparsers) eparsers) lbs
-      return EventBlock { end_time=end_time,
-                          cap= fromIntegral c,
-                          block_events=e_events 
+      return EventBlock { end_time   = end_time,
+                          cap        = fromIntegral c,
+                          block_size = ((fromIntegral block_size) -
+                                        (fromIntegral sz_block_event))
                         }
    )),
 
@@ -672,25 +688,26 @@ sortGroups groups = mergesort' (compare `on` (time . ce_event)) $
      -- merge the resulting lists.
 
 groupEvents :: [Event] -> [(Maybe Int, [Event])]
-groupEvents es = (Nothing, n_events) :
-                 [ (Just (cap (head blocks)), concatMap block_events blocks)
-                 | blocks <- groups ]
-  where
-   (blocks, anon_events) = partitionEithers (map separate es)
-      where separate e | b@EventBlock{} <- spec e = Left  b
-                       | otherwise                = Right e
+groupEvents es = undefined
+  --(Nothing, n_events) :
+  --               [ (Just (cap (head blocks)), concatMap block_events blocks)
+  --               | blocks <- groups ]
+  --where
+  -- (blocks, anon_events) = partitionEithers (map separate es)
+  --    where separate e | b@EventBlock{} <- spec e = Left  b
+  --                     | otherwise                = Right e
 
-   (cap_blocks, gbl_blocks) = partition (is_cap . cap) blocks
-      where is_cap c = fromIntegral c /= ((-1) :: Word16)
+  -- (cap_blocks, gbl_blocks) = partition (is_cap . cap) blocks
+  --    where is_cap c = fromIntegral c /= ((-1) :: Word16)
 
-   groups = groupBy ((==) `on` cap) $ sortBy (compare `on` cap) cap_blocks
+  -- groups = groupBy ((==) `on` cap) $ sortBy (compare `on` cap) cap_blocks
 
-     -- There are two sources of events without a capability: events
-     -- in the raw stream not inside an EventBlock, and EventBlocks
-     -- with cap == -1.  We have to merge those two streams.
-     -- In light of merged logs, global blocks may have overlapping
-     -- time spans, thus the blocks are mergesorted
-   n_events = mergesort' (compare `on` time) (anon_events : map block_events gbl_blocks)
+  --   -- There are two sources of events without a capability: events
+  --   -- in the raw stream not inside an EventBlock, and EventBlocks
+  --   -- with cap == -1.  We have to merge those two streams.
+  --   -- In light of merged logs, global blocks may have overlapping
+  --   -- time spans, thus the blocks are mergesorted
+  -- n_events = mergesort' (compare `on` time) (anon_events : map block_events gbl_blocks)
 
 mergesort' :: (a -> a -> Ordering) -> [[a]] -> [a]
 mergesort' _   [] = []
@@ -1057,12 +1074,11 @@ putEvent (Event t spec) = do
 putEventSpec (Startup caps) = do
     putCap (fromIntegral caps)
 
-putEventSpec (EventBlock end cap es) = do
-    let block = runPutEBS (mapM_ putEvent es)
-    put (fromIntegral (L.length block) + 24 :: Word32)
+putEventSpec (EventBlock end cap sz) = do
     putE end
     putE (fromIntegral cap :: CapNo)
-    putLazyByteString block
+    putE end
+    putE (fromIntegral sz :: Integer)
 
 putEventSpec (CreateThread t) = do
     putE t
