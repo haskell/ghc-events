@@ -11,7 +11,7 @@
   printEventsIncremental
  ) where
 
-import GHC.RTS.Events 
+import GHC.RTS.Events hiding (ppEvent)
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 
@@ -23,6 +23,7 @@ import Data.IORef (IORef, readIORef, writeIORef, newIORef)
 import Debug.Trace (traceShow)
 import System.IO (Handle, hIsEOF, IOMode(..), withFile, hTell)
 import System.Exit (exitFailure)
+import Text.Printf
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
@@ -49,37 +50,31 @@ decoder = runGetIncremental
 -- Given a Decoder, repeadetly reads input from Handle h in chunks of size
 -- sz bytes until the output is produced or fails.
 parseIncremental  :: Decoder a -> Handle -> Int -> B.ByteString -> IO (a, B.ByteString)
-parseIncremental dec h sz bs = do
-    ch <- if bs == B.empty
-          then B.hGetSome h sz
-          else return bs
-    -- However, testing with incomplete headers did not terminate, therefore
-    -- the latter.
-    let dec' =  if ch == B.empty
-                then pushEndOfInput dec
-                else dec `pushChunk` ch
-    case dec' of 
-      (Fail _ _ errMsg) -> putStrLn errMsg >> exitFailure
-      (Partial cont)    -> parseIncremental dec' h sz B.empty
-      (Done bs _ dat)    -> return (dat, bs)
+parseIncremental dec hdl sz bs = parseIncremental' (dec `pushChunk` bs) hdl sz
+    
+parseIncremental' :: Decoder a -> Handle -> Int -> IO (a, B.ByteString)
+parseIncremental' (Fail _ _ errMsg) hdl sz = putStrLn errMsg >> exitFailure
+parseIncremental' (Done bs _ dat)   hdl sz = return (dat, bs)
+parseIncremental' dec@(Partial k)   hdl sz = do
+    ch <- B.hGetSome hdl sz
+    if ch == B.empty      
+      then parseIncremental' (pushEndOfInput dec) hdl sz
+      else parseIncremental' (dec `pushChunk` ch) hdl sz
 
 -- Given a Handle, initialises a corresponding EventHandle
 openEventHandle :: Handle -> IO EventHandle
 openEventHandle handle = do
     -- Reading in 1MB chunks, not sure whether it's a resonable default
-    (header, bs) <- parseIncremental (decoder getHeader)          handle 1024 B.empty
-    -- (_, bs')     <- parseIncremental (decoder getDataBeginMarker) handle 1024 bs
+    (header, bs) <- parseIncremental (decoder getHeader) handle 1024 B.empty
     let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
         -- This test is complete, no-one has extended this event yet and all future
         -- extensions will use newly allocated event IDs.
         is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
                                          size create_et
-        {-
         -- GHC6 writes an invalid header, we handle it here by using a
         -- different set of event parsers.  Note that the ghc7 event parsers
         -- are standard events, and can be used by other runtime systems that
         -- make use of threadscope.
-        -}
         event_parsers = if is_ghc_6
                             then standardParsers ++ ghc6Parsers
                             else standardParsers ++ ghc7Parsers
@@ -109,9 +104,9 @@ readEvent (eh@EH { eh_parsers = parsers, eh_hdl = hdl, eh_state = ref})
           -- return $ Just (CapEvent { ce_cap = cap, ce_event = ei })
         else do -- we have finished the previous chunk of events
           -- TODO: do we want this here?
-          --writeIORef ref (EHS { ehs_cap = Nothing
-          --                    , ehs_remaining = 0
-          --                    , ehs_bs = bs})
+          writeIORef ref (EHS { ehs_cap = Nothing
+                              , ehs_remaining = 0
+                              , ehs_bs = bs})
           !event_start <- hTell hdl
           (!ei, !bs')   <- getEventInfo parsers hdl bs
           !event_end   <- hTell hdl
@@ -132,13 +127,14 @@ readEvent (eh@EH { eh_parsers = parsers, eh_hdl = hdl, eh_state = ref})
                   otherwise  -> return $ Just (CapEvent { ce_cap = Nothing, ce_event = ev })
             Nothing -> return Nothing
 
+-- Test function to print events in the log one by one 
 printEventsIncremental :: EventHandle -> IO ()
 printEventsIncremental eh = do
     evt <- readEvent eh
     let dbg = False
     case evt of 
       Just ev -> do
-          print ev
+          putStrLn (ppEvent ev)
           input <- if dbg 
                       then getLine
                       else return ""
@@ -147,48 +143,21 @@ printEventsIncremental eh = do
             else putStrLn "Stopping"
       Nothing -> do putStrLn "Done"
 
---getEventInfo :: Handle -> B.ByteString -> IO (Maybe Event, B.ByteString)
+ppEvent :: CapEvent -> String
+ppEvent (CapEvent cap (Event time spec)) =
+  printf "%9d: " time ++
+  (case cap of
+    Nothing -> ""
+    Just c  -> printf "cap %d: " c) ++
+  case spec of
+    UnknownEvent{ ref=ref } ->
+      printf "(desc (fromJust (M.lookup (fromIntegral ref) imap)))"
+
+    other -> showEventInfo spec
+
+-- Reads an Event (should be removed once CapEvents and Events are merged)
 getEventInfo :: EventParsers -> Handle -> B.ByteString -> IO (Maybe Event, B.ByteString)
 getEventInfo parsers hdl unparsed_bs
   = do
       (ev, bs) <- parseIncremental (decoder (runReaderT (getEvent parsers) parsers)) hdl 1024 unparsed_bs
       return (ev, bs)
-
-
-
----- newtype Capability = Int
-
----- | An event annotated with the Capability that generated it, if any
---data CapEvent
---  = CapEvent { ce_cap   :: Maybe Int,
---               ce_event :: Event
---               -- we could UNPACK ce_event, but the Event constructor
---               -- might be shared, in which case we could end up
---               -- increasing the space usage.
---             } deriving Show
-
---data Event =
---  Event {
---    time :: {-# UNPACK #-}!Timestamp,
---    spec :: EventInfo
---  } deriving Show
-
---data EventParser a
---    = FixedSizeParser {
---        fsp_type :: EventTypeId,
---        fsp_size :: EventTypeSize,
---        fsp_parser :: GetEvents a
---    }
---    | VariableSizeParser {
---        vsp_type :: EventTypeId,   -- Event identifier
---        vsp_parser :: GetEvents a
---    }
-
---type EventTypeId = Int
----- (Get a) is defined in Binary
-
---type GetEvents a = ReaderT EventParsers Get a
---  -- Allows read-only access to the EventParsers
-
---newtype EventParsers = EventParsers (Array EventTypeId (GetEvents EventInfo))
---  -- The EventInfo parser for each event type
