@@ -131,9 +131,9 @@ data Event =
 data EventInfo
 
   -- pseudo events
-  = EventBlock         { end_time     :: Timestamp,
-                         cap          :: Int,
-                         block_events :: [Event]
+  = EventBlock         { end_time   :: Timestamp,
+                         cap        :: Int,
+                         block_size :: Integer
                        }
   | UnknownEvent       { ref  :: {-# UNPACK #-}!EventTypeNum }
 

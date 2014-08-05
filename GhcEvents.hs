@@ -33,10 +33,7 @@ command ["--help"] = do
 command ["inc", file] = do
     h  <- openBinaryFile file ReadMode
     eh <- openEventHandle h
-    let hdr = getHdr eh
-        log = EventLog hdr events
-        events = Data []
-    putStrLn $ ppEventLog log
+    printEventsIncremental eh
 
 command ["show", file] = do
     log <- readEventLogFromFile file
