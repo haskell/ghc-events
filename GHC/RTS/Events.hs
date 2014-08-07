@@ -7,7 +7,9 @@
 module GHC.RTS.Events (
        -- * Parsers
        getHeader,
+       resultToHeader,
        getEvent,
+       getEventIncremental,
        standardParsers,
        ghc6Parsers,
        ghc7Parsers,
@@ -26,6 +28,7 @@ module GHC.RTS.Events (
        ThreadId,
        TaskId,
        KernelThreadId(..),
+       Result(..),
 
        -- * Reading and writing event logs
        readEventLogFromFile,
@@ -67,6 +70,12 @@ import GHC.RTS.EventParserUtils
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
+
+data Result a
+  = One a
+  | Incomplete
+  | Complete
+
 ------------------------------------------------------------------------------
 -- Binary instances
 
@@ -88,7 +97,9 @@ getEventType = do
              getEtDesc :: Int -> GetHeader [Char]
              getEtDesc s = replicateM s (getH :: GetHeader Char)
 
-getHeader :: GetHeader Header
+
+
+getHeader :: GetHeader (Result Header)
 getHeader = do
             hdrb <- getH :: GetHeader Marker
             when (hdrb /= EVENT_HEADER_BEGIN) $
@@ -103,7 +114,7 @@ getHeader = do
             db <- getH :: GetHeader Marker
             when (db /= EVENT_DATA_BEGIN) $ 
                   fail "My Data begin marker not found" 
-            return (Header ets)
+            return $ One (Header ets)
      where
       getEventTypes :: GetHeader [EventType]
       getEventTypes = do
@@ -117,6 +128,20 @@ getHeader = do
                   return []
              otherwise ->
                   fail "Malformed list of Event Types in header"
+
+resultToHeader :: Result Header -> Header
+resultToHeader (One a) = a
+-- Will never happen
+resultToHeader _ = Header { eventTypes = [] }
+
+getEventIncremental :: EventParsers -> GetEvents (Result Event)
+getEventIncremental (EventParsers parsers) = do
+  etRef <- getE :: GetEvents EventTypeNum
+  if (etRef == EVENT_DATA_END)
+     then return Complete
+     else do !ts   <- getE
+             spec <- parsers ! fromIntegral etRef
+             return (One (Event ts spec))
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
 getEvent (EventParsers parsers) = do
@@ -626,26 +651,26 @@ getEventBlock parsers = do
       return (e:es)
 
 getEventLog :: Get EventLog
-getEventLog = do
-    header <- getHeader
-    let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
-        -- This test is complete, no-one has extended this event yet and all future
-        -- extensions will use newly allocated event IDs.
-        is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
-                                         size create_et
-        {-
-        -- GHC6 writes an invalid header, we handle it here by using a
-        -- different set of event parsers.  Note that the ghc7 event parsers
-        -- are standard events, and can be used by other runtime systems that
-        -- make use of threadscope.
-        -}
-        event_parsers = if is_ghc_6
-                            then standardParsers ++ ghc6Parsers
-                            else standardParsers ++ ghc7Parsers
-                                 ++ mercuryParsers ++ perfParsers
-        parsers = mkEventTypeParsers imap event_parsers
-    dat <- runReaderT getData (EventParsers parsers)
-    return (EventLog header dat)
+getEventLog = undefined
+    --header <- getHeader
+    --let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
+    --    -- This test is complete, no-one has extended this event yet and all future
+    --    -- extensions will use newly allocated event IDs.
+    --    is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
+    --                                     size create_et
+        
+    --    -- GHC6 writes an invalid header, we handle it here by using a
+    --    -- different set of event parsers.  Note that the ghc7 event parsers
+    --    -- are standard events, and can be used by other runtime systems that
+    --    -- make use of threadscope.
+        
+    --    event_parsers = if is_ghc_6
+    --                        then standardParsers ++ ghc6Parsers
+    --                        else standardParsers ++ ghc7Parsers
+    --                             ++ mercuryParsers ++ perfParsers
+    --    parsers = mkEventTypeParsers imap event_parsers
+    --dat <- runReaderT getData (EventParsers parsers)
+    --return (EventLog header dat)
 
 readEventLogFromFile :: FilePath -> IO (EventLog)
 readEventLogFromFile f = do

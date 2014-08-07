@@ -5,12 +5,13 @@
  -}
 
  module GHC.RTS.EventsIncremental (
+  EventHandle,
   openEventHandle,
   readEvent,
-  printEventsIncremental
+  ppEvent'
  ) where
 
-import GHC.RTS.Events hiding (ppEvent)
+import GHC.RTS.Events
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 
@@ -31,17 +32,21 @@ import Text.Printf
 -- Datatype that holds the reference to an eventlog
 data EventHandle
   = EH { eh_hdl :: Handle
-       , eh_parsers :: EventParsers
+       , eh_decoder :: Decoder (Result Event)
        , eh_state :: IORef EventHandleState }
 
 data EventHandleState
   = EHS { ehs_cap       :: Maybe Int
         , ehs_remaining :: Integer  -- Bytes remaining in a EventBlock
         , ehs_bs        :: B.ByteString -- Un-read part of input
-        }
+        } deriving Show
 
-newEHS :: B.ByteString -> EventHandleState
-newEHS bs = EHS { ehs_cap = Nothing, ehs_remaining = 0, ehs_bs = bs }
+chunkSize :: Int
+chunkSize = 1024
+
+updateEHS :: IORef EventHandleState -> Maybe Int -> Integer -> B.ByteString -> IO ()
+updateEHS ref cap sz bs =
+  writeIORef ref EHS { ehs_cap = cap, ehs_remaining = sz, ehs_bs = bs }
 
 -- Turns an instance of Get into a Decoder
 decoder :: Get a -> Decoder a
@@ -49,11 +54,11 @@ decoder = runGetIncremental
 
 -- Given a Decoder, repeadetly reads input from Handle h in chunks of size
 -- sz bytes until the output is produced or fails.
-parseIncremental  :: Decoder a -> Handle -> Int -> B.ByteString -> IO (a, ByteOffset, B.ByteString)
+parseIncremental  :: Decoder (Result a) -> Handle -> Int -> B.ByteString -> IO (Result a, ByteOffset, B.ByteString)
 parseIncremental dec hdl sz bs = parseIncremental' (dec `pushChunk` bs) hdl sz
     
-parseIncremental' :: Decoder a -> Handle -> Int -> IO (a, ByteOffset, B.ByteString)
-parseIncremental' (Fail _ _ errMsg)  hdl sz = putStrLn errMsg >> exitFailure
+parseIncremental' :: Decoder (Result a) -> Handle -> Int -> IO (Result a, ByteOffset, B.ByteString)
+parseIncremental' (Fail bs size _)   hdl sz = return (Incomplete, size, bs)  
 parseIncremental' (Done bs size dat) hdl sz = return (dat, size, bs)
 parseIncremental' dec@(Partial k)    hdl sz = do
     ch <- B.hGetSome hdl sz
@@ -67,7 +72,7 @@ openEventHandle handle = do
     -- Reading in 1MB chunks, not sure whether it's a resonable default
     -- Discard offset because it doesn't matter for headers
     (header, _, bs) <- parseIncremental (decoder getHeader) handle 1024 B.empty
-    let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
+    let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes (resultToHeader header)]
         -- This test is complete, no-one has extended this event yet and all future
         -- extensions will use newly allocated event IDs.
         is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
@@ -80,63 +85,55 @@ openEventHandle handle = do
                             then standardParsers ++ ghc6Parsers
                             else standardParsers ++ ghc7Parsers
                                  ++ mercuryParsers ++ perfParsers
-        parsers = mkEventTypeParsers imap event_parsers
-    ioref <- newIORef . newEHS $ bs
-    return $ EH handle (EventParsers parsers) ioref
+        parsers = EventParsers $ mkEventTypeParsers imap event_parsers
+        dec = decoder (runReaderT (getEventIncremental parsers) parsers)
+    ioref <- newIORef $ EHS { ehs_cap=Nothing, ehs_remaining=0, ehs_bs=bs }
+    return $ EH handle dec ioref
+
 
 -- Gets a single Event, nothing if no more events are available (either EOF
 -- or log is incomplete)
-readEvent :: EventHandle -> IO (Maybe CapEvent)
-readEvent (eh@EH { eh_parsers = parsers, eh_hdl = hdl, eh_state = ref})
+readEvent :: EventHandle -> IO (Result CapEvent)
+readEvent (eh@EH { eh_decoder = dec, eh_hdl = hdl, eh_state = ref})
   = do 
-      EHS { ehs_cap = cap, ehs_remaining = bytes_remaining, ehs_bs = bs } <- readIORef ref
-      if bytes_remaining > 0
-        then do -- we are in the middle of an EventBlock
-          (!ei, !size, !bs') <- getEventInfo parsers hdl bs
-          writeIORef ref (EHS { ehs_cap = cap
-                              -- TODO: make this accurate
-                              , ehs_remaining = bytes_remaining - (fromIntegral size)
-                              , ehs_bs = bs' })
-          case ei of 
-            Just ev -> return $ Just (CapEvent { ce_cap = cap, ce_event = ev })
-            Nothing -> return Nothing
-        else do -- we are out of an EventBlock
-          -- Not in EventBlock so size is not necessary
-          (!ei, _, !bs')   <- getEventInfo parsers hdl bs
-          writeIORef ref $ newEHS bs'
-          case ei of 
-            Just ev ->
-                case (spec ev) of
-                  EventBlock _ block_cap new_sz -> do
-                      let new_cap = if (fromIntegral block_cap /= ((-1) :: Word16))
-                                    then Just block_cap
-                                    else Nothing
-                      writeIORef ref (EHS { ehs_cap = new_cap
-                                          , ehs_remaining = new_sz
-                                          , ehs_bs = bs'})
-                      readEvent eh
-                  otherwise  ->   traceShow "This shouldn't happen" $
-                      return $ Just (CapEvent { ce_cap = Nothing, ce_event = ev })
-            Nothing -> return Nothing
+    EHS { ehs_cap = cap, ehs_remaining = bytes_remaining, ehs_bs = bs } <- readIORef ref
+    if bytes_remaining > 0
+      then do -- we are in the middle of an EventBlock
+        (!ei, !size, !bs') <- parseIncremental dec hdl chunkSize bs
+        case ei of 
+          One ev -> do
+            updateEHS ref cap (bytes_remaining - (fromIntegral size)) bs'
+            return $ One (CapEvent { ce_cap = cap, ce_event = ev })
+          Incomplete -> do
+            -- Nothing was read so same bytes_remaining but all the remaining input
+            -- is now in bs' (it was all consumed but not enough to finish a parse)
+            --readIORef ref >>= print 
+            --updateEHS ref cap bytes_remaining bs'
+            --readIORef ref >>= print 
+            return Incomplete
+          Complete -> return Complete
+      else do -- we are out of an EventBlock
+        (!ei, _, !bs')   <- parseIncremental dec hdl chunkSize bs
+        updateEHS ref Nothing 0 bs'
+        case ei of 
+          One ev -> do
+            case (spec ev) of
+              -- Should probably use the timestamp for chrono
+              EventBlock _ block_cap new_sz -> do
+                -- Global EventBlocks have block_cap=65535
+                let new_cap = if (fromIntegral block_cap /= ((-1) :: Word16))
+                              then Just block_cap
+                              else Nothing
+                updateEHS ref new_cap new_sz bs'
+                readEvent eh
+              otherwise  -> return $ One (CapEvent { ce_cap = Nothing, ce_event = ev })
+          Incomplete -> do
+            updateEHS ref Nothing 0 bs'
+            return Incomplete
+          Complete -> return Complete
 
--- Test function to print events in the log one by one 
-printEventsIncremental :: EventHandle -> IO ()
-printEventsIncremental eh = do
-    evt <- readEvent eh
-    let dbg = False
-    case evt of 
-      Just ev -> do
-          putStrLn (ppEvent ev)
-          input <- if dbg 
-                      then getLine
-                      else return ""
-          if input == ""
-            then printEventsIncremental eh
-            else putStrLn "Stopping"
-      Nothing -> do putStrLn "Done"
-
-ppEvent :: CapEvent -> String
-ppEvent (CapEvent cap (Event time spec)) =
+ppEvent' :: CapEvent -> String
+ppEvent' (CapEvent cap (Event time spec)) =
   printf "%9d: " time ++
   (case cap of
     Nothing -> ""
@@ -146,10 +143,3 @@ ppEvent (CapEvent cap (Event time spec)) =
       printf "(desc (fromJust (M.lookup (fromIntegral ref) imap)))"
 
     other -> showEventInfo spec
-
--- Reads an Event (should be removed once CapEvents and Events are merged)
-getEventInfo :: EventParsers -> Handle -> B.ByteString -> IO (Maybe Event, ByteOffset, B.ByteString)
-getEventInfo parsers hdl unparsed_bs
-  = do
-      (ev, sz, bs) <- parseIncremental (decoder (runReaderT (getEvent parsers) parsers)) hdl 1024 unparsed_bs
-      return (ev, sz, bs)
