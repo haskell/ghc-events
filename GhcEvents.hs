@@ -262,13 +262,15 @@ printEventsIncremental eh = do
           if input == ""
             then printEventsIncremental eh
             else putStrLn "Stopping"
-      Incomplete -> do
+      PartialEventLog -> do
         if dashf 
           then do 
                 print "waiting for input"
                 threadDelay 1000000
                 printEventsIncremental eh
           else putStrLn "Incomplete but no -f"
-      Complete -> do
+      CompleteEventLog -> do
         putStrLn "Done (file was complete)"
+      EventLogParsingError errMsg -> do
+        putStrLn "An error was encountered."
 
