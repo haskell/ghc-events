@@ -10,6 +10,7 @@ import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
 import System.Environment
+import Control.Concurrent (threadDelay)
 import Text.Printf
 import Data.List
 import Data.Either (rights)
@@ -246,3 +247,28 @@ showMap showKey showValue m =
   concat $ zipWith (++)
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
+
+-- Example client for the API
+printEventsIncremental :: EventHandle -> IO ()
+printEventsIncremental eh = do
+    evt <- readEvent eh
+    let dbg = False
+        dashf = True
+    case evt of 
+      One ev -> do
+          putStrLn (ppEvent' ev)
+          -- print events one by one
+          input <- if dbg then getLine else return ""
+          if input == ""
+            then printEventsIncremental eh
+            else putStrLn "Stopping"
+      Incomplete -> do
+        if dashf 
+          then do 
+                print "waiting for input"
+                threadDelay 1000000
+                printEventsIncremental eh
+          else putStrLn "Incomplete but no -f"
+      Complete -> do
+        putStrLn "Done (file was complete)"
+

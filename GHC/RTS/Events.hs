@@ -7,7 +7,9 @@
 module GHC.RTS.Events (
        -- * Parsers
        getHeader,
+       resultToHeader,
        getEvent,
+       getEventIncremental,
        standardParsers,
        ghc6Parsers,
        ghc7Parsers,
@@ -32,6 +34,7 @@ module GHC.RTS.Events (
        PortId,
        MessageSize,
        MessageTag(..),
+       Result(..),
 
        -- * Reading and writing event logs
        readEventLogFromFile, getEventLog,
@@ -73,6 +76,12 @@ import GHC.RTS.EventParserUtils
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
+
+data Result a
+  = One a
+  | Incomplete
+  | Complete
+
 ------------------------------------------------------------------------------
 -- Binary instances
 
@@ -94,7 +103,9 @@ getEventType = do
              getEtDesc :: Int -> GetHeader [Char]
              getEtDesc s = replicateM s (getH :: GetHeader Char)
 
-getHeader :: GetHeader Header
+
+
+getHeader :: GetHeader (Result Header)
 getHeader = do
             hdrb <- getH :: GetHeader Marker
             when (hdrb /= EVENT_HEADER_BEGIN) $
@@ -109,7 +120,7 @@ getHeader = do
             db <- getH :: GetHeader Marker
             when (db /= EVENT_DATA_BEGIN) $ 
                   fail "My Data begin marker not found" 
-            return (Header ets)
+            return $ One (Header ets)
      where
       getEventTypes :: GetHeader [EventType]
       getEventTypes = do
@@ -123,6 +134,20 @@ getHeader = do
                   return []
              otherwise ->
                   fail "Malformed list of Event Types in header"
+
+resultToHeader :: Result Header -> Header
+resultToHeader (One a) = a
+-- Will never happen
+resultToHeader _ = Header { eventTypes = [] }
+
+getEventIncremental :: EventParsers -> GetEvents (Result Event)
+getEventIncremental (EventParsers parsers) = do
+  etRef <- getE :: GetEvents EventTypeNum
+  if (etRef == EVENT_DATA_END)
+     then return Complete
+     else do !ts   <- getE
+             spec <- parsers ! fromIntegral etRef
+             return (One (Event ts spec))
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
 getEvent (EventParsers parsers) = do
@@ -781,47 +806,26 @@ getEventBlock parsers = do
       return (e:es)
 
 getEventLog :: Get EventLog
-getEventLog = do
-    header <- getHeader
-    let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
-        -- This test is complete, no-one has extended this event yet and all future
-        -- extensions will use newly allocated event IDs.
-        is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
-                                         size create_et
-        {-
-        -- GHC6 writes an invalid header, we handle it here by using a
-        -- different set of event parsers.  Note that the ghc7 event parsers
-        -- are standard events, and can be used by other runtime systems that
-        -- make use of threadscope.
-        -}
+getEventLog = undefined
+    --header <- getHeader
+    --let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
+    --    -- This test is complete, no-one has extended this event yet and all future
+    --    -- extensions will use newly allocated event IDs.
+    --    is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
+    --                                     size create_et
 
-        -- GHC-7.8.2 uses a different thread block status encoding,
-        -- and therefore requires a different parser for the stop
-        -- event. Later, in GHC-7.8.3, the old encoding was restored.
-        -- GHC-7.8.2 can be recognised by presence and absence of
-        -- events in the header:
-        --   * User markers were added in GHC-7.8 
-        --   * an empty event HACK_BUG_T9003 was added in GHC-7.8.3
-        -- This fix breaks software which uses ghc-events and combines
-        -- user markers with the older stop status encoding. We don't
-        -- know of any such software, though.
-        is_pre77  = M.notMember EVENT_USER_MARKER imap
-        is_ghc782 = M.member EVENT_USER_MARKER imap &&
-                    M.notMember EVENT_HACK_BUG_T9003 imap
+    --    -- GHC6 writes an invalid header, we handle it here by using a
+    --    -- different set of event parsers.  Note that the ghc7 event parsers
+    --    -- are standard events, and can be used by other runtime systems that
+    --    -- make use of threadscope.
 
-        stopParsers = if is_pre77 then pre77StopParsers
-                      else if is_ghc782 then [ghc782StopParser]
-                           else [post782StopParser]
-
-        event_parsers = if is_ghc_6
-                            then standardParsers ++ ghc6Parsers ++
-                                parRTSParsers sz_old_tid
-                            else standardParsers ++ ghc7Parsers ++
-                                stopParsers ++ parRTSParsers sz_tid ++
-                                mercuryParsers ++ perfParsers
-        parsers = mkEventTypeParsers imap event_parsers
-    dat <- runReaderT getData (EventParsers parsers)
-    return (EventLog header dat)
+    --    event_parsers = if is_ghc_6
+    --                        then standardParsers ++ ghc6Parsers
+    --                        else standardParsers ++ ghc7Parsers
+    --                             ++ mercuryParsers ++ perfParsers
+    --    parsers = mkEventTypeParsers imap event_parsers
+    --dat <- runReaderT getData (EventParsers parsers)
+    --return (EventLog header dat)
 
 readEventLogFromFile :: FilePath -> IO (EventLog)
 readEventLogFromFile f = do
