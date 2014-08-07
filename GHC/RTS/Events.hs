@@ -7,9 +7,7 @@
 module GHC.RTS.Events (
        -- * Parsers
        getHeader,
-       resultToHeader,
        getEvent,
-       getEventIncremental,
        standardParsers,
        ghc6Parsers,
        ghc7Parsers,
@@ -76,11 +74,12 @@ import GHC.RTS.EventParserUtils
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
-
 data Result a
   = One a
-  | Incomplete
-  | Complete
+  | PartialEventLog
+  | CompleteEventLog
+  | EventLogParsingError String
+
 
 ------------------------------------------------------------------------------
 -- Binary instances
@@ -105,7 +104,7 @@ getEventType = do
 
 
 
-getHeader :: GetHeader (Result Header)
+getHeader :: GetHeader Header
 getHeader = do
             hdrb <- getH :: GetHeader Marker
             when (hdrb /= EVENT_HEADER_BEGIN) $
@@ -120,7 +119,7 @@ getHeader = do
             db <- getH :: GetHeader Marker
             when (db /= EVENT_DATA_BEGIN) $ 
                   fail "My Data begin marker not found" 
-            return $ One (Header ets)
+            return $ Header ets
      where
       getEventTypes :: GetHeader [EventType]
       getEventTypes = do
@@ -134,20 +133,6 @@ getHeader = do
                   return []
              otherwise ->
                   fail "Malformed list of Event Types in header"
-
-resultToHeader :: Result Header -> Header
-resultToHeader (One a) = a
--- Will never happen
-resultToHeader _ = Header { eventTypes = [] }
-
-getEventIncremental :: EventParsers -> GetEvents (Result Event)
-getEventIncremental (EventParsers parsers) = do
-  etRef <- getE :: GetEvents EventTypeNum
-  if (etRef == EVENT_DATA_END)
-     then return Complete
-     else do !ts   <- getE
-             spec <- parsers ! fromIntegral etRef
-             return (One (Event ts spec))
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
 getEvent (EventParsers parsers) = do
