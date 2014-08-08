@@ -6,6 +6,7 @@
 
  module GHC.RTS.EventsIncremental (
   EventHandle,
+  Result(..),
   openEventHandle,
   readEvent,
   ppEvent'
@@ -42,6 +43,19 @@ data EventHandleState
         , ehs_decoder   :: Decoder (Maybe Event)
         }
 
+-- Datatype that describes the result of getEvent 
+data Result a
+  -- Successfully parsed one item 
+  = One a 
+  -- The eventlog wasn't complete but there wasn't any more input in the handle
+  | PartialEventLog 
+  -- Parsing was completed successfully (what happens if getEvent called again?)
+  | CompleteEventLog
+  -- An error in parsing has occurred
+  | EventLogParsingError String
+
+
+-- Parser will read from a Handle in chunks of chunkSize bytes
 chunkSize :: Int
 chunkSize = 1024
 
@@ -67,7 +81,7 @@ parseIncremental dec@(Partial _)  hdl sz = do
 
 -- Uses the incremental parser to parse an item completely, returning the item and 
 -- unconsumed bytestring
--- TODO: Clarify behaviour with Simon eof check doesn't work for file-based
+-- TODO: Clarify behaviour with Simon, eof check doesn't work for file-based
 parseStrict :: Decoder a -> Handle -> Int -> B.ByteString -> IO (a, B.ByteString)
 parseStrict dec@(Fail _ _ errMsg) hdl sz bs = putStrLn errMsg >> exitFailure
 parseStrict dec@(Done bs' _ dat)  hdl sz bs = return (dat, bs')
@@ -137,7 +151,9 @@ readEvent (eh@EH { eh_decoder = eh_dec, eh_hdl = hdl, eh_state = ref})
                               else Nothing
                 updateEHS ref new_cap new_sz (eh_dec `pushChunk` bs)
                 readEvent eh
-              otherwise -> return $ One (CapEvent { ce_cap = Nothing, ce_event = ev })
+              otherwise -> do
+                updateEHS ref Nothing 0 (eh_dec `pushChunk` bs)
+                return $ One (CapEvent { ce_cap = Nothing, ce_event = ev })
           (Done bs sz Nothing) -> return $ CompleteEventLog
           (Partial k) -> do
             updateEHS ref Nothing 0 dec'
