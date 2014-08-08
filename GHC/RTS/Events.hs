@@ -32,7 +32,6 @@ module GHC.RTS.Events (
        PortId,
        MessageSize,
        MessageTag(..),
-       Result(..),
 
        -- * Reading and writing event logs
        readEventLogFromFile, getEventLog,
@@ -73,13 +72,6 @@ import GHC.RTS.EventParserUtils
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
-
-data Result a
-  = One a
-  | PartialEventLog
-  | CompleteEventLog
-  | EventLogParsingError String
-
 
 ------------------------------------------------------------------------------
 -- Binary instances
