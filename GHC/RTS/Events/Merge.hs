@@ -38,8 +38,8 @@ mergeEventLogs (EventLog h1 (Data xs)) (EventLog h2 (Data ys)) =
      EventLog h . Data . mergeOn time xs $ shift (maxVars xs) ys
 
 mergeOn :: Ord b => (a -> b) -> [a] -> [a] -> [a]
-mergeOn f [] ys = ys
-mergeOn f xs [] = xs
+mergeOn _ [] ys = ys
+mergeOn _ xs [] = xs
 mergeOn f (x:xs) (y:ys) | f x <= f y = x : mergeOn f xs (y:ys)
                         | otherwise  = y : mergeOn f (x:xs) ys
 
