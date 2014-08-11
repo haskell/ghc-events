@@ -55,11 +55,6 @@ instance Monoid MaxVars where
     -- avoid space leaks:
     mconcat = foldl' mappend mempty
 
--- Capabilities are represented as Word16.  An event block marked with the
--- capability of 0xffff belongs to no capability
-isCap :: Int -> Bool
-isCap x = fromIntegral x /= ((-1) :: Word16)
-
 -- For caps we find the maximum value by summing the @Startup@ declarations.
 -- TODO: it's not trivial to add CapCreate since we don't know
 -- if created caps are guaranteed to be numbered consecutively or not
@@ -76,18 +71,15 @@ maxVars = mconcat . map (maxSpec . spec)
     maxSpec (CreateSparkThread t) = mempty { mthread = t }
     -- Capsets start at 0.
     maxSpec (CapsetCreate cs _) = mempty {mcapset = cs + 1 }
-    maxSpec (EventBlock _ _ es) = maxVars es
     maxSpec _  = mempty
 
 sh :: Num a => a -> a -> a
 sh x y = x + y
 
 shift :: MaxVars -> [Event] -> [Event]
-shift mv@(MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
+shift (MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
  where
     -- -1 marks a block that isn't attached to a particular capability
-    shift' (EventBlock et c bs) = EventBlock et (msh c) $ shift mv bs
-     where msh x = if isCap x then sh mc x else x
     shift' (CreateThread t) = CreateThread $ sh mt t
     shift' (RunThread t) = RunThread $ sh mt t
     shift' (StopThread t s) = StopThread (sh mt t) s
