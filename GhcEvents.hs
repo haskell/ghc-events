@@ -1,7 +1,8 @@
 {-# LANGUAGE CPP #-}
+
 module Main where
 
-import GHC.RTS.Events 
+import GHC.RTS.Events
 import GHC.RTS.EventsIncremental
 import GHC.RTS.Events.Merge
 import GHC.RTS.Events.Analysis
@@ -254,7 +255,7 @@ printEventsIncremental eh = do
     evt <- readEvent eh
     let dbg = False
         dashf = True
-    case evt of 
+    case evt of
       One ev -> do
           putStrLn (ppEvent' ev)
           -- print events one by one
@@ -263,8 +264,8 @@ printEventsIncremental eh = do
             then printEventsIncremental eh
             else putStrLn "Stopping"
       PartialEventLog -> do
-        if dashf 
-          then do 
+        if dashf
+          then do
                 print "waiting for input"
                 threadDelay 1000000
                 printEventsIncremental eh
@@ -273,4 +274,3 @@ printEventsIncremental eh = do
         putStrLn "Done (file was complete)"
       EventLogParsingError errMsg -> do
         putStrLn "An error was encountered."
-
