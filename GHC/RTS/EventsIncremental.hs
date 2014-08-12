@@ -15,14 +15,13 @@ import GHC.RTS.Events
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 
-import Control.Monad.Reader
+import Control.Monad.Reader (runReaderT)
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.Binary.Get
 import Data.IORef (IORef, readIORef, writeIORef, newIORef)
 import Data.Word (Word16)
-import Debug.Trace (traceShow)
-import System.IO (Handle, hIsEOF, IOMode(..), withFile, hTell)
+import System.IO (Handle, hIsEOF)
 import System.Exit (exitFailure)
 import Text.Printf
 
@@ -48,7 +47,8 @@ data Result a
   = One a
   -- The eventlog wasn't complete but there wasn't any more input in the handle
   | PartialEventLog
-  -- Parsing was completed successfully (what happens if getEvent called again?)
+  -- Parsing was completed successfully
+  -- TODO: (what happens if getEvent called again?)
   | CompleteEventLog
   -- An error in parsing has occurred
   | EventLogParsingError String
