@@ -20,9 +20,7 @@ import Control.Monad.Reader (runReaderT)
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.Binary.Get
-import Data.IORef (IORef, readIORef, writeIORef, newIORef)
 import Data.Word (Word16)
-import System.IO (Handle, hIsEOF)
 import System.Exit (exitFailure)
 import Text.Printf
 
@@ -50,7 +48,8 @@ data Result a
   -- An error in parsing has occurred
   | EventLogParsingError String
 
-newEventParser :: (Maybe Int) -> Integer -> 
+newEventParser :: Maybe Int -> 
+                    Integer -> 
                   Either (Decoder Header) EventDecoders -> EventParserState
 newEventParser cap remaining eitherDec = 
   EPS { epsCap = cap
@@ -81,8 +80,7 @@ readHeader dec bs =
 -- Returns one event if there is enough data passed to it. Reads the header first if
 -- necessary 
 readEvent :: EventParserState -> B.ByteString -> (Result CapEvent, EventParserState)
-readEvent (eps@EPS {epsCap = _, epsRemaining = _, epsDecoder = dec}) bs
-  = do
+readEvent (eps@EPS {epsCap = _, epsRemaining = _, epsDecoder = dec}) bs = 
     case dec of 
       (Left  headerDecoder) -> readHeader headerDecoder bs
       (Right eventDecoders) -> readEvent' eps eventDecoders bs 
@@ -92,16 +90,16 @@ readEvent' :: EventParserState -> EventDecoders ->
 readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _}) 
            (newDecoder, partial) bs =
     if remaining > 0
-      then do -- we are in the middle of an EventBlock
+      then -- we are in the middle of an EventBlock
         case partial of
           (Done bs' sz (Just e)) -> do
             -- TODO: Make a helper function
             let newPartial = newDecoder `pushChunk` bs' `pushChunk` bs
                 newState = newEventParser cap (remaining - fromIntegral sz) 
                        (Right (newDecoder, newPartial))
-            ((One CapEvent { ce_cap = cap, ce_event = e }), newState)
+            (One CapEvent { ce_cap = cap, ce_event = e }, newState)
           (Done _ _ Nothing) -> (CompleteEventLog, eps)
-          (Partial _) -> do
+          (Partial _) -> 
             if bs == B.empty
               then (PartialEventLog, eps)
               else let newPartial = partial `pushChunk` bs
@@ -110,7 +108,7 @@ readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _})
                    in
                    readEvent newState B.empty
           (Fail _ _ errMsg) -> (EventLogParsingError errMsg, eps)
-      else do -- we are out of an EventBlock
+      else -- we are out of an EventBlock
         case partial of
           (Done bs' sz (Just ev)) ->
             case spec ev of
@@ -125,7 +123,7 @@ readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _})
                                               (Right (newDecoder, newPartial))
                 (One CapEvent { ce_cap = Nothing, ce_event = ev }, newState)
           (Done _ _ Nothing) -> (CompleteEventLog, eps)
-          (Partial _) -> do
+          (Partial _) -> 
             if bs == B.empty
               then (PartialEventLog, eps)
               else let newPartial = partial `pushChunk` bs
