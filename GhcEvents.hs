@@ -10,6 +10,7 @@ import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
+import qualified Data.ByteString as B
 import System.Environment
 import Control.Concurrent (threadDelay)
 import Text.Printf
@@ -34,8 +35,7 @@ command ["--help"] = do
 
 command ["inc", file] = do
     h  <- openBinaryFile file ReadMode
-    eh <- openEventHandle h
-    printEventsIncremental eh
+    printEventsIncremental Nothing h
 
 command ["show", file] = do
     log <- readEventLogFromFile file
@@ -250,27 +250,30 @@ showMap showKey showValue m =
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
 -- Example client for the API
-printEventsIncremental :: EventHandle -> IO ()
-printEventsIncremental eh = do
-    evt <- readEvent eh
+printEventsIncremental :: Maybe EventParserState -> Handle -> IO ()
+printEventsIncremental (Just eps) handle = do
+    bs <- B.hGetSome handle 1024
+    let (resEvent, newState) =   readEvent eps bs
     let dbg = False
         dashf = True
-    case evt of
+    case resEvent of
       One ev -> do
           putStrLn (ppEvent' ev)
           -- print events one by one
           input <- if dbg then getLine else return ""
           if input == ""
-            then printEventsIncremental eh
+            then printEventsIncremental (Just newState) handle
             else putStrLn "Stopping"
       PartialEventLog -> do
         if dashf
           then do
                 print "waiting for input"
                 threadDelay 1000000
-                printEventsIncremental eh
+                printEventsIncremental (Just newState) handle
           else putStrLn "Incomplete but no -f"
       CompleteEventLog -> do
         putStrLn "Done (file was complete)"
       EventLogParsingError errMsg -> do
-        putStrLn "An error was encountered."
+        putStrLn "An error has occured."
+printEventsIncremental (Nothing) handle = do
+    printEventsIncremental (Just initEventParser) handle
