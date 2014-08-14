@@ -21,7 +21,6 @@ import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.Binary.Get
 import Data.Word (Word16)
-import System.Exit (exitFailure)
 import Text.Printf
 
 #define EVENTLOG_CONSTANTS_ONLY
@@ -71,8 +70,10 @@ readHeader dec bs =
             newState = newEventParser Nothing 0 (Right (eventDecoder, partial))
         readEvent newState B.empty
       (part@Partial {}) -> do
-        let newState = newEventParser Nothing 0 (Left (part `pushChunk` bs))
-        readEvent newState B.empty
+        if bs == B.empty
+          then (PartialEventLog, (newEventParser Nothing 0 (Left part)))
+          else let newState = newEventParser Nothing 0 (Left (part `pushChunk` bs))
+               in readEvent newState B.empty
       (Fail _ _ errMsg) -> 
         -- TODO: do we update the state here?
         (EventLogParsingError errMsg, initEventParser)  
