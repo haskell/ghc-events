@@ -9,6 +9,7 @@ module GHC.RTS.EventsIncremental (
 
   initEventParser,
   readEvent,
+  readEventLogFromFile,
   ppEvent'
  ) where
 
@@ -47,10 +48,11 @@ data Result a
   -- An error in parsing has occurred
   | EventLogParsingError String
 
-newEventParser :: Maybe Int -> 
-                    Integer -> 
-                  Either (Decoder Header) EventDecoders -> EventParserState
-newEventParser cap remaining eitherDec = 
+newParserState :: Maybe Int 
+                  -> Integer 
+                  -> Either (Decoder Header) EventDecoders 
+                  -> EventParserState
+newParserState cap remaining eitherDec = 
   EPS { epsCap = cap
       , epsRemaining = remaining
       , epsDecoder = eitherDec}
@@ -61,21 +63,35 @@ initEventParser = EPS { epsCap = Nothing
                       , epsDecoder = Left (getToDecoder getHeader)}
 
 readHeader :: Decoder Header -> B.ByteString -> (Result CapEvent, EventParserState)
-readHeader dec bs =
+readHeader dec bs = do
+    let (hdr, state) = readHeader' dec bs
+    case hdr of 
+      (One header) -> do
+        let eventDecoder = mkEventDecoder header
+            -- push remainder and the new bytestring into the partial decoder
+            partial = eventDecoder `pushChunk` bs
+            newState = newParserState Nothing 0 (Right (eventDecoder, partial))
+        readEvent newState B.empty
+      (PartialEventLog) -> (PartialEventLog, state)
+      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, initEventParser)  
+      (CompleteEventLog) -> error "Should never happen."
+
+readHeader' :: Decoder Header -> B.ByteString -> (Result Header, EventParserState)
+readHeader' dec bs =
     case dec of 
       (Done bs' _ header) -> do
         let eventDecoder = mkEventDecoder header
             -- push remainder and the new bytestring into the partial decoder
             partial = eventDecoder `pushChunk` bs' `pushChunk` bs
-            newState = newEventParser Nothing 0 (Right (eventDecoder, partial))
-        readEvent newState B.empty
+            newState = newParserState Nothing 0 (Right (eventDecoder, partial))
+            return (One header, newState)
       (part@Partial {}) -> do
         if bs == B.empty
-          then (PartialEventLog, (newEventParser Nothing 0 (Left part)))
-          else let newState = newEventParser Nothing 0 (Left (part `pushChunk` bs))
-               in readEvent newState B.empty
+          then (PartialEventLog, (newParserState Nothing 0 (Left part)))
+          else let newState = newParserState Nothing 0 (Left (part `pushChunk` bs))
+               in readHeader' newState B.empty
       (Fail _ _ errMsg) -> 
-        -- TODO: do we update the state here?
+        -- TODO: should the state be updated here?
         (EventLogParsingError errMsg, initEventParser)  
 
 -- Returns one event if there is enough data passed to it. Reads the header first if
@@ -96,7 +112,7 @@ readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _})
           (Done bs' sz (Just e)) -> do
             -- TODO: Make a helper function
             let newPartial = newDecoder `pushChunk` bs' `pushChunk` bs
-                newState = newEventParser cap (remaining - fromIntegral sz) 
+                newState = newParserState cap (remaining - fromIntegral sz) 
                        (Right (newDecoder, newPartial))
             (One CapEvent { ce_cap = cap, ce_event = e }, newState)
           (Done _ _ Nothing) -> (CompleteEventLog, eps)
@@ -104,7 +120,7 @@ readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _})
             if bs == B.empty
               then (PartialEventLog, eps)
               else let newPartial = partial `pushChunk` bs
-                       newState = newEventParser cap remaining 
+                       newState = newParserState cap remaining 
                                                  (Right (newDecoder, newPartial))
                    in
                    readEvent newState B.empty
@@ -115,12 +131,12 @@ readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _})
             case spec ev of
               EventBlock _ blockCap newRemaining -> do
                 let newPartial = newDecoder `pushChunk` bs' `pushChunk` bs
-                    newState = newEventParser (isCap blockCap) newRemaining 
+                    newState = newParserState (isCap blockCap) newRemaining 
                                               (Right (newDecoder, newPartial))
                 readEvent newState B.empty
               otherwise -> do
                 let newPartial = newDecoder `pushChunk` bs' `pushChunk` bs
-                    newState = newEventParser Nothing 0
+                    newState = newParserState Nothing 0
                                               (Right (newDecoder, newPartial))
                 (One CapEvent { ce_cap = Nothing, ce_event = ev }, newState)
           (Done _ _ Nothing) -> (CompleteEventLog, eps)
@@ -128,11 +144,42 @@ readEvent' (eps@EPS{epsCap = cap, epsRemaining = remaining, epsDecoder = _})
             if bs == B.empty
               then (PartialEventLog, eps)
               else let newPartial = partial `pushChunk` bs
-                       newState = newEventParser cap remaining 
+                       newState = newParserState cap remaining 
                                                  (Right (newDecoder, newPartial))
                    in
                    readEvent newState B.empty
           (Fail _ _ errMsg) -> (EventLogParsingError errMsg, eps)
+
+
+readEventLogFromFile :: FilePath -> IO (EventLog)
+readEventLogFromFile f = do
+    h <- hOpen f ReadMode
+    header <- readBareHeader h
+    events <- readAllEvents True h >>= sortEvents
+    return $ EventLog header (Data events)
+
+
+readAllEvents :: Maybe EventParserState -- Nothing to initialise a new parser
+              -> Bool -- Retry on incomplete logs? (infinite loop if never completes)
+              -> Handle -- Handle to read from
+              -> IO [CapEvent]
+readAllEvents (Just eps) dashFMode handle = do
+    bs <- B.hGetSome handle chunkSize
+    let (resEvent, newState) = readEvent eps bs
+    case resEvent of
+      One ev -> return $ ev : (readAllEvents (Just newState) dashFMode handle)
+      PartialEventLog -> do
+        if dashFMode
+          then do threadDelay 1000000
+                  readAllEvents (Just newState) dashFMode handle
+          else putStrLn "Incomplete but no -f" >> return []
+      CompleteEventLog -> return []
+      EventLogParsingError errMsg -> 
+        putStrLn "A parsing error has occured." >> exitFailure
+readAllEvents (Nothing) dashFMode handle = do
+    readAllEvents (Just initEventParser) dashFMode handle
+
+
 
 -- Parser will read from a Handle in chunks of chunkSize bytes
 chunkSize :: Int
