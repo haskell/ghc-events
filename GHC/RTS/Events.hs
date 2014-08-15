@@ -28,11 +28,10 @@ module GHC.RTS.Events (
        KernelThreadId(..),
 
        -- * Reading and writing event logs
-       readEventLogFromFile,
        writeEventLogToFile,
 
        -- * Utilities
-       CapEvent(..), sortEvents, groupEvents, sortGroups,
+       CapEvent(..), sortEvents,
        buildEventTypeMap,
 
        -- * Printing
@@ -601,124 +600,11 @@ perfParsers = [
   ))
  ]
 
-getData :: GetEvents Data
-getData = do
-   db <- getE :: GetEvents Marker
-   when (db /= EVENT_DATA_BEGIN) $ fail "Data begin marker not found"
-   eparsers <- ask
-   let
-       getEvents :: [Event] -> GetEvents Data
-       getEvents events = do
-         mb_e <- getEvent eparsers
-         case mb_e of
-           Nothing -> return (Data (reverse events))
-           Just e  -> getEvents (e:events)
-   -- in
-   getEvents []
-
-getEventBlock :: EventParsers -> GetEvents [Event]
-getEventBlock parsers = do
-  b <- lift $ isEmpty
-  if b then return [] else do
-  mb_e <- getEvent parsers
-  case mb_e of
-    Nothing -> return []
-    Just e  -> do
-      es <- getEventBlock parsers
-      return (e:es)
-
-getEventLog :: Get EventLog
-getEventLog = undefined
-    --header <- getHeader
-    --let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
-    --    -- This test is complete, no-one has extended this event yet and all future
-    --    -- extensions will use newly allocated event IDs.
-    --    is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
-    --                                     size create_et
-        
-    --    -- GHC6 writes an invalid header, we handle it here by using a
-    --    -- different set of event parsers.  Note that the ghc7 event parsers
-    --    -- are standard events, and can be used by other runtime systems that
-    --    -- make use of threadscope.
-        
-    --    event_parsers = if is_ghc_6
-    --                        then standardParsers ++ ghc6Parsers
-    --                        else standardParsers ++ ghc7Parsers
-    --                             ++ mercuryParsers ++ perfParsers
-    --    parsers = mkEventTypeParsers imap event_parsers
-    --dat <- runReaderT getData (EventParsers parsers)
-    --return (EventLog header dat)
-
-readEventLogFromFile :: FilePath -> IO (EventLog)
-readEventLogFromFile f = do
-    s <- L.readFile f
-    return $ runGet (do v <- getEventLog
-                        m <- isEmpty
-                        m `seq` return v)  s
-
 -- -----------------------------------------------------------------------------
 -- Utilities
 
-sortEvents :: [Event] -> [CapEvent]
-sortEvents = sortGroups . groupEvents
-
--- | Sort the raw event stream by time, annotating each event with the
--- capability that generated it.
-sortGroups :: [(Maybe Int, [Event])] -> [CapEvent]
-sortGroups groups = mergesort' (compare `on` (time . ce_event)) $
-                      [ [ CapEvent cap e | e <- es ]
-                      | (cap, es) <- groups ]
-     -- sorting is made much faster by the way that the event stream is
-     -- divided into blocks of events.
-     --  - All events in a block belong to a particular capability
-     --  - The events in a block are ordered by time
-     --  - blocks for the same capability appear in time order in the event
-     --    stream and do not overlap.
-     --
-     -- So to sort the events we make one list of events for each
-     -- capability (basically just concat . filter), and then
-     -- merge the resulting lists.
-
-groupEvents :: [Event] -> [(Maybe Int, [Event])]
-groupEvents es = undefined
-  --(Nothing, n_events) :
-  --               [ (Just (cap (head blocks)), concatMap block_events blocks)
-  --               | blocks <- groups ]
-  --where
-  -- (blocks, anon_events) = partitionEithers (map separate es)
-  --    where separate e | b@EventBlock{} <- spec e = Left  b
-  --                     | otherwise                = Right e
-
-  -- (cap_blocks, gbl_blocks) = partition (is_cap . cap) blocks
-  --    where is_cap c = fromIntegral c /= ((-1) :: Word16)
-
-  -- groups = groupBy ((==) `on` cap) $ sortBy (compare `on` cap) cap_blocks
-
-  --   -- There are two sources of events without a capability: events
-  --   -- in the raw stream not inside an EventBlock, and EventBlocks
-  --   -- with cap == -1.  We have to merge those two streams.
-  --   -- In light of merged logs, global blocks may have overlapping
-  --   -- time spans, thus the blocks are mergesorted
-  -- n_events = mergesort' (compare `on` time) (anon_events : map block_events gbl_blocks)
-
-mergesort' :: (a -> a -> Ordering) -> [[a]] -> [a]
-mergesort' _   [] = []
-mergesort' _   [xs] = xs
-mergesort' cmp xss = mergesort' cmp (merge_pairs cmp xss)
-
-merge_pairs :: (a -> a -> Ordering) -> [[a]] -> [[a]]
-merge_pairs _   [] = []
-merge_pairs _   [xs] = [xs]
-merge_pairs cmp (xs:ys:xss) = merge cmp xs ys : merge_pairs cmp xss
-
-merge :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-merge _   [] ys = ys
-merge _   xs [] = xs
-merge cmp (x:xs) (y:ys)
- = case x `cmp` y of
-        GT -> y : merge cmp (x:xs)   ys
-        _  -> x : merge cmp    xs (y:ys)
-
+sortEvents :: [CapEvent] -> [CapEvent]
+sortEvents = sortBy (compare `on` (time . ce_event)) 
 
 buildEventTypeMap :: [EventType] -> IntMap EventType
 buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
@@ -905,11 +791,10 @@ ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
     , map ppEventType ets
     , [""] -- newline
     , ["Events:"]
-    , map (ppEvent imap) sorted
+    , map (ppEvent imap) es
     , [""] ]) -- extra trailing newline
  where
     imap = buildEventTypeMap ets
-    sorted = sortEvents es
 
 ppEventType :: EventType -> String
 ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
