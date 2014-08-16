@@ -109,8 +109,9 @@ data EventType =
 
 data Event =
   Event {
-    time :: {-# UNPACK #-}!Timestamp,
-    spec :: EventInfo
+    time  :: {-# UNPACK #-}!Timestamp,
+    spec  :: EventInfo,
+    evCap :: Maybe Int
   } deriving Show
 
 data EventInfo
@@ -380,6 +381,7 @@ mkCapsetType n = case n of
  _ -> CapsetUnknown
 
 -- | An event annotated with the Capability that generated it, if any
+{-# DEPRECATED CapEvent "CapEvents will be removed soon, now Event has a field evCap" #-}
 data CapEvent
   = CapEvent { ce_cap   :: Maybe Int,
                ce_event :: Event

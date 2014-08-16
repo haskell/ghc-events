@@ -127,7 +127,7 @@ getEvent (EventParsers parsers) = do
      else do !ts   <- getE
              -- trace ("event: " ++ show etRef) $ do
              spec <- parsers ! fromIntegral etRef
-             return (Just (Event ts spec))
+             return (Just $ (Event ts spec undefined))
 
 --
 -- standardEventParsers.
@@ -603,8 +603,11 @@ perfParsers = [
 -- -----------------------------------------------------------------------------
 -- Utilities
 
-sortEvents :: [CapEvent] -> [CapEvent]
-sortEvents = sortBy (compare `on` (time . ce_event)) 
+sortEvents :: [Event] -> [CapEvent]
+sortEvents =  (map eventToCE) . sortBy (compare `on` (time))
+
+eventToCE :: Event -> CapEvent
+eventToCE ev = CapEvent {ce_event = ev, ce_cap = evCap ev}
 
 buildEventTypeMap :: [EventType] -> IntMap EventType
 buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
@@ -791,17 +794,18 @@ ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
     , map ppEventType ets
     , [""] -- newline
     , ["Events:"]
-    , map (ppEvent imap) es
+    , map (ppEvent imap) sorted
     , [""] ]) -- extra trailing newline
  where
     imap = buildEventTypeMap ets
+    sorted = sortEvents es
 
 ppEventType :: EventType -> String
 ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
    (case msz of Nothing -> "variable"; Just x -> show x)
 
 ppEvent :: IntMap EventType -> CapEvent -> String
-ppEvent imap (CapEvent cap (Event time spec)) =
+ppEvent imap (CapEvent cap (Event {time = time, spec = spec})) =
   printf "%9d: " time ++
   (case cap of
     Nothing -> ""
@@ -943,7 +947,7 @@ nEVENT_PERF_COUNTER = EVENT_PERF_COUNTER
 nEVENT_PERF_TRACEPOINT = EVENT_PERF_TRACEPOINT
 
 putEvent :: Event -> PutEvents ()
-putEvent (Event t spec) = do
+putEvent (Event {time = t , spec = spec}) = do
     putType (eventTypeNum spec)
     put t
     putEventSpec spec

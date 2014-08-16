@@ -76,8 +76,12 @@ maxVars = mconcat . map (maxSpec . spec)
 sh :: Num a => a -> a -> a
 sh x y = x + y
 
+updateSpec :: (EventInfo -> EventInfo) -> Event -> Event
+updateSpec f (Event {time = t, spec = s, evCap = cap}) = 
+    Event {time = t, spec = f s, evCap = cap}
+
 shift :: MaxVars -> [Event] -> [Event]
-shift (MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
+shift (MaxVars mcs mc mt) = map (updateSpec shift')
  where
     -- -1 marks a block that isn't attached to a particular capability
     shift' (CreateThread t) = CreateThread $ sh mt t
