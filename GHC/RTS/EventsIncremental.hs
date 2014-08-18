@@ -102,7 +102,7 @@ readEvent' :: EventDecoder -> B.ByteString -> (Result Event, EventParserState)
 readEvent' (ed@(ED cap remaining emptyDecoder partial)) bs = 
     case partial of
       (Done bs' sz (Just event)) -> do
-        case spec event of
+        case evSpec event of
           EventBlock _ blockCap newRemaining -> do
             let newState = newParserState (isCap blockCap) newRemaining 
                                           emptyDecoder emptyDecoder [bs', bs]
@@ -111,7 +111,7 @@ readEvent' (ed@(ED cap remaining emptyDecoder partial)) bs =
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState (mkCap ed sz) newRemaining
                                           emptyDecoder emptyDecoder [bs', bs]
-            (One (Event (time event) (spec event) (mkCap ed 0)), newState)
+            (One (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
       (Done _ _ Nothing) -> (CompleteEventLog, Right ed)
       (Partial _) -> 
         if bs == B.empty
@@ -120,8 +120,8 @@ readEvent' (ed@(ED cap remaining emptyDecoder partial)) bs =
                in readEvent newState B.empty
       (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Right ed)
 
-
-readEventLogFromFile :: FilePath -> IO (EventLog)
+-- TODO: Make Either String EventLog
+readEventLogFromFile :: FilePath -> IO EventLog
 readEventLogFromFile f = do
     handle  <- openBinaryFile f ReadMode
     (header, state) <- readBareHeader Nothing handle
