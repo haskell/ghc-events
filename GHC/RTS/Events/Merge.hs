@@ -35,7 +35,7 @@ mergeEventLogs (EventLog h1 (Data xs)) (EventLog h2 (Data ys)) =
       m = M.unionWith combine m1 m2
       h = Header $ M.elems m
   in h == h `seq`  -- Detect inconsistency ASAP.
-     EventLog h . Data . mergeOn time xs $ shift (maxVars xs) ys
+     EventLog h . Data . mergeOn evTime xs $ shift (maxVars xs) ys
 
 mergeOn :: Ord b => (a -> b) -> [a] -> [a] -> [a]
 mergeOn _ [] ys = ys
@@ -63,7 +63,7 @@ instance Monoid MaxVars where
 -- just scan all events mentioning a cap and take the maximum,
 -- but it's a slower and much longer code, requiring constant maintenance.
 maxVars :: [Event] -> MaxVars
-maxVars = mconcat . map (maxSpec . spec)
+maxVars = mconcat . map (maxSpec . evSpec)
  where
     -- only checking binding sites right now, sufficient?
     maxSpec (Startup n) = mempty { mcap = n }
@@ -78,8 +78,8 @@ sh :: Num a => a -> a -> a
 sh x y = x + y
 
 updateSpec :: (EventInfo -> EventInfo) -> Event -> Event
-updateSpec f (Event {time = t, spec = s, evCap = cap}) = 
-    Event {time = t, spec = f s, evCap = cap}
+updateSpec f (Event {evTime = t, evSpec = s, evCap = cap}) = 
+    Event {evTime = t, evSpec = f s, evCap = cap}
 
 shift :: MaxVars -> [Event] -> [Event]
 shift (MaxVars mcs mc mt) = map (updateSpec shift')

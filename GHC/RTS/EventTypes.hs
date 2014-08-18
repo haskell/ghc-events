@@ -2,7 +2,6 @@
 
 module GHC.RTS.EventTypes where
 
-import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Binary
 
 -- EventType.
@@ -124,10 +123,18 @@ data EventType =
 
 data Event =
   Event {
-    time  :: {-# UNPACK #-}!Timestamp,
-    spec  :: EventInfo,
+    evTime  :: {-# UNPACK #-}!Timestamp,
+    evSpec  :: EventInfo,
     evCap :: Maybe Int
   } deriving Show
+
+{-# DEPRECATED time "The field is now called evTime" #-}
+time :: Event -> Timestamp
+time = evTime 
+
+{-# DEPRECATED spec "The field is now called evSpec" #-}
+spec :: Event -> EventInfo
+spec = evSpec 
 
 data EventInfo
 

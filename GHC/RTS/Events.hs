@@ -13,6 +13,8 @@ module GHC.RTS.Events (
        ghc7Parsers,
        mercuryParsers,
        perfParsers,
+       spec,
+       time,
        -- * The event log types
        EventLog(..),
        EventType(..),
@@ -758,11 +760,8 @@ perfParsers = [
 -- -----------------------------------------------------------------------------
 -- Utilities
 
-sortEvents :: [Event] -> [CapEvent]
-sortEvents =  (map eventToCE) . sortBy (compare `on` (time))
-
-eventToCE :: Event -> CapEvent
-eventToCE ev = CapEvent {ce_event = ev, ce_cap = evCap ev}
+sortEvents :: [Event] -> [Event]
+sortEvents = sortBy (compare `on` (evTime))
 
 buildEventTypeMap :: [EventType] -> IntMap EventType
 buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
@@ -916,6 +915,7 @@ showEventInfo spec =
             printf "sending/receiving message with tag %s from process %d, thread %d to process %d on inport %d"
             (show mesTag) senderProcess senderThread receiverProcess receiverInport
         MerStartParConjunction dyn_id static_id ->
+
           printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
         MerEndParConjunction dyn_id ->
           printf "End par conjunction: 0x%x" dyn_id
@@ -992,8 +992,8 @@ ppEventType :: EventType -> String
 ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
    (case msz of Nothing -> "variable"; Just x -> show x)
 
-ppEvent :: IntMap EventType -> CapEvent -> String
-ppEvent imap (CapEvent cap (Event {time = time, spec = spec})) =
+ppEvent :: IntMap EventType -> Event -> String
+ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
   printf "%9d: " time ++
   (case cap of
     Nothing -> ""
@@ -1147,7 +1147,7 @@ nEVENT_PERF_COUNTER = EVENT_PERF_COUNTER
 nEVENT_PERF_TRACEPOINT = EVENT_PERF_TRACEPOINT
 
 putEvent :: Event -> PutEvents ()
-putEvent (Event {time = t , spec = spec}) = do
+putEvent (Event {evTime = t , evSpec = spec}) = do
     putType (eventTypeNum spec)
     put t
     putEventSpec spec
@@ -1517,3 +1517,4 @@ splitNull :: String -> [String]
 splitNull [] = []
 splitNull xs = case span (/= '\0') xs of
                 (x, xs') -> x : splitNull (drop 1 xs')
+
