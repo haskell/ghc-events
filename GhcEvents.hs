@@ -33,16 +33,14 @@ main = getArgs >>= command
 command ["--help"] = do
     putStr usage
 
-command ["inc", file] = do
-    h  <- openBinaryFile file ReadMode
-    printEventsIncremental Nothing h
+command ["inc", file] = undefined
 
 command ["show", file] = do
-    log <- readEventLogFromFile file
+    log <- readLogOrDie file
     putStrLn $ ppEventLog log
 
 command ["show", "threads", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
         evts = sortEvents $ events $ dat eventLog
         mappings  = rights . validates capabilityThreadRunMachine $ evts
@@ -57,7 +55,7 @@ command ["show", "threads", file] = do
         threadMap
 
 command ["show", "caps", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
     let evts = sortEvents . events . dat $ eventLog
         indexes = map evCap evts
@@ -71,13 +69,13 @@ command ["show", "caps", file] = do
         capMap
 
 command ["merge", out, file1, file2] = do
-    log1 <- readEventLogFromFile file1
-    log2 <- readEventLogFromFile file2
+    log1 <- readLogOrDie file1
+    log2 <- readLogOrDie file2
     let m = mergeEventLogs log1 log2
     writeEventLogToFile out m
 
 command ["validate", "threads", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = validate (routeM capabilityThreadRunMachine
                                   capabilityThreadIndexer
@@ -89,31 +87,31 @@ command ["validate", "threads", file] = do
                             show result
 
 command ["validate", "threadpool", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = validate capabilityThreadPoolMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "threadrun", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = validate capabilityThreadRunMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "taskpool", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = validate capabilityTaskPoolMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "tasks", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = validate capabilityTaskOSMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "sparks", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = validate
                    (routeM capabilitySparkThreadMachine capabilitySparkThreadIndexer
@@ -122,7 +120,7 @@ command ["validate", "sparks", file] = do
     putStrLn $ showValidate show show result
 
 command ["simulate", "threads", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = simulate (routeM capabilityThreadRunMachine
                                   capabilityThreadIndexer
@@ -131,31 +129,31 @@ command ["simulate", "threads", file] = do
     putStrLn . showProcess $ result
 
 command ["simulate", "threadpool", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = simulate capabilityThreadPoolMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "threadrun", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = simulate capabilityThreadRunMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "taskpool", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = simulate capabilityTaskPoolMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "tasks", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = simulate capabilityTaskOSMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "sparks", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = simulate
               (routeM capabilitySparkThreadMachine
@@ -164,7 +162,7 @@ command ["simulate", "sparks", file] = do
     putStrLn . showProcess $ result
 
 command ["profile", "threads", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = profileRouted
                    (refineM evSpec threadMachine)
@@ -173,7 +171,7 @@ command ["profile", "threads", file] = do
     putStrLn . showProcess $ result
 
 command ["profile", "sparks", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let evts = sortEvents . events . dat $ eventLog
     let result = profileRouted
                    (refineM evSpec sparkThreadMachine)
@@ -185,6 +183,12 @@ command ["profile", "sparks", file] = do
 command _ = putStr usage >> die "Unrecognized command"
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
+
+readLogOrDie file = do
+    e <- readEventLogFromFile file
+    case e of
+        Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
+        Right log -> return log
 
 usage = unlines $ map pad strings
  where
@@ -245,31 +249,3 @@ showMap showKey showValue m =
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
--- Example client for the API
-printEventsIncremental :: Maybe EventParserState -> Handle -> IO ()
-printEventsIncremental (Just eps) handle = do
-    bs <- B.hGetSome handle 1024
-    let (resEvent, newState) =   readEvent eps bs
-    let dbg = False
-        dashf = True
-    case resEvent of
-      One ev -> do
-          putStrLn (ppEvent' ev)
-          -- print events one by one
-          input <- if dbg then getLine else return ""
-          if input == ""
-            then printEventsIncremental (Just newState) handle
-            else putStrLn "Stopping"
-      PartialEventLog -> do
-        if dashf
-          then do
-                print "waiting for input"
-                threadDelay 1000000
-                printEventsIncremental (Just newState) handle
-          else putStrLn "Incomplete but no -f"
-      CompleteEventLog -> do
-        putStrLn "Done (file was complete)"
-      EventLogParsingError errMsg -> do
-        putStrLn "An error has occured."
-printEventsIncremental (Nothing) handle = do
-    printEventsIncremental (Just initEventParser) handle
