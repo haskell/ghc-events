@@ -29,14 +29,19 @@ files = map ("test/"++)
 -- returns True on success
 testFile :: FilePath -> IO Bool
 testFile f = do
-    logdata <- readEventLogFromFile f
+    e <- readEventLogFromFile f
     let oops s = putStrLn (f ++ ": failure" ++ s) >> return False
-    oldlog <- readFile (f ++ ".reference")
-    let newlog = ppEventLog logdata ++ "\n" in
-        if oldlog == newlog
-            then putStrLn (f ++ ": success") >> return True
-            else do print $ diffLines oldlog newlog
-                    oops "pretty print output does not match"
+
+    case e of
+        Left m -> oops m
+
+        Right newlogdata -> do
+            oldlog <- readFile (f ++ ".reference")
+            let newlog = ppEventLog newlogdata ++ "\n" in
+                if oldlog == newlog
+                    then putStrLn (f ++ ": success") >> return True
+                    else do print $ diffLines oldlog newlog
+                            oops "pretty print output does not match"
 
 main = do
     successes <- mapM testFile files

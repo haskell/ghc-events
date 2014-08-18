@@ -6,9 +6,12 @@
 module GHC.RTS.EventsIncremental (
   Result(..),
   EventParserState,
+  EventHandle,
 
   initEventParser,
-  readEvent,
+  pushBytes, readEvent,
+  ehOpen, ehReadEvent,
+  -- For compatibility with old clients
   readEventLogFromFile,
   ppEvent'
  ) where
@@ -17,11 +20,14 @@ import GHC.RTS.Events
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 
+import Control.Applicative ((<$>), (<*>), Applicative(..))
 import Control.Concurrent (threadDelay)
 import Control.Monad.Reader (runReaderT)
-import qualified Data.ByteString as B
-import qualified Data.IntMap as M
 import Data.Binary.Get
+import qualified Data.ByteString as B
+import Data.Either (lefts)
+import qualified Data.IntMap as M
+import Data.IORef (IORef(..), newIORef, readIORef)
 import System.Exit (exitFailure)
 import System.IO (IOMode(ReadMode), openBinaryFile, Handle)
 import Data.Word (Word16)
@@ -31,6 +37,10 @@ import Text.Printf
 #include "EventLogFormat.h"
 
 type EventParserState = Either (Decoder Header) EventDecoder
+
+data EventHandle =
+  EH { ehHandle :: Handle
+     , ehState  :: IORef EventParserState }
 
 data EventDecoder = 
   ED { edCap       :: Maybe Int
@@ -42,8 +52,8 @@ data EventDecoder =
 data Result a
   -- Successfully parsed an item
   = One a
-  -- The eventlog wasn't complete but the input did not contain any more complete
-  -- items
+  -- The eventlog wasn't complete but the input did not contain any more 
+  -- complete items
   | PartialEventLog
   -- Parsing was completed successfully
   -- TODO: (what happens if getEvent called again?)
@@ -54,11 +64,12 @@ data Result a
 initEventParser :: EventParserState
 initEventParser = Left (getToDecoder getHeader)
 
--- Creates a new parser state (a Right, so events only). If given a non-empty list
+-- Creates a new parser state (a Right, so events only). 
+-- If given a non-empty list
 -- of ByteStrings, pushes them all to the partial decoder
 -- TODO: Order of lists may be confusing
-newParserState :: Maybe Int -> Integer 
-               -> Decoder (Maybe Event) -> Decoder (Maybe Event) -> [B.ByteString]
+newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
+               -> Decoder (Maybe Event) -> [B.ByteString]
                -> EventParserState
 newParserState cap remaining dec partial bss = 
   Right $ ED { edCap = cap
@@ -66,99 +77,117 @@ newParserState cap remaining dec partial bss =
              , edDecoder = dec
              , edPartial = (foldl pushChunk partial bss) }
 
--- Given a state and a bytestring, parses at most one event (if the BS contains
--- enough data) and keeps the remainder ofthe BS in the state (to be used in 
--- successive call to readEvent). Expects the first bytes to contain a complete Header
-readEvent :: EventParserState -> B.ByteString -> (Result Event, EventParserState)
-readEvent (Left headerDecoder) bs = 
-    case (readHeader headerDecoder bs) of 
-      (One _, state) -> readEvent state B.empty
-      -- Following cases just to propagate the type
-      (EventLogParsingError errMsg, state) -> (EventLogParsingError errMsg, state)
-      (PartialEventLog, state) -> (PartialEventLog, state)
-      otherwise -> error "The impossible has happened. Report a bug."
-readEvent (Right ed) bs = readEvent' ed bs 
+-- Pushes the given bytestring into EventParserState
+pushBytes :: EventParserState -> B.ByteString -> EventParserState
+pushBytes (Left headerDecoder) bs = Left $ headerDecoder `pushChunk` bs
+pushBytes (Right ed) bs = newParserState (edCap ed) (edRemaining ed) 
+                                  (edDecoder ed) (edPartial ed) [bs]
 
-readHeader :: Decoder Header -> B.ByteString -> (Result Header, EventParserState)
-readHeader dec bs =
+readHeader :: Decoder Header -> (Result Header, EventParserState)
+readHeader dec =
     case dec of 
-      (Done bs' _ header) ->
+      (Done bs _ header) ->
         let emptyDecoder = mkEventDecoder header
-            newState = newParserState Nothing 0 emptyDecoder emptyDecoder [bs', bs]
+            newState = newParserState Nothing 0 emptyDecoder emptyDecoder [bs]
         in (One header, newState)
-      (Partial {}) ->
-        if bs == B.empty
-          then (PartialEventLog, Left dec)
-          else readHeader (dec `pushChunk` bs) B.empty
-      (Fail _ _ errMsg) -> 
-        -- TODO: should the state be updated here?
-        (EventLogParsingError errMsg, Left dec)  
+      (Partial {}) -> (PartialEventLog, Left dec)
+      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Left dec)  
+        
+-- Parses at most one event from the state (refer to Result datatype)
+-- Also returns the updated state
+-- Expects the first bytes to contain a complete eventlog header
+readEvent :: EventParserState -> (Result Event, EventParserState)
+readEvent (Left headerDecoder) = 
+    case (readHeader headerDecoder) of 
+      (One _, state) -> readEvent state 
+      (PartialEventLog, state) ->
+          (PartialEventLog, state)
+      (EventLogParsingError errMsg, state) ->
+          (EventLogParsingError errMsg, state)
+      otherwise -> error "The impossible has happened. Report a bug."
+readEvent (Right ed) = readEvent' ed 
 
-readEvent' :: EventDecoder -> B.ByteString -> (Result Event, EventParserState)
-readEvent' (ed@(ED cap remaining emptyDecoder partial)) bs = 
+readEvent' :: EventDecoder -> (Result Event, EventParserState)
+readEvent' (ed@(ED cap remaining emptyDecoder partial)) = 
     case partial of
-      (Done bs' sz (Just event)) -> do
+      (Done bs sz (Just event)) -> do
         case evSpec event of
           EventBlock _ blockCap newRemaining -> do
             let newState = newParserState (isCap blockCap) newRemaining 
-                                          emptyDecoder emptyDecoder [bs', bs]
-            readEvent newState B.empty
+                                          emptyDecoder emptyDecoder [bs]
+            readEvent newState 
           otherwise -> do
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState (mkCap ed sz) newRemaining
-                                          emptyDecoder emptyDecoder [bs', bs]
+                                          emptyDecoder emptyDecoder [bs]
             (One (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
       (Done _ _ Nothing) -> (CompleteEventLog, Right ed)
-      (Partial _) -> 
-        if bs == B.empty
-          then (PartialEventLog, Right ed)
-          else let newState = newParserState cap remaining emptyDecoder partial [bs]
-               in readEvent newState B.empty
+      (Partial _) -> (PartialEventLog, Right ed)
       (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Right ed)
 
+-- EventHandle based API
+
+-- Creates a new event handle. The input handle is epxected to begin at the
+-- beginning of file.
+ehOpen :: Handle -> IO EventHandle
+ehOpen handle = do
+  ioref <- newIORef $ Left (getToDecoder getHeader)
+  return $ EH handle ioref
+
+-- Reads at most one event from the EventHandle. Can be called repeadetly
+ehReadEvent :: EventHandle -> IO (Result Event)
+ehReadEvent (EH handle stateRef) = do
+  state <- readIORef stateRef
+  let (result, state) = readEvent state
+  case result of
+    (One ev) -> return result
+    (PartialEventLog) -> do
+      bs <- B.hGetSome handle chunkSize
+      if bs == B.empty
+        then return PartialEventLog
+        else do
+          let newState = state `pushBytes` bs
+          newRef <- newIORef newState
+          ehReadEvent $ EH handle newRef
+    (CompleteEventLog) -> return CompleteEventLog
+    (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
+
+ehReadHeader :: EventHandle -> IO (Result Header)
+ehReadHeader (EH handle stateRef) = do
+  state <- readIORef stateRef
+  let (result, state) = readHeader $ head $ lefts [state]
+  case result of
+    (One ev) -> return result
+    (PartialEventLog) -> do
+      bs <- B.hGetSome handle chunkSize
+      if bs == B.empty
+        then return $ EventLogParsingError "Header is incomplete, terminating"
+        else do
+          let newState = state `pushBytes` bs
+          newRef <- newIORef newState
+          ehReadHeader $ EH handle newRef
+    (CompleteEventLog) -> return CompleteEventLog
+    (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
+
 -- TODO: Make Either String EventLog
-readEventLogFromFile :: FilePath -> IO EventLog
+readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
-    handle  <- openBinaryFile f ReadMode
-    (header, state) <- readBareHeader Nothing handle
-    events <- readAllEvents (Just state) True handle 
-    return $ EventLog header (Data events)
+    handle <- openBinaryFile f ReadMode
+    eh     <- ehOpen handle
+    resultHeader <- ehReadHeader eh
+    case resultHeader of
+      (EventLogParsingError errMsg) -> error errMsg
+      (One header) -> do
+        events <- ehReadEvents $ ehReadEvent eh
+        return $ Right $ EventLog header (Data events)
+      otherwise -> error "Should never happen"
 
-readBareHeader :: Maybe (Decoder Header) -> Handle -> IO (Header, EventParserState)
-readBareHeader (Just headerDecoder) handle = do
-  !bs <- B.hGetSome handle chunkSize
-  case (readHeader headerDecoder bs) of
-    (One header, state) -> return (header, state)
-    (PartialEventLog, (Left headDec)) -> readBareHeader (Just headDec) handle
-    (EventLogParsingError errMsg, state) -> error errMsg
-    otherwise -> error "Should never happen."
-readBareHeader Nothing handle = readBareHeader (Just (getToDecoder getHeader)) handle
-
-readAllEvents :: Maybe EventParserState -- Nothing to initialise a new parser
-              -> Bool -- Retry on incomplete logs? (infinite loop if never completes)
-              -> Handle -- Handle to read from
-              -> IO [Event]
-readAllEvents (Just eps) dashFMode handle = do
-    bs <- B.hGetSome handle chunkSize
-    let (resEvent, newState) = readEvent eps bs
-    case resEvent of
-      One ev -> do
-          -- TODO: space leak?
-          rest <- (readAllEvents (Just newState) dashFMode handle)
-          return $ ev : rest 
-      PartialEventLog -> do
-        if dashFMode
-          then do threadDelay 1000000
-                  print "waiting for input"
-                  readAllEvents (Just newState) dashFMode handle
-          else putStrLn "Incomplete but no -f" >> return []
-      CompleteEventLog -> return []
-      EventLogParsingError errMsg -> 
-        putStrLn "A parsing error has occured." >> exitFailure
-readAllEvents (Nothing) dashFMode handle = 
-  readAllEvents (Just initEventParser) dashFMode handle
-
-
+ehReadEvents :: IO (Result Event) -> IO [Event]
+ehReadEvents eventReader = do
+  event <- eventReader
+  case event of
+    (One a) -> (:) <$> return a <*> ehReadEvents eventReader
+    otherwise -> return []
 
 -- Parser will read from a Handle in chunks of chunkSize bytes
 chunkSize :: Int
