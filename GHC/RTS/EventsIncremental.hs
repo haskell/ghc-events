@@ -40,9 +40,10 @@ data EventDecoder =
 
 -- Datatype that describes the result of getEvent
 data Result a
-  -- Successfully parsed one item
+  -- Successfully parsed an item
   = One a
-  -- The eventlog wasn't complete but there wasn't any more input in the handle
+  -- The eventlog wasn't complete but the input did not contain any more complete
+  -- items
   | PartialEventLog
   -- Parsing was completed successfully
   -- TODO: (what happens if getEvent called again?)
@@ -55,7 +56,7 @@ initEventParser = Left (getToDecoder getHeader)
 
 -- Creates a new parser state (a Right, so events only). If given a non-empty list
 -- of ByteStrings, pushes them all to the partial decoder
--- TODO: Order of lists is confusing
+-- TODO: Order of lists may be confusing
 newParserState :: Maybe Int -> Integer 
                -> Decoder (Maybe Event) -> Decoder (Maybe Event) -> [B.ByteString]
                -> EventParserState
@@ -64,6 +65,19 @@ newParserState cap remaining dec partial bss =
              , edRemaining = remaining
              , edDecoder = dec
              , edPartial = (foldl pushChunk partial bss) }
+
+-- Given a state and a bytestring, parses at most one event (if the BS contains
+-- enough data) and keeps the remainder ofthe BS in the state (to be used in 
+-- successive call to readEvent). Expects the first bytes to contain a complete Header
+readEvent :: EventParserState -> B.ByteString -> (Result Event, EventParserState)
+readEvent (Left headerDecoder) bs = 
+    case (readHeader headerDecoder bs) of 
+      (One _, state) -> readEvent state B.empty
+      -- Following cases just to propagate the type
+      (EventLogParsingError errMsg, state) -> (EventLogParsingError errMsg, state)
+      (PartialEventLog, state) -> (PartialEventLog, state)
+      otherwise -> error "The impossible has happened. Report a bug."
+readEvent (Right ed) bs = readEvent' ed bs 
 
 readHeader :: Decoder Header -> B.ByteString -> (Result Header, EventParserState)
 readHeader dec bs =
@@ -79,24 +93,6 @@ readHeader dec bs =
       (Fail _ _ errMsg) -> 
         -- TODO: should the state be updated here?
         (EventLogParsingError errMsg, Left dec)  
-
--- Returns one event if there is enough data passed to it. Reads the header first if
--- necessary 
-readEvent :: EventParserState -> B.ByteString -> (Result Event, EventParserState)
-readEvent (Left headerDecoder) bs = 
-    case (readHeader headerDecoder bs) of 
-      (One _, state) -> readEvent state B.empty
-      -- Following cases just to propagate the type
-      (EventLogParsingError errMsg, state) -> (EventLogParsingError errMsg, state)
-      (PartialEventLog, state) -> (PartialEventLog, state)
-      otherwise -> error "The impossible has happened. Report a bug."
-readEvent (Right ed) bs = readEvent' ed bs 
-
-mkCap :: EventDecoder -> ByteOffset -> Maybe Int
-mkCap ed sz
-  | (edRemaining ed - fromIntegral sz) > 0 = edCap ed
-  -- TODO: Needs a warning less than 0, it shouldn't happen
-  | otherwise = Nothing
 
 readEvent' :: EventDecoder -> B.ByteString -> (Result Event, EventParserState)
 readEvent' (ed@(ED cap remaining emptyDecoder partial)) bs = 
@@ -138,7 +134,6 @@ readBareHeader (Just headerDecoder) handle = do
     otherwise -> error "Should never happen."
 readBareHeader Nothing handle = readBareHeader (Just (getToDecoder getHeader)) handle
 
-
 readAllEvents :: Maybe EventParserState -- Nothing to initialise a new parser
               -> Bool -- Retry on incomplete logs? (infinite loop if never completes)
               -> Handle -- Handle to read from
@@ -173,6 +168,12 @@ isCap :: Int -> Maybe Int
 isCap blockCap = if fromIntegral blockCap /= ((-1) :: Word16)
                     then Just blockCap
                     else Nothing
+
+mkCap :: EventDecoder -> ByteOffset -> Maybe Int
+mkCap ed sz
+  | (edRemaining ed - fromIntegral sz) > 0 = edCap ed
+  -- TODO: Needs a warning less than 0, it shouldn't happen
+  | otherwise = Nothing
 
 -- Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> Decoder (Maybe Event)
