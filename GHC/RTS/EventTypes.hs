@@ -2,7 +2,6 @@
 
 module GHC.RTS.EventTypes where
 
-import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Binary
 
 -- EventType.
@@ -109,9 +108,18 @@ data EventType =
 
 data Event =
   Event {
-    time :: {-# UNPACK #-}!Timestamp,
-    spec :: EventInfo
+    evTime  :: {-# UNPACK #-}!Timestamp,
+    evSpec  :: EventInfo,
+    evCap :: Maybe Int
   } deriving Show
+
+{-# DEPRECATED time "The field is now called evTime" #-}
+time :: Event -> Timestamp
+time = evTime 
+
+{-# DEPRECATED spec "The field is now called evSpec" #-}
+spec :: Event -> EventInfo
+spec = evSpec 
 
 data EventInfo
 
@@ -380,6 +388,7 @@ mkCapsetType n = case n of
  _ -> CapsetUnknown
 
 -- | An event annotated with the Capability that generated it, if any
+{-# DEPRECATED CapEvent "CapEvents will be removed soon, now Event has a field evCap" #-}
 data CapEvent
   = CapEvent { ce_cap   :: Maybe Int,
                ce_event :: Event

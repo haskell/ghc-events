@@ -10,6 +10,7 @@ import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
+import qualified Data.ByteString as B
 import System.Environment
 import Control.Concurrent (threadDelay)
 import Text.Printf
@@ -33,169 +34,177 @@ command ["--help"] = do
     putStr usage
 
 command ["inc", file] = do
-    h  <- openBinaryFile file ReadMode
-    eh <- openEventHandle h
-    printEventsIncremental eh
+    h <- openBinaryFile file ReadMode
+    eh <- ehOpen h
+    printEventsIncremental eh False
+
+command ["inc", "force", file] = do
+    h <- openBinaryFile file ReadMode
+    eh <- ehOpen h
+    printEventsIncremental eh True
 
 command ["show", file] = do
-    log <- readEventLogFromFile file
+    log <- readLogOrDie file
     putStrLn $ ppEventLog log
 
 command ["show", "threads", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
-    let capEvents = sortEvents . events . dat $ eventLog
-    let mappings  = rights . validates capabilityThreadRunMachine $ capEvents
-    let indexes = map (uncurry capabilityThreadIndexer) $ zip mappings capEvents
-    let threadMap = M.fromListWith (++) . reverse $ zip indexes (map return capEvents)
+        evts = sortEvents $ events $ dat eventLog
+        mappings  = rights . validates capabilityThreadRunMachine $ evts
+        indexes = map (uncurry capabilityThreadIndexer) $ zip mappings evts
+        threadMap = M.fromListWith (++) . reverse $ zip indexes (map return evts)
     putStrLn "Event Types:"
     putStrLn . unlines . map ppEventType . eventTypes . header $ eventLog
     putStrLn "Thread Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
+      (unlines . map (("  " ++) . ppEvent)) $
         threadMap
 
 command ["show", "caps", file] = do
-    eventLog <- readEventLogFromFile file
+    eventLog <- readLogOrDie file
     let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
-    let capEvents = sortEvents . events . dat $ eventLog
-    let indexes = map ce_cap capEvents
-    let capMap = M.fromListWith (++) . reverse $ zip indexes (map return capEvents)
+    let evts = sortEvents . events . dat $ eventLog
+        indexes = map evCap evts
+        capMap = M.fromListWith (++) . reverse $ zip indexes (map return evts)
     putStrLn "Event Types:"
     putStrLn . unlines . map ppEventType . eventTypes . header $ eventLog
     putStrLn "Cap Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
+      (unlines . map (("  " ++) . ppEvent)) $
         capMap
 
 command ["merge", out, file1, file2] = do
-    log1 <- readEventLogFromFile file1
-    log2 <- readEventLogFromFile file2
+    log1 <- readLogOrDie file1
+    log2 <- readLogOrDie file2
     let m = mergeEventLogs log1 log2
     writeEventLogToFile out m
 
 command ["validate", "threads", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
     let result = validate (routeM capabilityThreadRunMachine
                                   capabilityThreadIndexer
-                                  (refineM (spec . ce_event) threadMachine))
-                          capEvents
+                                  (refineM evSpec threadMachine))
+                          evts
     putStrLn $ showValidate (\(m, n) ->
                                "\nThread States:\n" ++ showIndexed show show m ++
                                "\nCap States:\n" ++ showIndexed show show n)
                             show result
 
 command ["validate", "threadpool", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = validate capabilityThreadPoolMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = validate capabilityThreadPoolMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "threadrun", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = validate capabilityThreadRunMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = validate capabilityThreadRunMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "taskpool", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = validate capabilityTaskPoolMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = validate capabilityTaskPoolMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "tasks", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = validate capabilityTaskOSMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = validate capabilityTaskOSMachine evts
     putStrLn $ showValidate show show result
 
 command ["validate", "sparks", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
     let result = validate
                    (routeM capabilitySparkThreadMachine capabilitySparkThreadIndexer
-                     (refineM (spec . ce_event) sparkThreadMachine))
-                   capEvents
+                     (refineM evSpec sparkThreadMachine))
+                   evts
     putStrLn $ showValidate show show result
 
 command ["simulate", "threads", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
     let result = simulate (routeM capabilityThreadRunMachine
                                   capabilityThreadIndexer
-                                  (refineM (spec . ce_event) threadMachine))
-                          capEvents
+                                  (refineM evSpec threadMachine))
+                          evts
     putStrLn . showProcess $ result
 
 command ["simulate", "threadpool", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = simulate capabilityThreadPoolMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = simulate capabilityThreadPoolMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "threadrun", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = simulate capabilityThreadRunMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = simulate capabilityThreadRunMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "taskpool", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = simulate capabilityTaskPoolMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = simulate capabilityTaskPoolMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "tasks", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
-    let result = simulate capabilityTaskOSMachine capEvents
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
+    let result = simulate capabilityTaskOSMachine evts
     putStrLn . showProcess $ result
 
 command ["simulate", "sparks", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
     let result = simulate
               (routeM capabilitySparkThreadMachine
                   capabilitySparkThreadIndexer
-                  (refineM (spec . ce_event) sparkThreadMachine))
-              capEvents
+                  (refineM evSpec sparkThreadMachine)) evts
     putStrLn . showProcess $ result
 
 command ["profile", "threads", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
     let result = profileRouted
-                   (refineM (spec. ce_event) threadMachine)
+                   (refineM evSpec threadMachine)
                    capabilityThreadRunMachine
-                   capabilityThreadIndexer
-                   (time . ce_event)
-                   capEvents
+                   capabilityThreadIndexer evTime evts
     putStrLn . showProcess $ result
 
 command ["profile", "sparks", file] = do
-    eventLog <- readEventLogFromFile file
-    let capEvents = sortEvents . events . dat $ eventLog
+    eventLog <- readLogOrDie file
+    let evts = sortEvents . events . dat $ eventLog
     let result = profileRouted
-                   (refineM (spec . ce_event) sparkThreadMachine)
+                   (refineM evSpec sparkThreadMachine)
                    capabilitySparkThreadMachine
                    capabilitySparkThreadIndexer
-                   (time . ce_event)
-                   capEvents
+                   evTime evts
     putStrLn . showProcess $ result
 
 command _ = putStr usage >> die "Unrecognized command"
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 
+readLogOrDie file = do
+    e <- readEventLogFromFile file
+    case e of
+        Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
+        Right log -> return log
+
 usage = unlines $ map pad strings
  where
     align = 4 + (maximum . map (length . fst) $ strings)
     pad (x, y) = zipWith const (x ++ repeat ' ') (replicate align ()) ++ y
     strings = [ ("ghc-events --help:",                     "Display this help.")
-
+              , ("ghc-events inc <file>:",                 "Pretty print an event log incrementally (in the same order as it was writen")
+              , ("ghc-events inc force <file>:",           "Pretty print an event log incrementally (in the same order as it was written) but retry on incomplete input (similar to UNIX 'tail -f').")
               , ("ghc-events show <file>:",                "Pretty print an event log.")
               , ("ghc-events show threads <file>:",        "Pretty print an event log, ordered by threads.")
               , ("ghc-events show caps <file>:",           "Pretty print an event log, ordered by capabilities.")
@@ -249,28 +258,20 @@ showMap showKey showValue m =
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
--- Example client for the API
-printEventsIncremental :: EventHandle -> IO ()
-printEventsIncremental eh = do
-    evt <- readEvent eh
-    let dbg = False
-        dashf = True
-    case evt of
+printEventsIncremental :: EventHandle 
+                       -> Bool -- Whether to retry on incomplete logs
+                       -> IO ()
+printEventsIncremental eh dashf = do
+    event <- ehReadEvent eh
+    case event of
       One ev -> do
-          putStrLn (ppEvent' ev)
-          -- print events one by one
-          input <- if dbg then getLine else return ""
-          if input == ""
-            then printEventsIncremental eh
-            else putStrLn "Stopping"
+          putStrLn (ppEvent ev)
+          printEventsIncremental eh dashf
       PartialEventLog -> do
         if dashf
-          then do
-                print "waiting for input"
-                threadDelay 1000000
-                printEventsIncremental eh
-          else putStrLn "Incomplete but no -f"
+          then threadDelay 100000 >> printEventsIncremental eh dashf
+          else putStrLn "Finished (NOT all file was parsed successfully)"
       CompleteEventLog -> do
-        putStrLn "Done (file was complete)"
+        putStrLn "Finished (file was parsed successfully)"
       EventLogParsingError errMsg -> do
-        putStrLn "An error was encountered."
+        putStrLn $ "Error: " ++ errMsg
