@@ -26,8 +26,7 @@ main :: IO ()
 main = getArgs >>= command
 
 command :: [String] -> IO ()
-command ["--help"] = do
-    putStr usage
+command ["--help"] = putStr usage
 
 command ["inc", file] = do
     h <- openBinaryFile file ReadMode
@@ -48,7 +47,7 @@ command ["show", "threads", file] = do
     let eventTypeMap = buildEventTypeMap . eventTypes . header $ eventLog
         evts = sortEvents $ events $ dat eventLog
         mappings  = rights . validates capabilityThreadRunMachine $ evts
-        indexes = map (uncurry capabilityThreadIndexer) $ zip mappings evts
+        indexes = zipWith capabilityThreadIndexer mappings evts
         threadMap = M.fromListWith (++) . reverse $ zip indexes (map return evts)
     putStrLn "Event Types:"
     putStrLn . unlines . map ppEventType . eventTypes . header $ eventLog
@@ -229,10 +228,10 @@ usage = unlines $ map pad strings
 showValidate :: (s -> String) -> (i -> String) -> Either (s, i) s -> String
 showValidate showState showInput (Left (state, input)) =
   "Invalid eventlog:"
-  ++ "\nState:\n" ++ ( showState state )
-  ++ "\nInput:\n" ++ ( showInput input )
+  ++ "\nState:\n" ++ showState state
+  ++ "\nInput:\n" ++ showInput input
 showValidate showState _ (Right state) =
-  "Valid eventlog: " ++ ( showState state )
+  "Valid eventlog: " ++ showState state
 
 showProcess :: (Show e, Show a) => Process e a -> String
 showProcess process =
@@ -245,8 +244,8 @@ showIndexed :: (k -> String) -> (v -> String) -> Map k v -> String
 showIndexed showKey showValue m
   | M.null m  = "Empty map\n"
   | otherwise = "Indexed output:\n" ++
-      concatMap (\(k, v) -> "Key: " ++ ( showKey k ) ++ ", Value: "
-          ++ ( showValue v ) ++ "\n")
+      concatMap (\(k, v) -> "Key: " ++ showKey k ++ ", Value: "
+          ++ showValue v ++ "\n")
         (M.toList m)
 
 showMap :: Ord k => (k -> String) -> (a -> String) -> M.Map k a -> String
@@ -264,11 +263,11 @@ printEventsIncremental eh dashf = do
       One ev -> do
           putStrLn (ppEvent' ev)
           printEventsIncremental eh dashf
-      PartialEventLog -> do
+      PartialEventLog ->
         if dashf
           then threadDelay 100000 >> printEventsIncremental eh dashf
           else putStrLn "Finished (NOT all file was parsed successfully)"
-      CompleteEventLog -> do
+      CompleteEventLog ->
         putStrLn "Finished (file was parsed successfully)"
-      EventLogParsingError errMsg -> do
+      EventLogParsingError errMsg ->
         putStrLn $ "Error: " ++ errMsg
