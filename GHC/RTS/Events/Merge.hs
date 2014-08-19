@@ -6,7 +6,7 @@ import GHC.RTS.Events
 import Data.Monoid
 import Data.List (foldl')
 import qualified Data.Map as M
-import Data.Word (Word32, Word16)
+import Data.Word (Word32)
 
 -- TODO: add a merge mode where the events are synchronized using
 -- the wall clock time event at the start of both eventlogs (for newer GHCs).

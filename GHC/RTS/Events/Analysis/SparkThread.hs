@@ -14,8 +14,6 @@ import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
 
-import Debug.Trace
-
 data SparkThreadState
   = SparkThreadInitial
   | SparkThreadCreated
@@ -50,7 +48,7 @@ sparkThreadMachine = Machine
   sparkThreadDelta SparkThreadCreated (SparkSteal _)                = Just (SparkThreadRunning 0)
   sparkThreadDelta SparkThreadCreated (StopThread _ ThreadFinished) = Just SparkThreadFinal
   -- SparkThreadRunning
-  sparkThreadDelta (SparkThreadRunning n) (StopThread _ ThreadFinished) = Just SparkThreadFinal
+  sparkThreadDelta (SparkThreadRunning _) (StopThread _ ThreadFinished) = Just SparkThreadFinal
   sparkThreadDelta (SparkThreadRunning n) (StopThread _ _)              = Just (SparkThreadPaused n)
   sparkThreadDelta (SparkThreadRunning n) SparkRun                      = Just (SparkThreadRunning (n+1))
   sparkThreadDelta (SparkThreadRunning n) (SparkSteal _)                = Just (SparkThreadRunning (n+1))

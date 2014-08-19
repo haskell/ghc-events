@@ -18,17 +18,14 @@ module GHC.RTS.EventsIncremental (
 
 import GHC.RTS.Events
 import GHC.RTS.EventParserUtils
-import GHC.RTS.EventTypes
+import GHC.RTS.EventTypes hiding (time, spec)
 
 import Control.Applicative ((<$>), (<*>), Applicative(..))
-import Control.Concurrent (threadDelay)
 import Control.Monad.Reader (runReaderT)
-import Data.Binary.Get
+import Data.Binary.Get hiding (remaining)
 import qualified Data.ByteString as B
-import Data.Either (lefts)
 import qualified Data.IntMap as M
-import Data.IORef (IORef(..), newIORef, readIORef, writeIORef)
-import System.Exit (exitFailure)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (IOMode(ReadMode), openBinaryFile, Handle)
 import Data.Word (Word16)
 import Text.Printf
@@ -104,11 +101,11 @@ readEvent (Left headerDecoder) =
           (PartialEventLog, state)
       (EventLogParsingError errMsg, state) ->
           (EventLogParsingError errMsg, state)
-      otherwise -> error "The impossible has happened. Report a bug."
+      _ -> error "The impossible has happened. Report a bug."
 readEvent (Right ed) = readEvent' ed 
 
 readEvent' :: EventDecoder -> (Result Event, EventParserState)
-readEvent' (ed@(ED cap remaining emptyDecoder partial)) = 
+readEvent' (ed@(ED _ remaining emptyDecoder partial)) = 
     case partial of
       (Done bs sz (Just event)) -> do
         case evSpec event of
@@ -116,7 +113,7 @@ readEvent' (ed@(ED cap remaining emptyDecoder partial)) =
             let newState = newParserState (isCap blockCap) newRemaining 
                                           emptyDecoder emptyDecoder [bs]
             readEvent newState 
-          otherwise -> do
+          _ -> do
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState (mkCap ed sz) newRemaining
                                           emptyDecoder emptyDecoder [bs]
@@ -132,7 +129,7 @@ readEvent' (ed@(ED cap remaining emptyDecoder partial)) =
 ehOpen :: Handle -> IO EventHandle
 ehOpen handle = do
   ioref <- newIORef $ Left (getToDecoder getHeader)
-  return $ EH handle ioref
+  return $ EH { ehHandle = handle, ehState = ioref }
 
 -- Reads at most one event from the EventHandle. Can be called repeadetly
 ehReadEvent :: EventHandle -> IO (Result Event)
@@ -182,7 +179,7 @@ readEventLogFromFile f = do
       (One header) -> do
         !events <- ehReadEvents eh
         return $ Right $ EventLog header (Data events)
-      otherwise -> error "Should never happen"
+      _ -> error "Should never happen"
 
 ehReadEvents :: EventHandle -> IO [Event]
 ehReadEvents = eventRepeater . ehReadEvent
@@ -192,8 +189,8 @@ eventRepeater eventReader = do
   event <- eventReader
   case event of
     (One a) -> (:) <$> return a <*> eventRepeater eventReader
-    (EventLogParsingError err) -> return []
-    otherwise -> return []
+    (EventLogParsingError _) -> return []
+    _ -> return []
 
 -- Parser will read from a Handle in chunks of chunkSize bytes
 chunkSize :: Int
@@ -243,5 +240,5 @@ ppEvent' (Event time spec evCap) =
     Just c  -> printf "cap %d: " c) ++
   case spec of
     UnknownEvent{ ref=ref } ->
-      printf "(desc (fromJust (M.lookup (fromIntegral ref) imap)))"
-    other -> showEventInfo spec
+      printf "Unknown Event (ref: %d)" ref
+    _ -> showEventInfo spec

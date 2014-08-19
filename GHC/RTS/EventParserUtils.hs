@@ -20,11 +20,10 @@ import Control.Monad
 import Control.Monad.Reader
 import Data.Array
 import Data.Binary
-import Data.Binary.Get hiding (skip)
+import Data.Binary.Get ()
 import qualified Data.Binary.Get as G
-import Data.Binary.Put
+import Data.Binary.Put ()
 import Data.Char
-import Data.Function
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
 import Data.List
@@ -76,12 +75,15 @@ data EventParser a
         vsp_parser      :: GetEvents a
     }
 
-get_parser (FixedSizeParser _ _ p) = p
-get_parser (VariableSizeParser _ p) = p
+getParser :: EventParser a -> GetEvents a
+getParser (FixedSizeParser _ _ p) = p
+getParser (VariableSizeParser _ p) = p
 
-get_type (FixedSizeParser t _ _) = t
-get_type (VariableSizeParser t _) = t
+getType :: EventParser a -> Int
+getType (FixedSizeParser t _ _) = t
+getType (VariableSizeParser t _) = t
 
+isFixedSize :: EventParser a -> Bool
 isFixedSize (FixedSizeParser {}) = True
 isFixedSize (VariableSizeParser {}) = False
 
@@ -138,7 +140,7 @@ mkEventTypeParsers etypes event_parsers
                                          best_parser <- case mb_et_size of
                                             Nothing -> getVariableParser possible
                                             Just et_size -> getFixedParser et_size possible
-                                         return $ get_parser best_parser
+                                         return $ getParser best_parser
             in case mb_mb_et_size of
                 -- This event is declared in the log file's header
                 Just mb_et_size -> case maybe_parser mb_et_size of
@@ -171,10 +173,10 @@ getFixedParser size parsers =
             compare s2 s1
           descending_size _ _ = undefined
           maybe_head [] = Nothing
-          maybe_head (x:xs) = Just x
+          maybe_head (x:_) = Just x
 
 padParser :: EventTypeSize -> (EventParser a) -> (EventParser a)
-padParser size (VariableSizeParser t p) = VariableSizeParser t p
+padParser _    (VariableSizeParser t p) = VariableSizeParser t p
 padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
     where p = if (size == orig_size)
                 then orig_p
@@ -184,7 +186,8 @@ padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
 
 makeParserMap :: [EventParser a] -> IntMap [EventParser a]
 makeParserMap = foldl buildParserMap M.empty
-    where buildParserMap map parser = M.alter (addParser parser) (get_type parser) map
+    where buildParserMap map' parser = 
+              M.alter (addParser parser) (getType parser) map'
           addParser p Nothing = Just [p]
           addParser p (Just ps) = Just (p:ps)
 
