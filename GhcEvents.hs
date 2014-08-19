@@ -10,17 +10,11 @@ import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
-import qualified Data.ByteString as B
 import System.Environment
 import Control.Concurrent (threadDelay)
-import Text.Printf
-import Data.List
 import Data.Either (rights)
-import Data.Function
-import Data.IntMap (IntMap)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe
 import System.IO
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
 import System.Exit hiding (die)
@@ -28,8 +22,10 @@ import System.Exit hiding (die)
 import System.Exit
 #endif
 
+main :: IO ()
 main = getArgs >>= command
 
+command :: [String] -> IO ()
 command ["--help"] = do
     putStr usage
 
@@ -192,6 +188,7 @@ command _ = putStr usage >> die "Unrecognized command"
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 
+readLogOrDie :: FilePath -> IO EventLog
 readLogOrDie file = do
     e <- readEventLogFromFile file
     case e of

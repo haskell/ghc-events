@@ -22,8 +22,7 @@ import GHC.RTS.Events
 
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, catMaybes)
-import Data.Either (rights)
+import Data.Maybe (fromMaybe)
 
 --------------------------------------------------------------------------------
 -- | This is based on a simple finite state machine hence the names `delta`
@@ -43,12 +42,13 @@ data Machine s i = Machine
   }
 
 -- | This machine always accepts, never terminates, and always has unit state.
+-- It is not used anywhere.
 unitMachine :: Machine () i
 unitMachine = Machine
   { initial  = ()
   , final    = const False
   , alpha    = const True
-  , delta    = (\s i -> Just ())
+  , delta    = (\_ _ -> Just ())
   }
 
 -- | The `step` function runs a machine in a state against a single input.

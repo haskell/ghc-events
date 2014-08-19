@@ -47,18 +47,17 @@ module GHC.RTS.Events (
 
 {- Libraries. -}
 import Data.Binary
-import Data.Binary.Get hiding (skip)
+import Data.Binary.Get ()
 import qualified Data.Binary.Get as G
 import Data.Binary.Put
-import Control.Monad
+import Control.Monad ()
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
 import Control.Monad.Reader
 import qualified Data.ByteString.Lazy as L
 import Data.Function
 import Data.List
-import Data.Either
-import Data.Maybe
+import Data.Maybe (fromMaybe, fromJust)
 import Text.Printf
 import Data.Array
 
@@ -118,7 +117,7 @@ getHeader = do
                   return (et : nextET)
              EVENT_HET_END ->
                   return []
-             otherwise ->
+             _ ->
                   fail "Malformed list of Event Types in header"
 
 getEvent :: EventParsers -> GetEvents (Maybe Event)
@@ -521,6 +520,7 @@ ghc6Parsers = [
    ))
  ]
 
+mercuryParsers :: [EventParser EventInfo]
 mercuryParsers = [
  (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION
     (sz_par_conj_dyn_id + sz_par_conj_static_id)
@@ -580,6 +580,7 @@ mercuryParsers = [
 
  ]
 
+perfParsers :: [EventParser EventInfo]
 perfParsers = [
  (VariableSizeParser EVENT_PERF_NAME (do -- (perf_num, name)
       num     <- getE :: GetEvents Word16
@@ -728,7 +729,6 @@ showEventInfo spec =
         InternString str sId ->
           printf "Interned string: \"%s\" with id %d" str sId
         MerStartParConjunction dyn_id static_id ->
-
           printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
         MerEndParConjunction dyn_id ->
           printf "End par conjunction: 0x%x" dyn_id
@@ -814,7 +814,7 @@ ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
     UnknownEvent{ ref=ref } ->
       printf (desc (fromJust (M.lookup (fromIntegral ref) imap)))
 
-    other -> showEventInfo spec
+    _ -> showEventInfo spec
 
 type PutEvents a = PutM a
 
@@ -824,6 +824,7 @@ putE = put
 runPutEBS :: PutEvents () -> L.ByteString
 runPutEBS = runPut
 
+writeEventLogToFile :: FilePath -> EventLog -> IO ()
 writeEventLogToFile f el = L.writeFile f $ runPutEBS $ putEventLog el
 
 putType :: EventTypeNum -> PutEvents ()
@@ -952,6 +953,7 @@ putEvent (Event {evTime = t , evSpec = spec}) = do
     put t
     putEventSpec spec
 
+putEventSpec :: EventInfo -> PutEvents ()
 putEventSpec (Startup caps) = do
     putCap (fromIntegral caps)
 
