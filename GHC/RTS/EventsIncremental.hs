@@ -138,7 +138,7 @@ ehOpen handle = do
 ehReadEvent :: EventHandle -> IO (Result Event)
 ehReadEvent (EH handle stateRef) = do
   state <- readIORef stateRef
-  let (result, state) = readEvent state
+  let (result, state') = readEvent state
   case result of
     (One ev) -> return result
     (PartialEventLog) -> do
@@ -146,7 +146,7 @@ ehReadEvent (EH handle stateRef) = do
       if bs == B.empty
         then return PartialEventLog
         else do
-          let newState = state `pushBytes` bs
+          let newState = state' `pushBytes` bs
           newRef <- newIORef newState
           ehReadEvent $ EH handle newRef
     (CompleteEventLog) -> return CompleteEventLog
@@ -154,10 +154,10 @@ ehReadEvent (EH handle stateRef) = do
 
 ehReadHeader :: EventHandle -> IO (Result Header)
 ehReadHeader (EH handle stateRef) = do
-  state <- readIORef stateRef
-  let (result, state) = readHeader $ head $ lefts [state]
+  (Left headerDecoder) <- readIORef stateRef
+  let (result, state) = readHeader headerDecoder
   case result of
-    (One ev) -> return result
+    (One _) -> return result
     (PartialEventLog) -> do
       bs <- B.hGetSome handle chunkSize
       if bs == B.empty
