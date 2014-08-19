@@ -69,10 +69,10 @@ newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
                -> Decoder (Maybe Event) -> [B.ByteString]
                -> EventParserState
 newParserState cap remaining dec partial bss = 
-  Right $ ED { edCap = cap
-             , edRemaining = remaining
-             , edDecoder = dec
-             , edPartial = (foldl pushChunk partial bss) }
+  Right ED { edCap = cap
+           , edRemaining = remaining
+           , edDecoder = dec
+           , edPartial = foldl pushChunk partial bss }
 
 -- Pushes the given bytestring into EventParserState
 pushBytes :: EventParserState -> B.ByteString -> EventParserState
@@ -95,7 +95,7 @@ readHeader dec =
 -- Expects the first bytes to contain a complete eventlog header
 readEvent :: EventParserState -> (Result Event, EventParserState)
 readEvent (Left headerDecoder) = 
-    case (readHeader headerDecoder) of 
+    case readHeader headerDecoder of 
       (One _, state) -> readEvent state 
       (PartialEventLog, state) ->
           (PartialEventLog, state)
@@ -107,7 +107,7 @@ readEvent (Right ed) = readEvent' ed
 readEvent' :: EventDecoder -> (Result Event, EventParserState)
 readEvent' (ed@(ED _ remaining emptyDecoder partial)) = 
     case partial of
-      (Done bs sz (Just event)) -> do
+      (Done bs sz (Just event)) ->
         case evSpec event of
           EventBlock _ blockCap newRemaining -> do
             let newState = newParserState (isCap blockCap) newRemaining 
@@ -129,7 +129,7 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
 ehOpen :: Handle -> IO EventHandle
 ehOpen handle = do
   ioref <- newIORef $ Left (getToDecoder getHeader)
-  return $ EH { ehHandle = handle, ehState = ioref }
+  return EH { ehHandle = handle, ehState = ioref }
 
 -- Reads at most one event from the EventHandle. Can be called repeadetly
 ehReadEvent :: EventHandle -> IO (Result Event)

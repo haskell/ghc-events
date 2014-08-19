@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP,BangPatterns,PatternGuards #-}
+{-# LANGUAGE CPP,BangPatterns #-}
 {-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
 {-
  -   Parser functions for GHC RTS EventLog framework.
@@ -70,8 +70,8 @@ import Data.Array
 import GHC.RTS.EventTypes
 import GHC.RTS.EventParserUtils
 
-#define EVENTLOG_CONSTANTS_ONLY
-#include "EventLogFormat.h"
+-- #define EVENTLOG_CONSTANTS_ONLY
+-- #include "EventLogFormat.h"
 
 ------------------------------------------------------------------------------
 -- Binary instances
@@ -88,7 +88,7 @@ getEventType = do
            G.skip (fromIntegral etExtraLen)
            ete <- getH :: GetHeader Marker
            when (ete /= EVENT_ET_END) $
-              fail ("Event Type end marker not found.")
+              fail "Event Type end marker not found."
            return (EventType etNum etDesc etSize)
            where
              getEtDesc :: Int -> GetHeader [Char]
@@ -129,12 +129,12 @@ getHeader = do
 getEvent :: EventParsers -> GetEvents (Maybe Event)
 getEvent (EventParsers parsers) = do
   etRef <- getE :: GetEvents EventTypeNum
-  if (etRef == EVENT_DATA_END)
+  if etRef == EVENT_DATA_END
      then return Nothing
      else do !ts   <- getE
              -- trace ("event: " ++ show etRef) $ do
              spec <- parsers ! fromIntegral etRef
-             return (Just $ (Event ts spec undefined))
+             return $ Just (Event ts spec undefined)
 
 --
 -- standardEventParsers.
@@ -762,7 +762,7 @@ perfParsers = [
 -- Utilities
 
 sortEvents :: [Event] -> [Event]
-sortEvents = sortBy (compare `on` (evTime))
+sortEvents = sortBy (compare `on` evTime)
 
 buildEventTypeMap :: [EventType] -> IntMap EventType
 buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
@@ -977,13 +977,13 @@ showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
 showThreadStopStatus NoStatus = "No stop thread status"
 
 ppEventLog :: EventLog -> String
-ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat (
+ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat
     [ ["Event Types:"]
     , map ppEventType ets
     , [""] -- newline
     , ["Events:"]
     , map (ppEvent imap) sorted
-    , [""] ]) -- extra trailing newline
+    , [""] ] -- extra trailing newline
  where
     imap = buildEventTypeMap ets
     sorted = sortEvents es
@@ -1163,10 +1163,10 @@ putEventSpec (EventBlock end cap sz) = do
     putE end
     putE (fromIntegral sz :: Integer)
 
-putEventSpec (CreateThread t) = do
+putEventSpec (CreateThread t) =
     putE t
 
-putEventSpec (RunThread t) = do
+putEventSpec (RunThread t) =
     putE t
 
 -- here we assume that ThreadStopStatus fromEnum matches the definitions in
@@ -1201,14 +1201,14 @@ putEventSpec (StopThread t s) = do
             BlockedOnBlackHoleOwnedBy i -> i
             _                           -> 0
 
-putEventSpec (ThreadRunnable t) = do
+putEventSpec (ThreadRunnable t) =
     putE t
 
 putEventSpec (MigrateThread t c) = do
     putE t
     putCap c
 
-putEventSpec (CreateSparkThread t) = do
+putEventSpec (CreateSparkThread t) =
     putE t
 
 putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
@@ -1221,25 +1221,25 @@ putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
     putE fiz
     putE rem
 
-putEventSpec SparkCreate = do
+putEventSpec SparkCreate =
     return ()
 
-putEventSpec SparkDud = do
+putEventSpec SparkDud =
     return ()
 
-putEventSpec SparkOverflow = do
+putEventSpec SparkOverflow =
     return ()
 
-putEventSpec SparkRun = do
+putEventSpec SparkRun =
     return ()
 
-putEventSpec (SparkSteal c) = do
+putEventSpec (SparkSteal c) =
     putCap c
 
-putEventSpec SparkFizzle = do
+putEventSpec SparkFizzle =
     return ()
 
-putEventSpec SparkGC = do
+putEventSpec SparkGC =
     return ()
 
 putEventSpec (WakeupThread t c) = do
@@ -1251,31 +1251,31 @@ putEventSpec (ThreadLabel t l) = do
     putE t
     putEStr l
 
-putEventSpec Shutdown = do
+putEventSpec Shutdown =
     return ()
 
-putEventSpec RequestSeqGC = do
+putEventSpec RequestSeqGC =
     return ()
 
-putEventSpec RequestParGC = do
+putEventSpec RequestParGC =
     return ()
 
-putEventSpec StartGC = do
+putEventSpec StartGC =
     return ()
 
-putEventSpec GCWork = do
+putEventSpec GCWork =
     return ()
 
-putEventSpec GCIdle = do
+putEventSpec GCIdle =
     return ()
 
-putEventSpec GCDone = do
+putEventSpec GCDone =
     return ()
 
-putEventSpec EndGC = do
+putEventSpec EndGC =
     return ()
 
-putEventSpec GlobalSyncGC = do
+putEventSpec GlobalSyncGC =
     return ()
 
 putEventSpec (TaskCreate taskId cap tid) = do
@@ -1288,7 +1288,7 @@ putEventSpec (TaskMigrate taskId cap new_cap) = do
     putCap cap
     putCap new_cap
 
-putEventSpec (TaskDelete taskId) = do
+putEventSpec (TaskDelete taskId) =
     putE taskId
 
 putEventSpec GCStatsGHC{..} = do
@@ -1321,16 +1321,16 @@ putEventSpec HeapInfoGHC{..} = do
     putE mblockSize
     putE blockSize
 
-putEventSpec CapCreate{cap} = do
+putEventSpec CapCreate{cap} =
     putCap cap
 
-putEventSpec CapDelete{cap} = do
+putEventSpec CapDelete{cap} =
     putCap cap
 
-putEventSpec CapDisable{cap} = do
+putEventSpec CapDisable{cap} =
     putCap cap
 
-putEventSpec CapEnable{cap} = do
+putEventSpec CapEnable{cap} =
     putCap cap
 
 putEventSpec (CapsetCreate cs ct) = do
@@ -1341,7 +1341,7 @@ putEventSpec (CapsetCreate cs ct) = do
             CapsetClockDomain -> 3
             CapsetUnknown -> 0
 
-putEventSpec (CapsetDelete cs) = do
+putEventSpec (CapsetDelete cs) =
     putE cs
 
 putEventSpec (CapsetAssignCap cs cp) = do
@@ -1462,10 +1462,10 @@ putEventSpec (MerStartParConjunction dyn_id static_id) = do
     putE dyn_id
     putE static_id
 
-putEventSpec (MerEndParConjunction dyn_id) = do
+putEventSpec (MerEndParConjunction dyn_id) =
     putE dyn_id
 
-putEventSpec (MerEndParConjunct dyn_id) = do
+putEventSpec (MerEndParConjunct dyn_id) =
     putE dyn_id
 
 putEventSpec (MerCreateSpark dyn_id spark_id) = do
@@ -1476,20 +1476,20 @@ putEventSpec (MerFutureCreate future_id name_id) = do
     putE future_id
     putE name_id
 
-putEventSpec (MerFutureWaitNosuspend future_id) = do
+putEventSpec (MerFutureWaitNosuspend future_id) =
     putE future_id
 
-putEventSpec (MerFutureWaitSuspended future_id) = do
+putEventSpec (MerFutureWaitSuspended future_id) =
     putE future_id
 
-putEventSpec (MerFutureSignal future_id) = do
+putEventSpec (MerFutureSignal future_id) =
     putE future_id
 
 putEventSpec MerLookingForGlobalThread = return ()
 putEventSpec MerWorkStealing = return ()
 putEventSpec MerLookingForLocalSpark = return ()
 
-putEventSpec (MerReleaseThread thread_id) = do
+putEventSpec (MerReleaseThread thread_id) =
     putE thread_id
 
 putEventSpec MerCapSleeping = return ()
