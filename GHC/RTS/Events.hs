@@ -70,8 +70,8 @@ import Data.Array
 import GHC.RTS.EventTypes
 import GHC.RTS.EventParserUtils
 
--- #define EVENTLOG_CONSTANTS_ONLY
--- #include "EventLogFormat.h"
+#define EVENTLOG_CONSTANTS_ONLY
+#include "EventLogFormat.h"
 
 ------------------------------------------------------------------------------
 -- Binary instances
