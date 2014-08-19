@@ -59,7 +59,7 @@ command ["show", "threads", file] = do
     putStrLn "Thread Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent)) $
+      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
         threadMap
 
 command ["show", "caps", file] = do
@@ -73,7 +73,7 @@ command ["show", "caps", file] = do
     putStrLn "Cap Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent)) $
+      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
         capMap
 
 command ["merge", out, file1, file2] = do
@@ -265,7 +265,7 @@ printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
       One ev -> do
-          putStrLn (ppEvent ev)
+          putStrLn (ppEvent' ev)
           printEventsIncremental eh dashf
       PartialEventLog -> do
         if dashf
