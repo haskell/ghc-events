@@ -5,13 +5,18 @@
 
 module GHC.RTS.EventsIncremental (
   Result(..),
-  EventParserState,
-  EventHandle,
 
+  -- * ByteString interface
+  -- $bytestringapi
+  EventParserState,
   initEventParser,
   pushBytes, readEvent,
+
+  -- * EventHandle interface
+  -- $eventhandleapi
+  EventHandle,
   ehOpen, ehReadEvent, ehReadEvents,
-  -- For compatibility with old clients
+  -- * For compatibility with old clients
   readEventLogFromFile,
   ppEvent'
  ) where
@@ -33,37 +38,52 @@ import Text.Printf
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
+-- | Left is used for keeping the state while parsing a header, Right keeps the
+-- state of Event parser
 type EventParserState = Either (Decoder Header) EventDecoder
 
+-- | An abstraction over a 'Handle' and state for a simple incemental parsing
+-- interface.
 data EventHandle =
   EH { ehHandle :: Handle
      , ehState  :: IORef EventParserState }
 
 data EventDecoder = 
-  ED { edCap       :: Maybe Int
-     , edRemaining :: Integer
+  ED { -- If in EventBlock, we track it's capability
+       edCap       :: Maybe Int 
+       -- Tracks the number of remaining bytes in an EventBlock
+     , edRemaining :: Integer 
+       -- An empty decoder that is used for parsing the next event
      , edDecoder   :: Decoder (Maybe Event)
+       -- A decoder that keeps the currently unconsumed bytestring in itself
      , edPartial   :: Decoder (Maybe Event) }
 
--- Datatype that describes the result of getEvent
-data Result a
-  -- Successfully parsed an item
-  = One a
-  -- The eventlog wasn't complete but the input did not contain any more 
+-- | Datatype that describes the result of a parse
+data Result a = 
+  -- | Successfully parsed an item
+    One a
+  -- | The eventlog wasn't complete but the input did not contain any more 
   -- complete items
   | PartialEventLog
-  -- Parsing was completed successfully
-  -- TODO: (what happens if getEvent called again?)
+  -- | Parsing was completed successfully
   | CompleteEventLog
-  -- An error in parsing has occurred
+  -- | An error in parsing has occurred, returns a (hopefully useful)
+  -- error message.
   | EventLogParsingError String
 
+-- $bytestringapi
+-- The 'ByteString' based API uses 'EventParserState' to keep track of input
+-- that it has received so far. This API should be used when control over 
+-- input generation is required.
+
+-- | Creates a new 'EventParserState' that can then be passed to the 
+-- 'readEvent' function.
 initEventParser :: EventParserState
 initEventParser = Left (getToDecoder getHeader)
 
 -- Creates a new parser state (a Right, so events only). 
--- If given a non-empty list
--- of ByteStrings, pushes them all to the partial decoder
+-- If given a non-empty list of ByteStrings, pushes them all to the partial
+-- decoder
 -- TODO: Order of lists may be confusing
 newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
                -> Decoder (Maybe Event) -> [B.ByteString]
@@ -74,11 +94,12 @@ newParserState cap remaining dec partial bss =
            , edDecoder = dec
            , edPartial = foldl pushChunk partial bss }
 
--- Pushes the given bytestring into EventParserState
+-- | Pushes a 'ByteString' to 'EventParserState'. This function is the only
+-- supported way of providing input in the ByteString interface.
 pushBytes :: EventParserState -> B.ByteString -> EventParserState
 pushBytes (Left headerDecoder) bs = Left $ headerDecoder `pushChunk` bs
-pushBytes (Right ed) bs = newParserState (edCap ed) (edRemaining ed) 
-                                  (edDecoder ed) (edPartial ed) [bs]
+pushBytes (Right ed) bs =
+    Right $ ed { edPartial = (edPartial ed) `pushChunk` bs}
 
 readHeader :: Decoder Header -> (Result Header, EventParserState)
 readHeader dec =
@@ -90,9 +111,9 @@ readHeader dec =
       (Partial {}) -> (PartialEventLog, Left dec)
       (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Left dec)  
         
--- Parses at most one event from the state (refer to Result datatype)
--- Also returns the updated state
--- Expects the first bytes to contain a complete eventlog header
+-- | Parses at most one event from the state (refer to 'Result' datatype) and
+-- returns the updated state that can be used to parse the next event.
+-- readEvent expects its input to follow the structure of a .eventlog file.
 readEvent :: EventParserState -> (Result Event, EventParserState)
 readEvent (Left headerDecoder) = 
     case readHeader headerDecoder of 
@@ -122,9 +143,13 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
       (Partial _) -> (PartialEventLog, Right ed)
       (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Right ed)
 
--- EventHandle based API
+-- $eventhandleapi
+-- This API uses 'EventHandle' datatype that abstracts away the mutation of
+-- state and provides a simple interface for parsing events. Just like 
+-- the ByteString-based API, events are parsed 
+-- __in the order that they were written to the .eventlog file.__
 
--- Creates a new event handle. The input handle is epxected to begin at the
+-- | Creates a new event handle. The input handle is epxected to begin at the
 -- beginning of file.
 ehOpen :: Handle -> IO EventHandle
 ehOpen handle = do
