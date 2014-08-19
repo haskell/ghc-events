@@ -33,7 +33,15 @@ main = getArgs >>= command
 command ["--help"] = do
     putStr usage
 
-command ["inc", file] = undefined
+command ["inc", file] = do
+    h <- openBinaryFile file ReadMode
+    eh <- ehOpen h
+    printEventsIncremental eh False
+
+command ["inc", "force", file] = do
+    h <- openBinaryFile file ReadMode
+    eh <- ehOpen h
+    printEventsIncremental eh True
 
 command ["show", file] = do
     log <- readLogOrDie file
@@ -51,7 +59,7 @@ command ["show", "threads", file] = do
     putStrLn "Thread Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
+      (unlines . map (("  " ++) . ppEvent)) $
         threadMap
 
 command ["show", "caps", file] = do
@@ -65,7 +73,7 @@ command ["show", "caps", file] = do
     putStrLn "Cap Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
+      (unlines . map (("  " ++) . ppEvent)) $
         capMap
 
 command ["merge", out, file1, file2] = do
@@ -195,7 +203,8 @@ usage = unlines $ map pad strings
     align = 4 + (maximum . map (length . fst) $ strings)
     pad (x, y) = zipWith const (x ++ repeat ' ') (replicate align ()) ++ y
     strings = [ ("ghc-events --help:",                     "Display this help.")
-
+              , ("ghc-events inc <file>:",                 "Pretty print an event log incrementally (in the same order as it was writen")
+              , ("ghc-events inc force <file>:",           "Pretty print an event log incrementally (in the same order as it was written) but retry on incomplete input (similar to UNIX 'tail -f').")
               , ("ghc-events show <file>:",                "Pretty print an event log.")
               , ("ghc-events show threads <file>:",        "Pretty print an event log, ordered by threads.")
               , ("ghc-events show caps <file>:",           "Pretty print an event log, ordered by capabilities.")
@@ -249,3 +258,20 @@ showMap showKey showValue m =
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
+printEventsIncremental :: EventHandle 
+                       -> Bool -- Whether to retry on incomplete logs
+                       -> IO ()
+printEventsIncremental eh dashf = do
+    event <- ehReadEvent eh
+    case event of
+      One ev -> do
+          putStrLn (ppEvent ev)
+          printEventsIncremental eh dashf
+      PartialEventLog -> do
+        if dashf
+          then threadDelay 100000 >> printEventsIncremental eh dashf
+          else putStrLn "Finished (NOT all file was parsed successfully)"
+      CompleteEventLog -> do
+        putStrLn "Finished (file was parsed successfully)"
+      EventLogParsingError errMsg -> do
+        putStrLn $ "Error: " ++ errMsg
