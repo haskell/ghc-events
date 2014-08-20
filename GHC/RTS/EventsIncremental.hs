@@ -86,15 +86,14 @@ initEventParser = Left (getToDecoder getHeader)
 -- Creates a new parser state (a Right, so events only). 
 -- If given a non-empty list of ByteStrings, pushes them all to the partial
 -- decoder
--- TODO: Order of lists may be confusing
 newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
-               -> Decoder (Maybe Event) -> [B.ByteString]
+               -> Decoder (Maybe Event) -> B.ByteString
                -> EventParserState
 newParserState cap remaining dec partial bss = 
   Right ED { edCap = cap
            , edRemaining = remaining
            , edDecoder = dec
-           , edPartial = foldl pushChunk partial bss }
+           , edPartial = partial `pushChunk` bss }
 
 -- | Pushes a 'ByteString' to 'EventParserState'. This function is the only
 -- supported way of providing input in the ByteString interface.
@@ -108,7 +107,7 @@ readHeader dec =
     case dec of 
       (Done bs _ header) ->
         let emptyDecoder = mkEventDecoder header
-            newState = newParserState Nothing 0 emptyDecoder emptyDecoder [bs]
+            newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
         in (One header, newState)
       (Partial {}) -> (PartialEventLog, Left dec)
       (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Left dec)  
@@ -134,12 +133,12 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
         case evSpec event of
           EventBlock _ blockCap newRemaining -> do
             let newState = newParserState (isCap blockCap) newRemaining 
-                                          emptyDecoder emptyDecoder [bs]
+                                          emptyDecoder emptyDecoder bs
             readEvent newState 
           _ -> do
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState (mkCap ed sz) newRemaining
-                                          emptyDecoder emptyDecoder [bs]
+                                          emptyDecoder emptyDecoder bs
             (One (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
       (Done _ _ Nothing) -> (CompleteEventLog, Right ed)
       (Partial _) -> (PartialEventLog, Right ed)
