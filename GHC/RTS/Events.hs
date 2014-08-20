@@ -44,7 +44,7 @@ module GHC.RTS.Events (
 
        -- * Printing
        showEventInfo, showThreadStopStatus,
-       ppEventLog, ppEventType, ppEvent,
+       ppEventLog, ppEventType, ppEvent, ppEvent',
 
        -- * Perf events
        nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT,
@@ -992,6 +992,7 @@ ppEventType :: EventType -> String
 ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
    (case msz of Nothing -> "variable"; Just x -> show x)
 
+-- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
 ppEvent :: IntMap EventType -> Event -> String
 ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
   printf "%9d: " time ++
@@ -1001,9 +1002,20 @@ ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
   case spec of
     UnknownEvent{ ref=ref } ->
       printf (desc (fromJust (M.lookup (fromIntegral ref) imap)))
-
     _ -> showEventInfo spec
 
+-- | Pretty prints an 'Event'. Cannot identify 'UnknownEvent's but has a 
+-- simple type signature
+ppEvent' :: Event -> String
+ppEvent' (Event time spec evCap) =
+  printf "%9d: " time ++
+  (case evCap of
+    Nothing -> ""
+    Just c  -> printf "cap %d: " c) ++
+  case spec of
+    UnknownEvent{ ref=ref } ->
+      printf "Unknown Event (ref: %d)" ref
+    _ -> showEventInfo spec
 type PutEvents a = PutM a
 
 putE :: Binary a => a -> PutEvents ()
