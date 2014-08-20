@@ -30,12 +30,12 @@ command ["--help"] = putStr usage
 
 command ["inc", file] = do
     h <- openBinaryFile file ReadMode
-    eh <- ehOpen h
+    eh <- ehOpen h 4096
     printEventsIncremental eh False
 
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
-    eh <- ehOpen h
+    eh <- ehOpen h 4096
     printEventsIncremental eh True
 
 command ["show", file] = do

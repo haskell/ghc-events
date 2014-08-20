@@ -45,8 +45,10 @@ type EventParserState = Either (Decoder Header) EventDecoder
 -- | An abstraction over a 'Handle' and state for a simple incemental parsing
 -- interface.
 data EventHandle =
-  EH { ehHandle :: Handle
-     , ehState  :: IORef EventParserState }
+  EH { ehHandle    :: Handle -- Handle to read from
+     , ehChunkSize :: Int -- Chunk size for incremental reading
+     , ehState     :: IORef EventParserState -- state for the parser
+     }
 
 data EventDecoder = 
   ED { -- If in EventBlock, we track it's capability
@@ -151,14 +153,17 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
 
 -- | Creates a new event handle. The input handle is epxected to begin at the
 -- beginning of file.
-ehOpen :: Handle -> IO EventHandle
-ehOpen handle = do
-  ioref <- newIORef $ Left (getToDecoder getHeader)
-  return EH { ehHandle = handle, ehState = ioref }
+ehOpen :: Handle -- ^ Handle to read the input from 
+       -> Int -- ^ The number of bytes that the parser will try to read input 
+              -- from the 'Handle' when needs more input 
+       -> IO EventHandle
+ehOpen handle sz = do
+  ioref <- newIORef $ initEventParser
+  return EH { ehHandle = handle, ehChunkSize = sz, ehState = ioref }
 
 -- Reads at most one event from the EventHandle. Can be called repeadetly
 ehReadEvent :: EventHandle -> IO (Result Event)
-ehReadEvent (EH handle stateRef) = do
+ehReadEvent (EH handle chunkSize stateRef) = do
   state <- readIORef stateRef
   let (result, state') = readEvent state
   case result of
@@ -171,12 +176,12 @@ ehReadEvent (EH handle stateRef) = do
         then return PartialEventLog
         else do
           writeIORef stateRef $ state' `pushBytes` bs
-          ehReadEvent $ EH handle stateRef
+          ehReadEvent $ EH handle chunkSize stateRef
     (CompleteEventLog) -> return CompleteEventLog
     (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
 
 ehReadHeader :: EventHandle -> IO (Result Header)
-ehReadHeader (EH handle stateRef) = do
+ehReadHeader (EH handle chunkSize stateRef) = do
   (Left headerDecoder) <- readIORef stateRef
   let (result, state) = readHeader headerDecoder
   case result of
@@ -189,15 +194,14 @@ ehReadHeader (EH handle stateRef) = do
         then return $ EventLogParsingError "Header is incomplete, terminating"
         else do
           writeIORef stateRef $ state `pushBytes` bs
-          ehReadHeader $ EH handle stateRef
+          ehReadHeader $ EH handle chunkSize stateRef
     (CompleteEventLog) -> return CompleteEventLog
     (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
 
--- TODO: Make Either String EventLog
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
     handle <- openBinaryFile f ReadMode
-    eh     <- ehOpen handle
+    eh     <- ehOpen handle 1048576
     resultHeader <- ehReadHeader eh
     case resultHeader of
       (EventLogParsingError errMsg) -> error errMsg
@@ -216,10 +220,6 @@ eventRepeater eventReader = do
     (One a) -> (:) <$> return a <*> eventRepeater eventReader
     (EventLogParsingError _) -> return []
     _ -> return []
-
--- Parser will read from a Handle in chunks of chunkSize bytes
-chunkSize :: Int
-chunkSize = 1024
 
 isCap :: Int -> Maybe Int
 isCap blockCap = if fromIntegral blockCap /= ((-1) :: Word16)
