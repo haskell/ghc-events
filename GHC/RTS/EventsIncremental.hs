@@ -36,9 +36,10 @@ import Data.Word (Word16)
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
--- | Left is used for keeping the state while parsing a header, Right keeps the
--- state of Event parser
-type EventParserState = Either (Decoder Header) EventDecoder
+-- | Keeps the currently pushed input and appropriate 'Decoder'(s) for event
+-- parsing
+data EventParserState = ParsingHeader (Decoder Header) 
+                      | ParsingEvents EventDecoder
 
 -- | An abstraction over a 'Handle' and state for a simple incemental parsing
 -- interface.
@@ -79,26 +80,27 @@ data Result a =
 -- | Creates a new 'EventParserState' that can then be passed to the 
 -- 'readEvent' function.
 initEventParser :: EventParserState
-initEventParser = Left (getToDecoder getHeader)
+initEventParser = ParsingHeader (getToDecoder getHeader)
 
--- Creates a new parser state (a Right, so events only). 
+-- Creates a new parser state for events
 -- If given a non-empty list of ByteStrings, pushes them all to the partial
 -- decoder
 newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
                -> Decoder (Maybe Event) -> B.ByteString
                -> EventParserState
 newParserState cap remaining dec partial bss = 
-  Right ED { edCap = cap
-           , edRemaining = remaining
-           , edDecoder = dec
-           , edPartial = partial `pushChunk` bss }
+  ParsingEvents ED { edCap = cap
+                   , edRemaining = remaining
+                   , edDecoder = dec
+                   , edPartial = partial `pushChunk` bss }
 
 -- | Pushes a 'ByteString' to 'EventParserState'. This function is the only
 -- supported way of providing input in the ByteString interface.
 pushBytes :: EventParserState -> B.ByteString -> EventParserState
-pushBytes (Left headerDecoder) bs = Left $ headerDecoder `pushChunk` bs
-pushBytes (Right ed) bs =
-    Right $ ed { edPartial = (edPartial ed) `pushChunk` bs}
+pushBytes (ParsingHeader headerDecoder) bs = 
+    ParsingHeader $ headerDecoder `pushChunk` bs
+pushBytes (ParsingEvents ed) bs =
+    ParsingEvents $ ed { edPartial = (edPartial ed) `pushChunk` bs}
 
 readHeader :: Decoder Header -> (Result Header, EventParserState)
 readHeader dec =
@@ -107,14 +109,14 @@ readHeader dec =
         let emptyDecoder = mkEventDecoder header
             newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
         in (One header, newState)
-      (Partial {}) -> (PartialEventLog, Left dec)
-      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Left dec)  
+      (Partial {}) -> (PartialEventLog, ParsingHeader dec)
+      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingHeader dec)  
         
 -- | Parses at most one event from the state (refer to 'Result' datatype) and
 -- returns the updated state that can be used to parse the next event.
 -- readEvent expects its input to follow the structure of a .eventlog file.
 readEvent :: EventParserState -> (Result Event, EventParserState)
-readEvent (Left headerDecoder) = 
+readEvent (ParsingHeader headerDecoder) = 
     case readHeader headerDecoder of 
       (One _, state) -> readEvent state 
       (PartialEventLog, state) ->
@@ -122,7 +124,7 @@ readEvent (Left headerDecoder) =
       (EventLogParsingError errMsg, state) ->
           (EventLogParsingError errMsg, state)
       _ -> error "The impossible has happened. Report a bug."
-readEvent (Right ed) = readEvent' ed 
+readEvent (ParsingEvents ed) = readEvent' ed 
 
 readEvent' :: EventDecoder -> (Result Event, EventParserState)
 readEvent' (ed@(ED _ remaining emptyDecoder partial)) = 
@@ -138,9 +140,9 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
                 newState = newParserState (mkCap ed sz) newRemaining
                                           emptyDecoder emptyDecoder bs
             (One (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
-      (Done _ _ Nothing) -> (CompleteEventLog, Right ed)
-      (Partial _) -> (PartialEventLog, Right ed)
-      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, Right ed)
+      (Done _ _ Nothing) -> (CompleteEventLog, ParsingEvents ed)
+      (Partial _) -> (PartialEventLog, ParsingEvents ed)
+      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingEvents ed)
 
 -- $eventhandleapi
 -- This API uses 'EventHandle' datatype that abstracts away the mutation of
@@ -183,7 +185,7 @@ ehReadEvent (EH handle chunkSize stateRef) = do
 -- the near future as that functionality appears to be obsolete.
 ehReadHeader :: EventHandle -> IO (Result Header)
 ehReadHeader (EH handle chunkSize stateRef) = do
-  (Left headerDecoder) <- readIORef stateRef
+  (ParsingHeader headerDecoder) <- readIORef stateRef
   let (result, state) = readHeader headerDecoder
   case result of
     (One _) -> do
