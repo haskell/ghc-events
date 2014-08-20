@@ -18,7 +18,6 @@ module GHC.RTS.EventsIncremental (
   ehOpen, ehReadEvent, ehReadEvents,
   -- * For compatibility with old clients
   readEventLogFromFile,
-  ppEvent'
  ) where
 
 import GHC.RTS.Events
@@ -256,13 +255,3 @@ mkEventDecoder header =
 getToDecoder :: Get a -> Decoder a
 getToDecoder = runGetIncremental
 
-ppEvent' :: Event -> String
-ppEvent' (Event time spec evCap) =
-  printf "%9d: " time ++
-  (case evCap of
-    Nothing -> ""
-    Just c  -> printf "cap %d: " c) ++
-  case spec of
-    UnknownEvent{ ref=ref } ->
-      printf "Unknown Event (ref: %d)" ref
-    _ -> showEventInfo spec
