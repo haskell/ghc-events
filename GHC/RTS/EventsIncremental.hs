@@ -30,7 +30,7 @@ import Data.Binary.Get hiding (remaining)
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import System.IO (IOMode(ReadMode), openBinaryFile, Handle)
+import System.IO (IOMode(ReadMode), openBinaryFile, Handle, hPutStrLn, stderr)
 import Data.Word (Word16)
 import Text.Printf
 
@@ -149,9 +149,9 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
 -- the ByteString-based API, events are parsed 
 -- __in the order that they were written to the .eventlog file.__
 
--- | Creates a new event handle. The input handle is epxected to begin at the
--- beginning of file.
-ehOpen :: Handle -- ^ Handle to read the input from 
+-- | Instantiates a new EventHandle. 
+ehOpen :: Handle -- ^ Handle to read the input from. Its contents are expected
+                 -- to begin with an .eventlog format header.
        -> Int -- ^ The number of bytes that the parser will try to read input 
               -- from the 'Handle' when needs more input 
        -> IO EventHandle
@@ -159,7 +159,9 @@ ehOpen handle sz = do
   ioref <- newIORef $ initEventParser
   return EH { ehHandle = handle, ehChunkSize = sz, ehState = ioref }
 
--- Reads at most one event from the EventHandle. Can be called repeadetly
+-- | Reads at most one event from the EventHandle. Can be called repeadetly. Will
+-- consume input incrementally in chunks of size that is set when instantiating
+-- the 'EventHandle'.
 ehReadEvent :: EventHandle -> IO (Result Event)
 ehReadEvent (EH handle chunkSize stateRef) = do
   state <- readIORef stateRef
@@ -178,6 +180,8 @@ ehReadEvent (EH handle chunkSize stateRef) = do
     (CompleteEventLog) -> return CompleteEventLog
     (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
 
+-- Parses a 'Header' to be used for readEventLogFromFile. Should be removed in
+-- the near future as that functionality appears to be obsolete.
 ehReadHeader :: EventHandle -> IO (Result Header)
 ehReadHeader (EH handle chunkSize stateRef) = do
   (Left headerDecoder) <- readIORef stateRef
@@ -196,6 +200,9 @@ ehReadHeader (EH handle chunkSize stateRef) = do
     (CompleteEventLog) -> return CompleteEventLog
     (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
 
+-- | Reads a full 'EventLog' from file. If the file is incomplete, will still
+-- return a properly formed 'EventLog' object with all the events until the point
+-- of malformation/cutoff.
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
     handle <- openBinaryFile f ReadMode
@@ -208,6 +215,8 @@ readEventLogFromFile f = do
         return $ Right $ EventLog header (Data events)
       _ -> error "Should never happen"
 
+-- TODO: final state that tells how did the parse finish
+-- | Reads all available events from an EventHandle. Reports errors to stderr.
 ehReadEvents :: EventHandle -> IO [Event]
 ehReadEvents = eventRepeater . ehReadEvent
 
@@ -216,8 +225,11 @@ eventRepeater eventReader = do
   event <- eventReader
   case event of
     (One a) -> (:) <$> return a <*> eventRepeater eventReader
-    (EventLogParsingError _) -> return []
-    _ -> return []
+    (PartialEventLog) -> do
+      hPutStrLn stderr "Handle did not contain a complete EventLog."
+      return []
+    (CompleteEventLog) -> return []
+    (EventLogParsingError errMsg) -> hPutStrLn stderr errMsg >> return []
 
 isCap :: Int -> Maybe Int
 isCap blockCap = if fromIntegral blockCap /= ((-1) :: Word16)
@@ -227,7 +239,6 @@ isCap blockCap = if fromIntegral blockCap /= ((-1) :: Word16)
 mkCap :: EventDecoder -> ByteOffset -> Maybe Int
 mkCap ed sz
   | (edRemaining ed - fromIntegral sz) > 0 = edCap ed
-  -- TODO: Needs a warning less than 0, it shouldn't happen
   | otherwise = Nothing
 
 -- Makes a decoder with all the required parsers when given a Header
