@@ -32,7 +32,6 @@ import qualified Data.IntMap as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (IOMode(ReadMode), openBinaryFile, Handle, hPutStrLn, stderr)
 import Data.Word (Word16)
-import Text.Printf
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
