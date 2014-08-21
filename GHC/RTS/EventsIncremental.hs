@@ -57,7 +57,8 @@ data EventDecoder =
        -- It decodes a Maybe Event because Nothing indicates the end of an
        -- eventlog in the getEvent parser.
      , edDecoder   :: Decoder (Maybe Event)
-       -- A decoder that keeps the currently unconsumed bytestring in itself
+       -- A decoder that keeps the currently unconsumed bytestring (and possibly)
+       -- the next event to be returned by readEvent
      , edPartial   :: Decoder (Maybe Event) }
 
 -- | Datatype that describes the result of a parse
@@ -103,28 +104,35 @@ pushBytes (ParsingHeader headerDecoder) bs =
 pushBytes (ParsingEvents ed) bs =
     ParsingEvents $ ed { edPartial = (edPartial ed) `pushChunk` bs}
 
+-- Reads the header and returns it as a result. Is only required for
+-- readEventLogFromFile functionality, so may be removed in a future version
 readHeader :: Decoder Header -> (Result Header, EventParserState)
-readHeader dec =
-    case dec of
-      (Done bs _ header) ->
-        let emptyDecoder = mkEventDecoder header
-            newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
-        in (One header, newState)
-      (Partial {}) -> (PartialEventLog, ParsingHeader dec)
-      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingHeader dec)
+readHeader (Done bs _ header) =
+    let emptyDecoder = mkEventDecoder header
+        newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
+    in (One header, newState)
+readHeader dec@(Partial {}) = (PartialEventLog, ParsingHeader dec)
+readHeader dec@(Fail _ _ errMsg) =
+    (EventLogParsingError errMsg, ParsingHeader dec)
+
+-- Helper to simplify the logic of readEvent
+readHeader' :: Decoder Header -> (Result Event, EventParserState)
+readHeader' hd =
+    case readHeader hd of
+      -- Header was parsed completely so we can safely call readEvents, the
+      -- state will be ParsingEvents
+      (One _, state) -> readEvent state
+      (PartialEventLog, state) -> (PartialEventLog, state)
+      (EventLogParsingError errMsg, state) ->
+          (EventLogParsingError errMsg, state)
+      -- CompleteEventlog can't happen because we don't read the log yet
+      _ -> error "The impossible has happened. Report a bug."
 
 -- | Parses at most one event from the state (refer to 'Result' datatype) and
 -- returns the updated state that can be used to parse the next event.
 -- readEvent expects its input to follow the structure of a .eventlog file.
 readEvent :: EventParserState -> (Result Event, EventParserState)
-readEvent (ParsingHeader headerDecoder) =
-    case readHeader headerDecoder of
-      (One _, state) -> readEvent state
-      (PartialEventLog, state) ->
-          (PartialEventLog, state)
-      (EventLogParsingError errMsg, state) ->
-          (EventLogParsingError errMsg, state)
-      _ -> error "The impossible has happened. Report a bug."
+readEvent (ParsingHeader hd) = readHeader' hd
 readEvent (ParsingEvents ed) = readEvent' ed
 
 readEvent' :: EventDecoder -> (Result Event, EventParserState)
@@ -233,11 +241,15 @@ eventRepeater eventReader = do
     (CompleteEventLog) -> return []
     (EventLogParsingError errMsg) -> hPutStrLn stderr errMsg >> return []
 
+-- Checks if the capability is not -1 (which indicates a global eventblock), so
+-- has no associated capability
 isCap :: Int -> Maybe Int
 isCap blockCap = if fromIntegral blockCap /= ((-1) :: Word16)
                     then Just blockCap
                     else Nothing
 
+-- Checks if there are any bytes left in the current EventBlock. That number
+-- could be negative because exist some blockless events.
 mkCap :: EventDecoder -> ByteOffset -> Maybe Int
 mkCap ed sz
   | (edRemaining ed - fromIntegral sz) > 0 = edCap ed
