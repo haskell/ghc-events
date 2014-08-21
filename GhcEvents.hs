@@ -254,7 +254,7 @@ showMap showKey showValue m =
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
-printEventsIncremental :: EventHandle 
+printEventsIncremental :: EventHandle
                        -> Bool -- Whether to retry on incomplete logs
                        -> IO ()
 printEventsIncremental eh dashf = do

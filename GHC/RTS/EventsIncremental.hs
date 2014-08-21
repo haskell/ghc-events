@@ -37,7 +37,7 @@ import Data.Word (Word16)
 #include "EventLogFormat.h"
 
 -- | Keeps the currently pushed input and other necessary state for the parsing
-data EventParserState = ParsingHeader (Decoder Header) 
+data EventParserState = ParsingHeader (Decoder Header)
                       | ParsingEvents EventDecoder
 
 -- | An abstraction over a 'Handle' and state for a simple incemental parsing
@@ -48,11 +48,11 @@ data EventHandle =
      , ehState     :: IORef EventParserState -- state for the parser
      }
 
-data EventDecoder = 
+data EventDecoder =
   ED { -- If in EventBlock, we track it's capability
-       edCap       :: Maybe Int 
+       edCap       :: Maybe Int
        -- Tracks the number of remaining bytes in an EventBlock
-     , edRemaining :: Integer 
+     , edRemaining :: Integer
        -- An empty decoder that is used for parsing the next event
        -- It decodes a Maybe Event because Nothing indicates the end of an
        -- eventlog in the getEvent parser.
@@ -61,10 +61,10 @@ data EventDecoder =
      , edPartial   :: Decoder (Maybe Event) }
 
 -- | Datatype that describes the result of a parse
-data Result a = 
+data Result a =
   -- | Successfully parsed an item
     One a
-  -- | The eventlog wasn't complete but the input did not contain any more 
+  -- | The eventlog wasn't complete but the input did not contain any more
   -- complete items
   | PartialEventLog
   -- | Parsing was completed successfully
@@ -75,10 +75,10 @@ data Result a =
 
 -- $bytestringapi
 -- The 'ByteString' based API uses 'EventParserState' to keep track of input
--- that it has received so far. This API should be used when control over 
+-- that it has received so far. This API should be used when control over
 -- input generation is required.
 
--- | Creates a new 'EventParserState' that can then be passed to the 
+-- | Creates a new 'EventParserState' that can then be passed to the
 -- 'readEvent' function.
 initEventParser :: EventParserState
 initEventParser = ParsingHeader (getToDecoder getHeader)
@@ -89,7 +89,7 @@ initEventParser = ParsingHeader (getToDecoder getHeader)
 newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
                -> Decoder (Maybe Event) -> B.ByteString
                -> EventParserState
-newParserState cap remaining dec partial bss = 
+newParserState cap remaining dec partial bss =
   ParsingEvents ED { edCap = cap
                    , edRemaining = remaining
                    , edDecoder = dec
@@ -98,44 +98,44 @@ newParserState cap remaining dec partial bss =
 -- | Pushes a 'ByteString' to 'EventParserState'. This function is the only
 -- supported way of providing input in the ByteString interface.
 pushBytes :: EventParserState -> B.ByteString -> EventParserState
-pushBytes (ParsingHeader headerDecoder) bs = 
+pushBytes (ParsingHeader headerDecoder) bs =
     ParsingHeader $ headerDecoder `pushChunk` bs
 pushBytes (ParsingEvents ed) bs =
     ParsingEvents $ ed { edPartial = (edPartial ed) `pushChunk` bs}
 
 readHeader :: Decoder Header -> (Result Header, EventParserState)
 readHeader dec =
-    case dec of 
+    case dec of
       (Done bs _ header) ->
         let emptyDecoder = mkEventDecoder header
             newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
         in (One header, newState)
       (Partial {}) -> (PartialEventLog, ParsingHeader dec)
-      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingHeader dec)  
-        
+      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingHeader dec)
+
 -- | Parses at most one event from the state (refer to 'Result' datatype) and
 -- returns the updated state that can be used to parse the next event.
 -- readEvent expects its input to follow the structure of a .eventlog file.
 readEvent :: EventParserState -> (Result Event, EventParserState)
-readEvent (ParsingHeader headerDecoder) = 
-    case readHeader headerDecoder of 
-      (One _, state) -> readEvent state 
+readEvent (ParsingHeader headerDecoder) =
+    case readHeader headerDecoder of
+      (One _, state) -> readEvent state
       (PartialEventLog, state) ->
           (PartialEventLog, state)
       (EventLogParsingError errMsg, state) ->
           (EventLogParsingError errMsg, state)
       _ -> error "The impossible has happened. Report a bug."
-readEvent (ParsingEvents ed) = readEvent' ed 
+readEvent (ParsingEvents ed) = readEvent' ed
 
 readEvent' :: EventDecoder -> (Result Event, EventParserState)
-readEvent' (ed@(ED _ remaining emptyDecoder partial)) = 
+readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
     case partial of
       (Done bs sz (Just event)) ->
         case evSpec event of
           EventBlock _ blockCap newRemaining -> do
-            let newState = newParserState (isCap blockCap) newRemaining 
+            let newState = newParserState (isCap blockCap) newRemaining
                                           emptyDecoder emptyDecoder bs
-            readEvent newState 
+            readEvent newState
           _ -> do
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState (mkCap ed sz) newRemaining
@@ -147,15 +147,15 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
 
 -- $eventhandleapi
 -- This API uses 'EventHandle' datatype that abstracts away the mutation of
--- state and provides a simple interface for parsing events. Just like 
--- the ByteString-based API, events are parsed 
+-- state and provides a simple interface for parsing events. Just like
+-- the ByteString-based API, events are parsed
 -- __in the order that they were written to the .eventlog file.__
 
--- | Instantiates a new EventHandle. 
+-- | Instantiates a new EventHandle.
 ehOpen :: Handle -- ^ Handle to read the input from. Its contents are expected
                  -- to begin with an .eventlog format header.
-       -> Int -- ^ The number of bytes that the parser will try to read input 
-              -- from the 'Handle' when needs more input 
+       -> Int -- ^ The number of bytes that the parser will try to read input
+              -- from the 'Handle' when needs more input
        -> IO EventHandle
 ehOpen handle sz = do
   ioref <- newIORef $ initEventParser
@@ -245,7 +245,7 @@ mkCap ed sz
 
 -- Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> Decoder (Maybe Event)
-mkEventDecoder header = 
+mkEventDecoder header =
     getToDecoder (runReaderT (getEvent parsers) parsers)
   where
     imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
@@ -267,4 +267,3 @@ mkEventDecoder header =
 -- Turns an instance of Get into a Decoder
 getToDecoder :: Get a -> Decoder a
 getToDecoder = runGetIncremental
-
