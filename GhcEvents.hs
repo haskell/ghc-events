@@ -35,7 +35,7 @@ command ["inc", file] = do
 
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
-    eh <- ehOpen h 4096
+    eh <- ehOpen h 1024
     printEventsIncremental eh True
 
 command ["show", file] = do
@@ -265,7 +265,7 @@ printEventsIncremental eh dashf = do
           printEventsIncremental eh dashf
       PartialEventLog ->
         if dashf
-          then threadDelay 100000 >> printEventsIncremental eh dashf
+          then print "Waiting" >> threadDelay 1000000 >> printEventsIncremental eh dashf
           else putStrLn "Finished (NOT all file was parsed successfully)"
       CompleteEventLog ->
         putStrLn "Finished (file was parsed successfully)"
