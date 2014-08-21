@@ -36,8 +36,7 @@ import Data.Word (Word16)
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
--- | Keeps the currently pushed input and appropriate 'Decoder'(s) for event
--- parsing
+-- | Keeps the currently pushed input and other necessary state for the parsing
 data EventParserState = ParsingHeader (Decoder Header) 
                       | ParsingEvents EventDecoder
 
@@ -55,6 +54,8 @@ data EventDecoder =
        -- Tracks the number of remaining bytes in an EventBlock
      , edRemaining :: Integer 
        -- An empty decoder that is used for parsing the next event
+       -- It decodes a Maybe Event because Nothing indicates the end of an
+       -- eventlog in the getEvent parser.
      , edDecoder   :: Decoder (Maybe Event)
        -- A decoder that keeps the currently unconsumed bytestring in itself
      , edPartial   :: Decoder (Maybe Event) }
