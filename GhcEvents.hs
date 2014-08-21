@@ -2,8 +2,8 @@
 
 module Main where
 
+import GHC.RTS.EventsInternal
 import GHC.RTS.Events
-import GHC.RTS.EventsIncremental
 import GHC.RTS.Events.Merge
 import GHC.RTS.Events.Analysis
 import GHC.RTS.Events.Analysis.SparkThread

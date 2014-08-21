@@ -1,1275 +1,317 @@
-{-# LANGUAGE CPP,BangPatterns #-}
-{-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
+{-# LANGUAGE CPP #-}
 {-
- -   Parser functions for GHC RTS EventLog framework.
- -}
+ -  Incremental parser functions for GHC RTS EventLog framewrok.
+-}
 
 module GHC.RTS.Events (
-       -- * Parsers
-       getHeader,
-       getEvent,
-       standardParsers,
-       ghc6Parsers,
-       ghc7Parsers,
-       mercuryParsers,
-       perfParsers,
-       spec,
-       time,
-       -- * The event log types
-       EventLog(..),
-       EventType(..),
-       Event(..),
-       EventInfo(..),
-       ThreadStopStatus(..),
-       Header(..),
-       Data(..),
-       CapsetType(..),
-       Timestamp,
-       ThreadId,
-       TaskId,
-       KernelThreadId(..),
+  -- * ByteString interface
+  -- $bytestringapi
+  EventParserState,
+  initEventParser,
+  pushBytes, readEvent,
 
-       -- * Reading and writing event logs
-       writeEventLogToFile,
+  -- * EventHandle interface
+  -- $eventhandleapi
+  EventHandle,
+  ehOpen,
+  ehReadEvent,
+  ehReadEvents,
 
-       -- * Utilities
-       CapEvent(..), sortEvents,
-       buildEventTypeMap,
+  -- * The event log types
+  Result(..),
+  EventLog(..),
+  Header(..),
+  Data(..),
+  EventType(..),
+  Event(..),
+  CapEvent(..),
 
-       -- * Printing
-       showEventInfo, showThreadStopStatus,
-       ppEventLog, ppEventType, ppEvent, ppEvent',
+  -- * Reading and writing event logs
+  writeEventLogToFile,
 
-       -- * Perf events
-       nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT,
-       sz_perf_num, sz_kernel_tid
-  ) where
+  -- * Utilities
+  sortEvents,
+  buildEventTypeMap,
 
-{- Libraries. -}
-import Data.Binary
-import Data.Binary.Get ()
-import qualified Data.Binary.Get as G
-import Data.Binary.Put
-import Control.Monad ()
-import Data.IntMap (IntMap)
-import qualified Data.IntMap as M
-import Control.Monad.Reader
-import qualified Data.ByteString.Lazy as L
-import Data.Function
-import Data.List
-import Data.Maybe (fromMaybe, fromJust)
-import Text.Printf
-import Data.Array
+  -- * Printing
+  showEventInfo, showThreadStopStatus,
+  ppEventLog, ppEventType, ppEvent, ppEvent',
 
-import GHC.RTS.EventTypes
+  -- * Event types
+  CapsetType(..),
+  Timestamp,
+  ThreadId,
+  TaskId,
+  KernelThreadId(..),
+  EventInfo(..),
+  ThreadStopStatus(..),
+
+  -- * Perf events
+  nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT,
+  sz_perf_num, sz_kernel_tid,
+  -- * For compatibility with old clients
+  readEventLogFromFile,
+  spec,
+  time,
+
+ ) where
+
+import GHC.RTS.EventsInternal
 import GHC.RTS.EventParserUtils
+import GHC.RTS.EventTypes hiding (time, spec)
+
+import Control.Applicative ((<$>), (<*>), Applicative(..))
+import Control.Monad.Reader (runReaderT)
+import Data.Binary.Get hiding (remaining)
+import qualified Data.ByteString as B
+import qualified Data.IntMap as M
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import System.IO (IOMode(ReadMode), openBinaryFile, Handle, hPutStrLn, stderr)
+import Data.Word (Word16)
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
-------------------------------------------------------------------------------
--- Binary instances
-
-getEventType :: GetHeader EventType
-getEventType = do
-           etNum <- getH
-           size <- getH :: GetHeader EventTypeSize
-           let etSize = if size == 0xffff then Nothing else Just size
-           -- 0xffff indicates variable-sized event
-           etDescLen <- getH :: GetHeader EventTypeDescLen
-           etDesc <- getEtDesc (fromIntegral etDescLen)
-           etExtraLen <- getH :: GetHeader Word32
-           G.skip (fromIntegral etExtraLen)
-           ete <- getH :: GetHeader Marker
-           when (ete /= EVENT_ET_END) $
-              fail "Event Type end marker not found."
-           return (EventType etNum etDesc etSize)
-           where
-             getEtDesc :: Int -> GetHeader [Char]
-             getEtDesc s = replicateM s (getH :: GetHeader Char)
-
-
-
-getHeader :: GetHeader Header
-getHeader = do
-            hdrb <- getH :: GetHeader Marker
-            when (hdrb /= EVENT_HEADER_BEGIN) $
-                 fail "Header begin marker not found"
-            hetm <- getH :: GetHeader Marker
-            when (hetm /= EVENT_HET_BEGIN) $
-                 fail "Header Event Type begin marker not found"
-            ets <- getEventTypes
-            emark <- getH :: GetHeader Marker
-            when (emark /= EVENT_HEADER_END) $
-                 fail "Header end marker not found"
-            db <- getH :: GetHeader Marker
-            when (db /= EVENT_DATA_BEGIN) $ 
-                  fail "My Data begin marker not found" 
-            return $ Header ets
-     where
-      getEventTypes :: GetHeader [EventType]
-      getEventTypes = do
-          m <- getH :: GetHeader Marker
-          case m of
-             EVENT_ET_BEGIN -> do
-                  et <- getEventType
-                  nextET <- getEventTypes
-                  return (et : nextET)
-             EVENT_HET_END ->
-                  return []
-             _ ->
-                  fail "Malformed list of Event Types in header"
-
-getEvent :: EventParsers -> GetEvents (Maybe Event)
-getEvent (EventParsers parsers) = do
-  etRef <- getE :: GetEvents EventTypeNum
-  if etRef == EVENT_DATA_END
-     then return Nothing
-     else do !ts   <- getE
-             -- trace ("event: " ++ show etRef) $ do
-             spec <- parsers ! fromIntegral etRef
-             return $ Just (Event ts spec undefined)
-
---
--- standardEventParsers.
---
-standardParsers :: [EventParser EventInfo]
-standardParsers = [
- (FixedSizeParser EVENT_STARTUP sz_cap (do -- (n_caps)
-      c <- getE :: GetEvents CapNo
-      return Startup{ n_caps = fromIntegral c }
-   )),
-
- (FixedSizeParser EVENT_BLOCK_MARKER (sz_block_size + sz_time + sz_cap) (do -- (size, end_time, cap)
-      block_size <- getE :: GetEvents BlockSize
-      end_time <- getE :: GetEvents Timestamp
-      c <- getE :: GetEvents CapNo
-      return EventBlock { end_time   = end_time,
-                          cap        = fromIntegral c,
-                          block_size = ((fromIntegral block_size) -
-                                        (fromIntegral sz_block_event))
-                        }
-   )),
-
- -- EVENT_SHUTDOWN is replaced by EVENT_CAP_DELETE and GHC 7.6+
- -- no longer generate the event; should be removed at some point
- (simpleEvent EVENT_SHUTDOWN Shutdown),
-
- (simpleEvent EVENT_REQUEST_SEQ_GC RequestSeqGC),
-
- (simpleEvent EVENT_REQUEST_PAR_GC RequestParGC),
-
- (simpleEvent EVENT_GC_START StartGC),
-
- (simpleEvent EVENT_GC_WORK GCWork),
-
- (simpleEvent EVENT_GC_IDLE GCIdle),
-
- (simpleEvent EVENT_GC_DONE GCDone),
-
- (simpleEvent EVENT_GC_END EndGC),
-
- (simpleEvent EVENT_GC_GLOBAL_SYNC GlobalSyncGC),
-
- (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 4) (do  -- (heap_capset, generation, copied_bytes, slop_bytes, frag_bytes, par_n_threads, par_max_copied, par_tot_copied)
-      heapCapset   <- getE
-      gen          <- getE :: GetEvents Word16
-      copied       <- getE :: GetEvents Word64
-      slop         <- getE :: GetEvents Word64
-      frag         <- getE :: GetEvents Word64
-      parNThreads  <- getE :: GetEvents Word32
-      parMaxCopied <- getE :: GetEvents Word64
-      parTotCopied <- getE :: GetEvents Word64
-      return GCStatsGHC{ gen = fromIntegral gen
-                       , parNThreads = fromIntegral parNThreads
-                       , ..}
- )),
-
- (FixedSizeParser EVENT_HEAP_ALLOCATED (sz_capset + 8) (do  -- (heap_capset, alloc_bytes)
-      heapCapset <- getE
-      allocBytes <- getE
-      return HeapAllocated{..}
- )),
-
- (FixedSizeParser EVENT_HEAP_SIZE (sz_capset + 8) (do  -- (heap_capset, size_bytes)
-      heapCapset <- getE
-      sizeBytes  <- getE
-      return HeapSize{..}
- )),
-
- (FixedSizeParser EVENT_HEAP_LIVE (sz_capset + 8) (do  -- (heap_capset, live_bytes)
-      heapCapset <- getE
-      liveBytes  <- getE
-      return HeapLive{..}
- )),
-
- (FixedSizeParser EVENT_HEAP_INFO_GHC (sz_capset + 2 + 4*8) (do  -- (heap_capset, n_generations, max_heap_size, alloc_area_size, mblock_size, block_size)
-      heapCapset    <- getE
-      gens          <- getE :: GetEvents Word16
-      maxHeapSize   <- getE :: GetEvents Word64
-      allocAreaSize <- getE :: GetEvents Word64
-      mblockSize    <- getE :: GetEvents Word64
-      blockSize     <- getE :: GetEvents Word64
-      return HeapInfoGHC{gens = fromIntegral gens, ..}
- )),
-
- (FixedSizeParser EVENT_CAP_CREATE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
-      return CapCreate{cap = fromIntegral cap}
- )),
-
- (FixedSizeParser EVENT_CAP_DELETE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
-      return CapDelete{cap = fromIntegral cap}
- )),
-
- (FixedSizeParser EVENT_CAP_DISABLE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
-      return CapDisable{cap = fromIntegral cap}
- )),
-
- (FixedSizeParser EVENT_CAP_ENABLE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
-      return CapEnable{cap = fromIntegral cap}
- )),
-
- (FixedSizeParser EVENT_CAPSET_CREATE (sz_capset + sz_capset_type) (do -- (capset, capset_type)
-      cs <- getE
-      ct <- fmap mkCapsetType getE
-      return CapsetCreate{capset=cs,capsetType=ct}
-   )),
-
- (FixedSizeParser EVENT_CAPSET_DELETE sz_capset (do -- (capset)
-      cs <- getE
-      return CapsetDelete{capset=cs}
-   )),
-
- (FixedSizeParser EVENT_CAPSET_ASSIGN_CAP (sz_capset + sz_cap) (do -- (capset, cap)
-      cs <- getE
-      cp <- getE :: GetEvents CapNo
-      return CapsetAssignCap{capset=cs,cap=fromIntegral cp}
-   )),
-
- (FixedSizeParser EVENT_CAPSET_REMOVE_CAP (sz_capset + sz_cap) (do -- (capset, cap)
-      cs <- getE
-      cp <- getE :: GetEvents CapNo
-      return CapsetRemoveCap{capset=cs,cap=fromIntegral cp}
-   )),
-
- (FixedSizeParser EVENT_OSPROCESS_PID (sz_capset + sz_pid) (do -- (capset, pid)
-      cs <- getE
-      pd <- getE
-      return OsProcessPid{capset=cs,pid=pd}
-   )),
-
- (FixedSizeParser EVENT_OSPROCESS_PPID (sz_capset + sz_pid) (do -- (capset, ppid)
-      cs <- getE
-      pd <- getE
-      return OsProcessParentPid{capset=cs,ppid=pd}
-  )),
-
- (FixedSizeParser EVENT_WALL_CLOCK_TIME (sz_capset + 8 + 4) (do -- (capset, unix_epoch_seconds, nanoseconds)
-      cs <- getE
-      s  <- getE
-      ns <- getE
-      return WallClockTime{capset=cs,sec=s,nsec=ns}
-  )),
-
- (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
-      num <- getE :: GetEvents Word16
-      string <- getString num
-      return Message{ msg = string }
-   )),
- (VariableSizeParser EVENT_USER_MSG (do -- (msg)
-      num <- getE :: GetEvents Word16
-      string <- getString num
-      return UserMessage{ msg = string }
-   )),
-    (VariableSizeParser EVENT_USER_MARKER (do -- (markername)
-      num <- getE :: GetEvents Word16
-      string <- getString num
-      return UserMarker{ markername = string }
-   )),
- (VariableSizeParser EVENT_PROGRAM_ARGS (do -- (capset, [arg])
-      num <- getE :: GetEvents Word16
-      cs <- getE
-      string <- getString (num - sz_capset)
-      return ProgramArgs{ capset = cs
-                        , args = splitNull string }
-   )),
- (VariableSizeParser EVENT_PROGRAM_ENV (do -- (capset, [arg])
-      num <- getE :: GetEvents Word16
-      cs <- getE
-      string <- getString (num - sz_capset)
-      return ProgramEnv{ capset = cs
-                       , env = splitNull string }
-   )),
- (VariableSizeParser EVENT_RTS_IDENTIFIER (do -- (capset, str)
-      num <- getE :: GetEvents Word16
-      cs <- getE
-      string <- getString (num - sz_capset)
-      return RtsIdentifier{ capset = cs
-                          , rtsident = string }
-   )),
-
- (VariableSizeParser EVENT_INTERN_STRING (do -- (str, id)
-      num <- getE :: GetEvents Word16
-      string <- getString (num - sz_string_id)
-      sId <- getE :: GetEvents StringId
-      return (InternString string sId)
-    )),
-
- (VariableSizeParser EVENT_THREAD_LABEL (do -- (thread, str)
-      num <- getE :: GetEvents Word16
-      tid <- getE
-      str <- getString (num - sz_tid)
-      return ThreadLabel{ thread      = tid
-                        , threadlabel = str }
-    ))
- ]
-
--- Parsers valid for GHC7 but not GHC6.
-ghc7Parsers :: [EventParser EventInfo]
-ghc7Parsers = [
- (FixedSizeParser EVENT_CREATE_THREAD sz_tid (do  -- (thread)
-      t <- getE
-      return CreateThread{thread=t}
-   )),
-
- (FixedSizeParser EVENT_RUN_THREAD sz_tid (do  --  (thread)
-      t <- getE
-      return RunThread{thread=t}
-   )),
-
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status) (do
-      -- (thread, status)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
-      return StopThread{thread=t, status = if s > maxThreadStopStatus
-                                              then NoStatus
-                                              else mkStopStatus s}
-   )),
-
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) (do
-      -- (thread, status, info)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
-      i <- getE :: GetEvents ThreadId
-      return StopThread{thread = t,
-                        status = case () of
-                                  _ | s > maxThreadStopStatus
-                                    -> NoStatus
-                                    | s == 8 {- XXX yeuch -}
-                                    -> BlockedOnBlackHoleOwnedBy i
-                                    | otherwise
-                                    -> mkStopStatus s}
-   )),
-
- (FixedSizeParser EVENT_THREAD_RUNNABLE sz_tid (do  -- (thread)
-      t <- getE
-      return ThreadRunnable{thread=t}
-   )),
-
- (FixedSizeParser EVENT_MIGRATE_THREAD (sz_tid + sz_cap) (do  --  (thread, newCap)
-      t  <- getE
-      nc <- getE :: GetEvents CapNo
-      return MigrateThread{thread=t,newCap=fromIntegral nc}
-   )),
-
- -- Yes, EVENT_RUN/STEAL_SPARK are deprecated, but see the explanation in the
- -- 'ghc6Parsers' section below. Since we're parsing them anyway, we might
- -- as well convert them to the new SparkRun/SparkSteal events.
- (FixedSizeParser EVENT_RUN_SPARK sz_tid (do  -- (thread)
-      _ <- getE :: GetEvents ThreadId
-      return SparkRun
-   )),
-
- (FixedSizeParser EVENT_STEAL_SPARK (sz_tid + sz_cap) (do  -- (thread, victimCap)
-      _  <- getE :: GetEvents ThreadId
-      vc <- getE :: GetEvents CapNo
-      return SparkSteal{victimCap=fromIntegral vc}
-   )),
-
- (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_tid (do  -- (sparkThread)
-      st <- getE :: GetEvents ThreadId
-      return CreateSparkThread{sparkThread=st}
-   )),
-
- (FixedSizeParser EVENT_SPARK_COUNTERS (7*8) (do -- (crt,dud,ovf,cnv,gcd,fiz,rem)
-      crt <- getE :: GetEvents Word64
-      dud <- getE :: GetEvents Word64
-      ovf <- getE :: GetEvents Word64
-      cnv <- getE :: GetEvents Word64
-      gcd <- getE :: GetEvents Word64
-      fiz <- getE :: GetEvents Word64
-      rem <- getE :: GetEvents Word64
-      return SparkCounters{sparksCreated    = crt, sparksDud       = dud,
-                           sparksOverflowed = ovf, sparksConverted = cnv,
-                           -- Warning: order of fiz and gcd reversed!
-                           sparksFizzled    = fiz, sparksGCd       = gcd,
-                           sparksRemaining  = rem}
-   )),
-
- (simpleEvent EVENT_SPARK_CREATE   SparkCreate),
- (simpleEvent EVENT_SPARK_DUD      SparkDud),
- (simpleEvent EVENT_SPARK_OVERFLOW SparkOverflow),
- (simpleEvent EVENT_SPARK_RUN      SparkRun),
- (FixedSizeParser EVENT_SPARK_STEAL sz_cap (do  -- (victimCap)
-      vc <- getE :: GetEvents CapNo
-      return SparkSteal{victimCap=fromIntegral vc}
-   )),
- (simpleEvent EVENT_SPARK_FIZZLE   SparkFizzle),
- (simpleEvent EVENT_SPARK_GC       SparkGC),
-
- (FixedSizeParser EVENT_TASK_CREATE (sz_taskid + sz_cap + sz_kernel_tid) (do  -- (taskID, cap, tid)
-      taskId <- getE :: GetEvents TaskId
-      cap    <- getE :: GetEvents CapNo
-      tid    <- getE :: GetEvents KernelThreadId
-      return TaskCreate{ taskId, cap = fromIntegral cap, tid }
-   )),
- (FixedSizeParser EVENT_TASK_MIGRATE (sz_taskid + sz_cap*2) (do  -- (taskID, cap, new_cap)
-      taskId  <- getE :: GetEvents TaskId
-      cap     <- getE :: GetEvents CapNo
-      new_cap <- getE :: GetEvents CapNo
-      return TaskMigrate{ taskId, cap = fromIntegral cap
-                                , new_cap = fromIntegral new_cap
-                        }
-   )),
- (FixedSizeParser EVENT_TASK_DELETE (sz_taskid) (do  -- (taskID)
-      taskId <- getE :: GetEvents TaskId
-      return TaskDelete{ taskId }
-   )),
-
- (FixedSizeParser EVENT_THREAD_WAKEUP (sz_tid + sz_cap) (do  -- (thread, other_cap)
-      t <- getE
-      oc <- getE :: GetEvents CapNo
-      return WakeupThread{thread=t,otherCap=fromIntegral oc}
-   ))
- ]
-
- -----------------------
- -- GHC 6.12 compat: GHC 6.12 reported the wrong sizes for some events,
- -- so we have to recognise those wrong sizes here for backwards
- -- compatibility.
-ghc6Parsers :: [EventParser EventInfo]
-ghc6Parsers = [
- (FixedSizeParser EVENT_STARTUP 0 (do
-      -- BUG in GHC 6.12: the startup event was incorrectly
-      -- declared as size 0, so we accept it here.
-      c <- getE :: GetEvents CapNo
-      return Startup{ n_caps = fromIntegral c }
-   )),
-
- (FixedSizeParser EVENT_CREATE_THREAD sz_old_tid (do  -- (thread)
-      t <- getE
-      return CreateThread{thread=t}
-   )),
-
- (FixedSizeParser EVENT_RUN_THREAD sz_old_tid (do  --  (thread)
-      t <- getE
-      return RunThread{thread=t}
-   )),
-
- (FixedSizeParser EVENT_STOP_THREAD (sz_old_tid + 2) (do  -- (thread, status)
-      t <- getE
-      s <- getE :: GetEvents Word16
-      let stat = fromIntegral s
-      return StopThread{thread=t, status = if stat > maxBound
-                                              then NoStatus
-                                              else mkStopStatus stat}
-   )),
-
- (FixedSizeParser EVENT_THREAD_RUNNABLE sz_old_tid (do  -- (thread)
-      t <- getE
-      return ThreadRunnable{thread=t}
-   )),
-
- (FixedSizeParser EVENT_MIGRATE_THREAD (sz_old_tid + sz_cap) (do  --  (thread, newCap)
-      t  <- getE
-      nc <- getE :: GetEvents CapNo
-      return MigrateThread{thread=t,newCap=fromIntegral nc}
-   )),
-
- -- Note: it is vital that these two (EVENT_RUN/STEAL_SPARK) remain here (at
- -- least in the ghc6Parsers section) even though both events are deprecated.
- -- The reason is that .eventlog files created by the buggy GHC-6.12
- -- mis-declare the size of these two events. So we have to handle them
- -- specially here otherwise we'll get the wrong size, leading to us getting
- -- out of sync and eventual parse failure. Since we're parsing them anyway,
- -- we might as well convert them to the new SparkRun/SparkSteal events.
- (FixedSizeParser EVENT_RUN_SPARK sz_old_tid (do  -- (thread)
-      _ <- getE :: GetEvents ThreadId
-      return SparkRun
-   )),
-
- (FixedSizeParser EVENT_STEAL_SPARK (sz_old_tid + sz_cap) (do  -- (thread, victimCap)
-      _  <- getE :: GetEvents ThreadId
-      vc <- getE :: GetEvents CapNo
-      return SparkSteal{victimCap=fromIntegral vc}
-   )),
-
- (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_old_tid (do  -- (sparkThread)
-      st <- getE :: GetEvents ThreadId
-      return CreateSparkThread{sparkThread=st}
-   )),
-
- (FixedSizeParser EVENT_THREAD_WAKEUP (sz_old_tid + sz_cap) (do  -- (thread, other_cap)
-      t <- getE
-      oc <- getE :: GetEvents CapNo
-      return WakeupThread{thread=t,otherCap=fromIntegral oc}
-   ))
- ]
-
-mercuryParsers :: [EventParser EventInfo]
-mercuryParsers = [
- (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION
-    (sz_par_conj_dyn_id + sz_par_conj_static_id)
-    (do dyn_id <- getE
-        static_id <- getE
-        return (MerStartParConjunction dyn_id static_id))
- ),
-
- (FixedSizeParser EVENT_MER_STOP_PAR_CONJUNCTION sz_par_conj_dyn_id
-    (do dyn_id <- getE
-        return (MerEndParConjunction dyn_id))
- ),
-
- (FixedSizeParser EVENT_MER_STOP_PAR_CONJUNCT sz_par_conj_dyn_id
-    (do dyn_id <- getE
-        return (MerEndParConjunct dyn_id))
- ),
-
- (FixedSizeParser EVENT_MER_CREATE_SPARK (sz_par_conj_dyn_id + sz_spark_id)
-    (do dyn_id <- getE
-        spark_id <- getE
-        return (MerCreateSpark dyn_id spark_id))
- ),
-
- (FixedSizeParser EVENT_MER_FUT_CREATE (sz_future_id + sz_string_id)
-    (do future_id <- getE
-        name_id <- getE
-        return (MerFutureCreate future_id name_id))
- ),
-
- (FixedSizeParser EVENT_MER_FUT_WAIT_NOSUSPEND (sz_future_id)
-    (do future_id <- getE
-        return (MerFutureWaitNosuspend future_id))
- ),
-
- (FixedSizeParser EVENT_MER_FUT_WAIT_SUSPENDED (sz_future_id)
-    (do future_id <- getE
-        return (MerFutureWaitSuspended future_id))
- ),
-
- (FixedSizeParser EVENT_MER_FUT_SIGNAL (sz_future_id)
-    (do future_id <- getE
-        return (MerFutureSignal future_id))
- ),
-
- (simpleEvent EVENT_MER_LOOKING_FOR_GLOBAL_CONTEXT MerLookingForGlobalThread),
- (simpleEvent EVENT_MER_WORK_STEALING MerWorkStealing),
- (simpleEvent EVENT_MER_LOOKING_FOR_LOCAL_SPARK MerLookingForLocalSpark),
-
- (FixedSizeParser EVENT_MER_RELEASE_CONTEXT sz_tid
-    (do thread_id <- getE
-        return (MerReleaseThread thread_id))
- ),
-
- (simpleEvent EVENT_MER_ENGINE_SLEEPING MerCapSleeping),
- (simpleEvent EVENT_MER_CALLING_MAIN MerCallingMain)
-
- ]
-
-perfParsers :: [EventParser EventInfo]
-perfParsers = [
- (VariableSizeParser EVENT_PERF_NAME (do -- (perf_num, name)
-      num     <- getE :: GetEvents Word16
-      perfNum <- getE
-      name    <- getString (num - sz_perf_num)
-      return PerfName{perfNum, name}
-   )),
-
- (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + sz_kernel_tid + 8) (do -- (perf_num, tid, period)
-      perfNum <- getE
-      tid     <- getE
-      period  <- getE
-      return PerfCounter{perfNum, tid, period}
-  )),
-
- (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_kernel_tid) (do -- (perf_num, tid)
-      perfNum <- getE
-      tid     <- getE
-      return PerfTracepoint{perfNum, tid}
-  ))
- ]
-
--- -----------------------------------------------------------------------------
--- Utilities
-
-sortEvents :: [Event] -> [Event]
-sortEvents = sortBy (compare `on` evTime)
-
-buildEventTypeMap :: [EventType] -> IntMap EventType
-buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
-
------------------------------------------------------------------------------
--- Some pretty-printing support
-
-showEventInfo :: EventInfo -> String
-showEventInfo spec =
-    case spec of
-        EventBlock end_time cap _block_events ->
-          printf "event block: cap %d, end time: %d\n" cap end_time
-        Startup n_caps ->
-          printf "startup: %d capabilities" n_caps
-        CreateThread thread ->
-          printf "creating thread %d" thread
-        RunThread thread ->
-          printf "running thread %d" thread
-        StopThread thread status ->
-          printf "stopping thread %d (%s)" thread (showThreadStopStatus status)
-        ThreadRunnable thread ->
-          printf "thread %d is runnable" thread
-        MigrateThread thread newCap  ->
-          printf "migrating thread %d to cap %d" thread newCap
-        CreateSparkThread sparkThread ->
-          printf "creating spark thread %d" sparkThread
-        SparkCounters crt dud ovf cnv fiz gcd rem ->
-          printf "spark stats: %d created, %d converted, %d remaining (%d overflowed, %d dud, %d GC'd, %d fizzled)" crt cnv rem ovf dud gcd fiz
-        SparkCreate ->
-          printf "spark created"
-        SparkDud ->
-          printf "dud spark discarded"
-        SparkOverflow ->
-          printf "overflowed spark discarded"
-        SparkRun ->
-          printf "running a local spark"
-        SparkSteal victimCap ->
-          printf "stealing a spark from cap %d" victimCap
-        SparkFizzle ->
-          printf "spark fizzled"
-        SparkGC ->
-          printf "spark GCed"
-        TaskCreate taskId cap tid ->
-          printf "task 0x%x created on cap %d with OS kernel thread %d"
-                 taskId cap (kernelThreadId tid)
-        TaskMigrate taskId cap new_cap ->
-          printf "task 0x%x migrated from cap %d to cap %d"
-                 taskId cap new_cap
-        TaskDelete taskId ->
-          printf "task 0x%x deleted" taskId
-        Shutdown ->
-          printf "shutting down"
-        WakeupThread thread otherCap ->
-          printf "waking up thread %d on cap %d" thread otherCap
-        ThreadLabel thread label ->
-          printf "thread %d has label \"%s\"" thread label
-        RequestSeqGC ->
-          printf "requesting sequential GC"
-        RequestParGC ->
-          printf "requesting parallel GC"
-        StartGC ->
-          printf "starting GC"
-        EndGC ->
-          printf "finished GC"
-        GCWork ->
-          printf "GC working"
-        GCIdle ->
-          printf "GC idle"
-        GCDone ->
-          printf "GC done"
-        GlobalSyncGC ->
-          printf "all caps stopped for GC"
-        GCStatsGHC{..} ->
-          printf "GC stats for heap capset %d: generation %d, %d bytes copied, %d bytes slop, %d bytes fragmentation, %d par threads, %d bytes max par copied, %d bytes total par copied" heapCapset gen copied slop frag parNThreads parMaxCopied parTotCopied
-        HeapAllocated{..} ->
-          printf "allocated on heap capset %d: %d total bytes till now" heapCapset allocBytes
-        HeapSize{..} ->
-          printf "size of heap capset %d: %d bytes" heapCapset sizeBytes
-        HeapLive{..} ->
-          printf "live data in heap capset %d: %d bytes" heapCapset liveBytes
-        HeapInfoGHC{..} ->
-          printf "heap stats for heap capset %d: generations %d, %d bytes max heap size, %d bytes alloc area size, %d bytes mblock size, %d bytes block size" heapCapset gens maxHeapSize allocAreaSize mblockSize blockSize
-        CapCreate{cap} ->
-          printf "created cap %d" cap
-        CapDelete{cap} ->
-          printf "deleted cap %d" cap
-        CapDisable{cap} ->
-          printf "disabled cap %d" cap
-        CapEnable{cap} ->
-          printf "enabled cap %d" cap
-        Message msg ->
-          msg
-        UserMessage msg ->
-          msg
-        UserMarker markername ->
-          printf "marker: %s" markername
-        CapsetCreate cs ct ->
-          printf "created capset %d of type %s" cs (show ct)
-        CapsetDelete cs ->
-          printf "deleted capset %d" cs
-        CapsetAssignCap cs cp ->
-          printf "assigned cap %d to capset %d" cp cs
-        CapsetRemoveCap cs cp ->
-          printf "removed cap %d from capset %d" cp cs
-        OsProcessPid cs pid ->
-          printf "capset %d: pid %d" cs pid
-        OsProcessParentPid cs ppid ->
-          printf "capset %d: parent pid %d" cs ppid
-        WallClockTime cs sec nsec ->
-          printf "capset %d: wall clock time %ds %dns (unix epoch)" cs sec nsec
-        RtsIdentifier cs i ->
-          printf "capset %d: RTS version \"%s\"" cs i
-        ProgramArgs cs args ->
-          printf "capset %d: args: %s" cs (show args)
-        ProgramEnv cs env ->
-          printf "capset %d: env: %s" cs (show env)
-        UnknownEvent n ->
-          printf "Unknown event type %d" n
-        InternString str sId ->
-          printf "Interned string: \"%s\" with id %d" str sId
-        MerStartParConjunction dyn_id static_id ->
-          printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
-        MerEndParConjunction dyn_id ->
-          printf "End par conjunction: 0x%x" dyn_id
-        MerEndParConjunct dyn_id ->
-          printf "End par conjunct: 0x%x" dyn_id
-        MerCreateSpark dyn_id spark_id ->
-          printf "Create spark for conjunction: 0x%x spark: 0x%x" dyn_id spark_id
-        MerFutureCreate future_id name_id ->
-          printf "Create future 0x%x named %d" future_id name_id
-        MerFutureWaitNosuspend future_id ->
-          printf "Wait didn't suspend for future: 0x%x" future_id
-        MerFutureWaitSuspended future_id ->
-          printf "Wait suspended on future: 0x%x" future_id
-        MerFutureSignal future_id ->
-          printf "Signaled future 0x%x" future_id
-        MerLookingForGlobalThread ->
-          "Looking for global thread to resume"
-        MerWorkStealing ->
-          "Trying to steal a spark"
-        MerLookingForLocalSpark ->
-          "Looking for a local spark to execute"
-        MerReleaseThread thread_id ->
-          printf "Releasing thread %d to the free pool" thread_id
-        MerCapSleeping ->
-          "Capability going to sleep"
-        MerCallingMain ->
-          "About to call the program entry point"
-        PerfName{perfNum, name} ->
-          printf "perf event %d named \"%s\"" perfNum name
-        PerfCounter{perfNum, tid, period} ->
-          printf "perf event counter %d incremented by %d in OS thread %d"
-                 perfNum (period + 1) (kernelThreadId tid)
-        PerfTracepoint{perfNum, tid} ->
-          printf "perf event tracepoint %d reached in OS thread %d"
-                 perfNum (kernelThreadId tid)
-
-showThreadStopStatus :: ThreadStopStatus -> String
-showThreadStopStatus HeapOverflow   = "heap overflow"
-showThreadStopStatus StackOverflow  = "stack overflow"
-showThreadStopStatus ThreadYielding = "thread yielding"
-showThreadStopStatus ThreadBlocked  = "thread blocked"
-showThreadStopStatus ThreadFinished = "thread finished"
-showThreadStopStatus ForeignCall    = "making a foreign call"
-showThreadStopStatus BlockedOnMVar  = "blocked on an MVar"
-showThreadStopStatus BlockedOnBlackHole = "blocked on a black hole"
-showThreadStopStatus BlockedOnRead = "blocked on I/O read"
-showThreadStopStatus BlockedOnWrite = "blocked on I/O write"
-showThreadStopStatus BlockedOnDelay = "blocked on threadDelay"
-showThreadStopStatus BlockedOnSTM = "blocked in STM retry"
-showThreadStopStatus BlockedOnDoProc = "blocked on asyncDoProc"
-showThreadStopStatus BlockedOnCCall = "blocked in a foreign call"
-showThreadStopStatus BlockedOnCCall_NoUnblockExc = "blocked in a foreign call"
-showThreadStopStatus BlockedOnMsgThrowTo = "blocked in throwTo"
-showThreadStopStatus ThreadMigrating = "thread migrating"
-showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
-showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
-          "blocked on black hole owned by thread " ++ show target
-showThreadStopStatus NoStatus = "No stop thread status"
-
-ppEventLog :: EventLog -> String
-ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat
-    [ ["Event Types:"]
-    , map ppEventType ets
-    , [""] -- newline
-    , ["Events:"]
-    , map (ppEvent imap) sorted
-    , [""] ] -- extra trailing newline
- where
-    imap = buildEventTypeMap ets
-    sorted = sortEvents es
-
-ppEventType :: EventType -> String
-ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
-   (case msz of Nothing -> "variable"; Just x -> show x)
-
--- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
-ppEvent :: IntMap EventType -> Event -> String
-ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
-  printf "%9d: " time ++
-  (case cap of
-    Nothing -> ""
-    Just c  -> printf "cap %d: " c) ++
-  case spec of
-    UnknownEvent{ ref=ref } ->
-      printf (desc (fromJust (M.lookup (fromIntegral ref) imap)))
-    _ -> showEventInfo spec
-
--- | Pretty prints an 'Event'. Cannot identify 'UnknownEvent's but has a 
--- simple type signature
-ppEvent' :: Event -> String
-ppEvent' (Event time spec evCap) =
-  printf "%9d: " time ++
-  (case evCap of
-    Nothing -> ""
-    Just c  -> printf "cap %d: " c) ++
-  case spec of
-    UnknownEvent{ ref=ref } ->
-      printf "Unknown Event (ref: %d)" ref
-    _ -> showEventInfo spec
-type PutEvents a = PutM a
-
-putE :: Binary a => a -> PutEvents ()
-putE = put
-
-runPutEBS :: PutEvents () -> L.ByteString
-runPutEBS = runPut
-
-writeEventLogToFile :: FilePath -> EventLog -> IO ()
-writeEventLogToFile f el = L.writeFile f $ runPutEBS $ putEventLog el
-
-putType :: EventTypeNum -> PutEvents ()
-putType = putE
-
-putCap :: Int -> PutEvents ()
-putCap c = putE (fromIntegral c :: CapNo)
-
-putMarker :: Word32 -> PutEvents ()
-putMarker = putE
-
-putEStr :: String -> PutEvents ()
-putEStr = mapM_ putE
-
-putEventLog :: EventLog -> PutEvents ()
-putEventLog (EventLog hdr es) = do
-    putHeader hdr
-    putData es
-
-putHeader :: Header -> PutEvents ()
-putHeader (Header ets) = do
-    putMarker EVENT_HEADER_BEGIN
-    putMarker EVENT_HET_BEGIN
-    mapM_ putEventType ets
-    putMarker EVENT_HET_END
-    putMarker EVENT_HEADER_END
- where
-    putEventType (EventType n d msz) = do
-        putMarker EVENT_ET_BEGIN
-        putType n
-        putE $ fromMaybe 0xffff msz
-        putE (fromIntegral $ length d :: EventTypeDescLen)
-        mapM_ put d
-        -- the event type header allows for extra data, which we don't use:
-        putE (0 :: Word32)
-        putMarker EVENT_ET_END
-
-putData :: Data -> PutEvents ()
-putData (Data es) = do
-    putMarker EVENT_DATA_BEGIN -- Word32
-    mapM_ putEvent es
-    putType EVENT_DATA_END -- Word16
-
-eventTypeNum :: EventInfo -> EventTypeNum
-eventTypeNum e = case e of
-    CreateThread {} -> EVENT_CREATE_THREAD
-    RunThread {} -> EVENT_RUN_THREAD
-    StopThread {} -> EVENT_STOP_THREAD
-    ThreadRunnable {} -> EVENT_THREAD_RUNNABLE
-    MigrateThread {} -> EVENT_MIGRATE_THREAD
-    Shutdown {} -> EVENT_SHUTDOWN
-    WakeupThread {} -> EVENT_THREAD_WAKEUP
-    ThreadLabel {}  -> EVENT_THREAD_LABEL
-    StartGC {} -> EVENT_GC_START
-    EndGC {} -> EVENT_GC_END
-    GlobalSyncGC {} -> EVENT_GC_GLOBAL_SYNC
-    RequestSeqGC {} -> EVENT_REQUEST_SEQ_GC
-    RequestParGC {} -> EVENT_REQUEST_PAR_GC
-    CreateSparkThread {} -> EVENT_CREATE_SPARK_THREAD
-    SparkCounters {} -> EVENT_SPARK_COUNTERS
-    SparkCreate   {} -> EVENT_SPARK_CREATE
-    SparkDud      {} -> EVENT_SPARK_DUD
-    SparkOverflow {} -> EVENT_SPARK_OVERFLOW
-    SparkRun      {} -> EVENT_SPARK_RUN
-    SparkSteal    {} -> EVENT_SPARK_STEAL
-    SparkFizzle   {} -> EVENT_SPARK_FIZZLE
-    SparkGC       {} -> EVENT_SPARK_GC
-    TaskCreate  {} -> EVENT_TASK_CREATE
-    TaskMigrate {} -> EVENT_TASK_MIGRATE
-    TaskDelete  {} -> EVENT_TASK_DELETE
-    Message {} -> EVENT_LOG_MSG
-    Startup {} -> EVENT_STARTUP
-    EventBlock {} -> EVENT_BLOCK_MARKER
-    UserMessage {} -> EVENT_USER_MSG
-    UserMarker  {} -> EVENT_USER_MARKER
-    GCIdle {} -> EVENT_GC_IDLE
-    GCWork {} -> EVENT_GC_WORK
-    GCDone {} -> EVENT_GC_DONE
-    GCStatsGHC{} -> EVENT_GC_STATS_GHC
-    HeapAllocated{} -> EVENT_HEAP_ALLOCATED
-    HeapSize{} -> EVENT_HEAP_SIZE
-    HeapLive{} -> EVENT_HEAP_LIVE
-    HeapInfoGHC{} -> EVENT_HEAP_INFO_GHC
-    CapCreate{} -> EVENT_CAP_CREATE
-    CapDelete{} -> EVENT_CAP_DELETE
-    CapDisable{} -> EVENT_CAP_DISABLE
-    CapEnable{} -> EVENT_CAP_ENABLE
-    CapsetCreate {} -> EVENT_CAPSET_CREATE
-    CapsetDelete {} -> EVENT_CAPSET_DELETE
-    CapsetAssignCap {} -> EVENT_CAPSET_ASSIGN_CAP
-    CapsetRemoveCap {} -> EVENT_CAPSET_REMOVE_CAP
-    RtsIdentifier {} -> EVENT_RTS_IDENTIFIER
-    ProgramArgs {} -> EVENT_PROGRAM_ARGS
-    ProgramEnv {} -> EVENT_PROGRAM_ENV
-    OsProcessPid {} -> EVENT_OSPROCESS_PID
-    OsProcessParentPid{} -> EVENT_OSPROCESS_PPID
-    WallClockTime{} -> EVENT_WALL_CLOCK_TIME
-    UnknownEvent {} -> error "eventTypeNum UnknownEvent"
-    InternString {} -> EVENT_INTERN_STRING
-    MerStartParConjunction {} -> EVENT_MER_START_PAR_CONJUNCTION
-    MerEndParConjunction _ -> EVENT_MER_STOP_PAR_CONJUNCTION
-    MerEndParConjunct _ -> EVENT_MER_STOP_PAR_CONJUNCT
-    MerCreateSpark {} -> EVENT_MER_CREATE_SPARK
-    MerFutureCreate {} -> EVENT_MER_FUT_CREATE
-    MerFutureWaitNosuspend _ -> EVENT_MER_FUT_WAIT_NOSUSPEND
-    MerFutureWaitSuspended _ -> EVENT_MER_FUT_WAIT_SUSPENDED
-    MerFutureSignal _ -> EVENT_MER_FUT_SIGNAL
-    MerLookingForGlobalThread -> EVENT_MER_LOOKING_FOR_GLOBAL_CONTEXT
-    MerWorkStealing -> EVENT_MER_WORK_STEALING
-    MerLookingForLocalSpark -> EVENT_MER_LOOKING_FOR_LOCAL_SPARK
-    MerReleaseThread _ -> EVENT_MER_RELEASE_CONTEXT
-    MerCapSleeping -> EVENT_MER_ENGINE_SLEEPING
-    MerCallingMain -> EVENT_MER_CALLING_MAIN
-    PerfName       {} -> nEVENT_PERF_NAME
-    PerfCounter    {} -> nEVENT_PERF_COUNTER
-    PerfTracepoint {} -> nEVENT_PERF_TRACEPOINT
-
-nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
-nEVENT_PERF_NAME = EVENT_PERF_NAME
-nEVENT_PERF_COUNTER = EVENT_PERF_COUNTER
-nEVENT_PERF_TRACEPOINT = EVENT_PERF_TRACEPOINT
-
-putEvent :: Event -> PutEvents ()
-putEvent (Event {evTime = t , evSpec = spec}) = do
-    putType (eventTypeNum spec)
-    put t
-    putEventSpec spec
-
-putEventSpec :: EventInfo -> PutEvents ()
-putEventSpec (Startup caps) = do
-    putCap (fromIntegral caps)
-
-putEventSpec (EventBlock end cap sz) = do
-    putE end
-    putE (fromIntegral cap :: CapNo)
-    putE end
-    putE (fromIntegral sz :: Integer)
-
-putEventSpec (CreateThread t) =
-    putE t
-
-putEventSpec (RunThread t) =
-    putE t
-
--- here we assume that ThreadStopStatus fromEnum matches the definitions in
--- EventLogFormat.h
-putEventSpec (StopThread t s) = do
-    putE t
-    putE $ case s of
-            NoStatus -> 0 :: Word16
-            HeapOverflow -> 1
-            StackOverflow -> 2
-            ThreadYielding -> 3
-            ThreadBlocked -> 4
-            ThreadFinished -> 5
-            ForeignCall -> 6
-            BlockedOnMVar -> 7
-            BlockedOnBlackHole -> 8
-            BlockedOnBlackHoleOwnedBy _ -> 8
-            BlockedOnRead -> 9
-            BlockedOnWrite -> 10
-            BlockedOnDelay -> 11
-            BlockedOnSTM -> 12
-            BlockedOnDoProc -> 13
-            BlockedOnCCall -> 14
-            BlockedOnCCall_NoUnblockExc -> 15
-            BlockedOnMsgThrowTo -> 16
-            ThreadMigrating -> 17
-            BlockedOnMsgGlobalise -> 18
-    putE $ case s of
-            BlockedOnBlackHoleOwnedBy i -> i
-            _                           -> 0
-
-putEventSpec (ThreadRunnable t) =
-    putE t
-
-putEventSpec (MigrateThread t c) = do
-    putE t
-    putCap c
-
-putEventSpec (CreateSparkThread t) =
-    putE t
-
-putEventSpec (SparkCounters crt dud ovf cnv fiz gcd rem) = do
-    putE crt
-    putE dud
-    putE ovf
-    putE cnv
-    -- Warning: order of fiz and gcd reversed!
-    putE gcd
-    putE fiz
-    putE rem
-
-putEventSpec SparkCreate =
-    return ()
-
-putEventSpec SparkDud =
-    return ()
-
-putEventSpec SparkOverflow =
-    return ()
-
-putEventSpec SparkRun =
-    return ()
-
-putEventSpec (SparkSteal c) =
-    putCap c
-
-putEventSpec SparkFizzle =
-    return ()
-
-putEventSpec SparkGC =
-    return ()
-
-putEventSpec (WakeupThread t c) = do
-    putE t
-    putCap c
-
-putEventSpec (ThreadLabel t l) = do
-    putE (fromIntegral (length l) + sz_tid :: Word16)
-    putE t
-    putEStr l
-
-putEventSpec Shutdown =
-    return ()
-
-putEventSpec RequestSeqGC =
-    return ()
-
-putEventSpec RequestParGC =
-    return ()
-
-putEventSpec StartGC =
-    return ()
-
-putEventSpec GCWork =
-    return ()
-
-putEventSpec GCIdle =
-    return ()
-
-putEventSpec GCDone =
-    return ()
-
-putEventSpec EndGC =
-    return ()
-
-putEventSpec GlobalSyncGC =
-    return ()
-
-putEventSpec (TaskCreate taskId cap tid) = do
-    putE taskId
-    putCap cap
-    putE tid
-
-putEventSpec (TaskMigrate taskId cap new_cap) = do
-    putE taskId
-    putCap cap
-    putCap new_cap
-
-putEventSpec (TaskDelete taskId) =
-    putE taskId
-
-putEventSpec GCStatsGHC{..} = do
-    putE heapCapset
-    putE (fromIntegral gen :: Word16)
-    putE copied
-    putE slop
-    putE frag
-    putE (fromIntegral parNThreads :: Word32)
-    putE parMaxCopied
-    putE parTotCopied
-
-putEventSpec HeapAllocated{..} = do
-    putE heapCapset
-    putE allocBytes
-
-putEventSpec HeapSize{..} = do
-    putE heapCapset
-    putE sizeBytes
-
-putEventSpec HeapLive{..} = do
-    putE heapCapset
-    putE liveBytes
-
-putEventSpec HeapInfoGHC{..} = do
-    putE heapCapset
-    putE (fromIntegral gens :: Word16)
-    putE maxHeapSize
-    putE allocAreaSize
-    putE mblockSize
-    putE blockSize
-
-putEventSpec CapCreate{cap} =
-    putCap cap
-
-putEventSpec CapDelete{cap} =
-    putCap cap
-
-putEventSpec CapDisable{cap} =
-    putCap cap
-
-putEventSpec CapEnable{cap} =
-    putCap cap
-
-putEventSpec (CapsetCreate cs ct) = do
-    putE cs
-    putE $ case ct of
-            CapsetCustom -> 1 :: Word16
-            CapsetOsProcess -> 2
-            CapsetClockDomain -> 3
-            CapsetUnknown -> 0
-
-putEventSpec (CapsetDelete cs) =
-    putE cs
-
-putEventSpec (CapsetAssignCap cs cp) = do
-    putE cs
-    putCap cp
-
-putEventSpec (CapsetRemoveCap cs cp) = do
-    putE cs
-    putCap cp
-
-putEventSpec (RtsIdentifier cs rts) = do
-    putE (fromIntegral (length rts) + sz_capset :: Word16)
-    putE cs
-    putEStr rts
-
-putEventSpec (ProgramArgs cs as) = do
-    let as' = unsep as
-    putE (fromIntegral (length as') + sz_capset :: Word16)
-    putE cs
-    mapM_ putE as'
-
-putEventSpec (ProgramEnv cs es) = do
-    let es' = unsep es
-    putE (fromIntegral (length es') + sz_capset :: Word16)
-    putE cs
-    mapM_ putE es'
-
-putEventSpec (OsProcessPid cs pid) = do
-    putE cs
-    putE pid
-
-putEventSpec (OsProcessParentPid cs ppid) = do
-    putE cs
-    putE ppid
-
-putEventSpec (WallClockTime cs sec nsec) = do
-    putE cs
-    putE sec
-    putE nsec
-
-putEventSpec (Message s) = do
-    putE (fromIntegral (length s) :: Word16)
-    mapM_ putE s
-
-putEventSpec (UserMessage s) = do
-    putE (fromIntegral (length s) :: Word16)
-    mapM_ putE s
-
-putEventSpec (UserMarker s) = do
-    putE (fromIntegral (length s) :: Word16)
-    mapM_ putE s
-
-putEventSpec (UnknownEvent {}) = error "putEventSpec UnknownEvent"
-
-putEventSpec (InternString str id) = do
-    putE len
-    mapM_ putE str
-    putE id
-  where len = (fromIntegral (length str) :: Word16) + sz_string_id
-
-putEventSpec (MerStartParConjunction dyn_id static_id) = do
-    putE dyn_id
-    putE static_id
-
-putEventSpec (MerEndParConjunction dyn_id) =
-    putE dyn_id
-
-putEventSpec (MerEndParConjunct dyn_id) =
-    putE dyn_id
-
-putEventSpec (MerCreateSpark dyn_id spark_id) = do
-    putE dyn_id
-    putE spark_id
-
-putEventSpec (MerFutureCreate future_id name_id) = do
-    putE future_id
-    putE name_id
-
-putEventSpec (MerFutureWaitNosuspend future_id) =
-    putE future_id
-
-putEventSpec (MerFutureWaitSuspended future_id) =
-    putE future_id
-
-putEventSpec (MerFutureSignal future_id) =
-    putE future_id
-
-putEventSpec MerLookingForGlobalThread = return ()
-putEventSpec MerWorkStealing = return ()
-putEventSpec MerLookingForLocalSpark = return ()
-
-putEventSpec (MerReleaseThread thread_id) =
-    putE thread_id
-
-putEventSpec MerCapSleeping = return ()
-putEventSpec MerCallingMain = return ()
-
-putEventSpec PerfName{..} = do
-    putE (fromIntegral (length name) + sz_perf_num :: Word16)
-    putE perfNum
-    mapM_ putE name
-
-putEventSpec PerfCounter{..} = do
-    putE perfNum
-    putE tid
-    putE period
-
-putEventSpec PerfTracepoint{..} = do
-    putE perfNum
-    putE tid
-
--- [] == []
--- [x] == x\0
--- [x, y, z] == x\0y\0
-unsep :: [String] -> String
-unsep = concatMap (++"\0") -- not the most efficient, but should be ok
-
-splitNull :: String -> [String]
-splitNull [] = []
-splitNull xs = case span (/= '\0') xs of
-                (x, xs') -> x : splitNull (drop 1 xs')
-
+-- | Keeps the currently pushed input and other necessary state for the parsing
+data EventParserState = ParsingHeader (Decoder Header)
+                      | ParsingEvents EventDecoder
+
+-- | An abstraction over a 'Handle' and state for a simple incemental parsing
+-- interface.
+data EventHandle =
+  EH { ehHandle    :: Handle -- Handle to read from
+     , ehChunkSize :: Int -- Chunk size for incremental reading
+     , ehState     :: IORef EventParserState -- state for the parser
+     }
+
+data EventDecoder =
+  ED { -- If in EventBlock, we track it's capability
+       edCap       :: Maybe Int
+       -- Tracks the number of remaining bytes in an EventBlock
+     , edRemaining :: Integer
+       -- An empty decoder that is used for parsing the next event
+       -- It decodes a Maybe Event because Nothing indicates the end of an
+       -- eventlog in the getEvent parser.
+     , edDecoder   :: Decoder (Maybe Event)
+       -- A decoder that keeps the currently unconsumed bytestring (and possibly)
+       -- the next event to be returned by readEvent
+     , edPartial   :: Decoder (Maybe Event) }
+
+-- | Datatype that describes the result of a parse
+data Result a =
+  -- | Successfully parsed an item
+    One a
+  -- | The eventlog wasn't complete but the input did not contain any more
+  -- complete items
+  | PartialEventLog
+  -- | Parsing was completed successfully
+  | CompleteEventLog
+  -- | An error in parsing has occurred, returns a (hopefully useful)
+  -- error message.
+  | EventLogParsingError String
+
+-- $bytestringapi
+-- The 'ByteString' based API uses 'EventParserState' to keep track of input
+-- that it has received so far. This API should be used when control over
+-- input generation is required.
+
+-- | Creates a new 'EventParserState' that can then be passed to the
+-- 'readEvent' function.
+initEventParser :: EventParserState
+initEventParser = ParsingHeader (getToDecoder getHeader)
+
+-- Creates a new parser state for events
+-- If given a non-empty list of ByteStrings, pushes them all to the partial
+-- decoder
+newParserState :: Maybe Int -> Integer -> Decoder (Maybe Event)
+               -> Decoder (Maybe Event) -> B.ByteString
+               -> EventParserState
+newParserState cap remaining dec partial bss =
+  ParsingEvents ED { edCap = cap
+                   , edRemaining = remaining
+                   , edDecoder = dec
+                   , edPartial = partial `pushChunk` bss }
+
+-- | Pushes a 'ByteString' to 'EventParserState'. This function is the only
+-- supported way of providing input in the ByteString interface.
+pushBytes :: EventParserState -> B.ByteString -> EventParserState
+pushBytes (ParsingHeader headerDecoder) bs =
+    ParsingHeader $ headerDecoder `pushChunk` bs
+pushBytes (ParsingEvents ed) bs =
+    ParsingEvents $ ed { edPartial = (edPartial ed) `pushChunk` bs}
+
+-- Reads the header and returns it as a result. Is only required for
+-- readEventLogFromFile functionality, so may be removed in a future version
+readHeader :: Decoder Header -> (Result Header, EventParserState)
+readHeader (Done bs _ header) =
+    let emptyDecoder = mkEventDecoder header
+        newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
+    in (One header, newState)
+readHeader dec@(Partial {}) = (PartialEventLog, ParsingHeader dec)
+readHeader dec@(Fail _ _ errMsg) =
+    (EventLogParsingError errMsg, ParsingHeader dec)
+
+-- Helper to simplify the logic of readEvent
+readHeader' :: Decoder Header -> (Result Event, EventParserState)
+readHeader' hd =
+    case readHeader hd of
+      -- Header was parsed completely so we can safely call readEvents, the
+      -- state will be ParsingEvents
+      (One _, state) -> readEvent state
+      (PartialEventLog, state) -> (PartialEventLog, state)
+      (EventLogParsingError errMsg, state) ->
+          (EventLogParsingError errMsg, state)
+      -- CompleteEventlog can't happen because we don't read the log yet
+      _ -> error "The impossible has happened. Report a bug."
+
+-- | Parses at most one event from the state (refer to 'Result' datatype) and
+-- returns the updated state that can be used to parse the next event.
+-- readEvent expects its input to follow the structure of a .eventlog file.
+readEvent :: EventParserState -> (Result Event, EventParserState)
+readEvent (ParsingHeader hd) = readHeader' hd
+readEvent (ParsingEvents ed) = readEvent' ed
+
+readEvent' :: EventDecoder -> (Result Event, EventParserState)
+readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
+    case partial of
+      (Done bs sz (Just event)) ->
+        case evSpec event of
+          EventBlock _ blockCap newRemaining -> do
+            let newState = newParserState (isCap blockCap) newRemaining
+                                          emptyDecoder emptyDecoder bs
+            readEvent newState
+          _ -> do
+            let newRemaining = remaining - fromIntegral sz
+                newState = newParserState (mkCap ed sz) newRemaining
+                                          emptyDecoder emptyDecoder bs
+            (One (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
+      (Done _ _ Nothing) -> (CompleteEventLog, ParsingEvents ed)
+      (Partial _) -> (PartialEventLog, ParsingEvents ed)
+      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingEvents ed)
+
+-- $eventhandleapi
+-- This API uses 'EventHandle' datatype that abstracts away the mutation of
+-- state and provides a simple interface for parsing events. Just like
+-- the ByteString-based API, events are parsed
+-- __in the order that they were written to the .eventlog file.__
+
+-- | Instantiates a new EventHandle.
+ehOpen :: Handle -- ^ Handle to read the input from. Its contents are expected
+                 -- to begin with an .eventlog format header.
+       -> Int -- ^ The number of bytes that the parser will try to read input
+              -- from the 'Handle' when needs more input
+       -> IO EventHandle
+ehOpen handle sz = do
+  ioref <- newIORef $ initEventParser
+  return EH { ehHandle = handle, ehChunkSize = sz, ehState = ioref }
+
+-- | Reads at most one event from the EventHandle. Can be called repeadetly. Will
+-- consume input incrementally in chunks of size that is set when instantiating
+-- the 'EventHandle'.
+ehReadEvent :: EventHandle -> IO (Result Event)
+ehReadEvent (EH handle chunkSize stateRef) = do
+  state <- readIORef stateRef
+  let (result, state') = readEvent state
+  case result of
+    (One _) -> do
+      writeIORef stateRef state'
+      return result
+    (PartialEventLog) -> do
+      bs <- B.hGetSome handle chunkSize
+      if bs == B.empty
+        then return PartialEventLog
+        else do
+          writeIORef stateRef $ state' `pushBytes` bs
+          ehReadEvent $ EH handle chunkSize stateRef
+    (CompleteEventLog) -> return CompleteEventLog
+    (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
+
+-- Parses a 'Header' to be used for readEventLogFromFile. Should be removed in
+-- the near future as that functionality appears to be obsolete.
+ehReadHeader :: EventHandle -> IO (Result Header)
+ehReadHeader (EH handle chunkSize stateRef) = do
+  (ParsingHeader headerDecoder) <- readIORef stateRef
+  let (result, state) = readHeader headerDecoder
+  case result of
+    (One _) -> do
+      writeIORef stateRef state
+      return result
+    (PartialEventLog) -> do
+      bs <- B.hGetSome handle chunkSize
+      if bs == B.empty
+        then return $ EventLogParsingError "Header is incomplete, terminating"
+        else do
+          writeIORef stateRef $ state `pushBytes` bs
+          ehReadHeader $ EH handle chunkSize stateRef
+    (CompleteEventLog) -> return CompleteEventLog
+    (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
+
+-- | Reads a full 'EventLog' from file. If the file is incomplete, will still
+-- return a properly formed 'EventLog' object with all the events until the point
+-- of malformation/cutoff.
+readEventLogFromFile :: FilePath -> IO (Either String EventLog)
+readEventLogFromFile f = do
+    handle <- openBinaryFile f ReadMode
+    eh     <- ehOpen handle 1048576
+    resultHeader <- ehReadHeader eh
+    case resultHeader of
+      (EventLogParsingError errMsg) -> error errMsg
+      (One header) -> do
+        !events <- ehReadEvents eh
+        return $ Right $ EventLog header (Data events)
+      _ -> error "Should never happen"
+
+-- TODO: final state that tells how did the parse finish
+-- | Reads all available events from an EventHandle. Reports errors to stderr.
+ehReadEvents :: EventHandle -> IO [Event]
+ehReadEvents = eventRepeater . ehReadEvent
+
+eventRepeater :: IO (Result Event) -> IO [Event]
+eventRepeater eventReader = do
+  event <- eventReader
+  case event of
+    (One a) -> (:) <$> return a <*> eventRepeater eventReader
+    (PartialEventLog) -> do
+      hPutStrLn stderr "Handle did not contain a complete EventLog."
+      return []
+    (CompleteEventLog) -> return []
+    (EventLogParsingError errMsg) -> hPutStrLn stderr errMsg >> return []
+
+-- Checks if the capability is not -1 (which indicates a global eventblock), so
+-- has no associated capability
+isCap :: Int -> Maybe Int
+isCap blockCap = if fromIntegral blockCap /= ((-1) :: Word16)
+                    then Just blockCap
+                    else Nothing
+
+-- Checks if there are any bytes left in the current EventBlock. That number
+-- could be negative because exist some blockless events.
+mkCap :: EventDecoder -> ByteOffset -> Maybe Int
+mkCap ed sz
+  | (edRemaining ed - fromIntegral sz) > 0 = edCap ed
+  | otherwise = Nothing
+
+-- Makes a decoder with all the required parsers when given a Header
+mkEventDecoder :: Header -> Decoder (Maybe Event)
+mkEventDecoder header =
+    getToDecoder (runReaderT (getEvent parsers) parsers)
+  where
+    imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
+    -- This test is complete, no-one has extended this event yet and all future
+    -- extensions will use newly allocated event IDs.
+    is_ghc_6 = Just sz_old_tid == do create_et <- M.lookup EVENT_CREATE_THREAD imap
+                                     size create_et
+    -- GHC6 writes an invalid header, we handle it here by using a
+    -- different set of event parsers.  Note that the ghc7 event parsers
+    -- are standard events, and can be used by other runtime systems that
+    -- make use of threadscope.
+    event_parsers = standardParsers ++
+                    if is_ghc_6
+                        then ghc6Parsers
+                        else ghc7Parsers
+                             ++ mercuryParsers ++ perfParsers
+    parsers = EventParsers $ mkEventTypeParsers imap event_parsers
+
+-- Turns an instance of Get into a Decoder
+getToDecoder :: Get a -> Decoder a
+getToDecoder = runGetIncremental

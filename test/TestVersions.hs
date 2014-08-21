@@ -15,7 +15,6 @@ Where queens.hs is http://darcs.haskell.org/nofib/parallel/queens/Main.hs
 -}
 
 import GHC.RTS.Events
-import GHC.RTS.EventsIncremental
 import System.Exit
 
 files :: [FilePath]
