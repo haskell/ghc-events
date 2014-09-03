@@ -14,8 +14,6 @@ import qualified Data.Map as M
 import Data.Set (Set)
 import qualified Data.Set as S
 
-import Debug.Trace
-
 data SparkThreadState
   = SparkThreadInitial
   | SparkThreadCreated
@@ -50,7 +48,7 @@ sparkThreadMachine = Machine
   sparkThreadDelta SparkThreadCreated (SparkSteal _)                = Just (SparkThreadRunning 0)
   sparkThreadDelta SparkThreadCreated (StopThread _ ThreadFinished) = Just SparkThreadFinal
   -- SparkThreadRunning
-  sparkThreadDelta (SparkThreadRunning n) (StopThread _ ThreadFinished) = Just SparkThreadFinal
+  sparkThreadDelta (SparkThreadRunning _) (StopThread _ ThreadFinished) = Just SparkThreadFinal
   sparkThreadDelta (SparkThreadRunning n) (StopThread _ _)              = Just (SparkThreadPaused n)
   sparkThreadDelta (SparkThreadRunning n) SparkRun                      = Just (SparkThreadRunning (n+1))
   sparkThreadDelta (SparkThreadRunning n) (SparkSteal _)                = Just (SparkThreadRunning (n+1))
@@ -59,7 +57,7 @@ sparkThreadMachine = Machine
   -- Other
   sparkThreadDelta _ _ = Nothing
 
-capabilitySparkThreadMachine :: Machine (Map Int ThreadId, Set ThreadId) CapEvent
+capabilitySparkThreadMachine :: Machine (Map Int ThreadId, Set ThreadId) Event
 capabilitySparkThreadMachine = Machine
   { initial = (M.empty, S.empty)
   , final   = const False
@@ -67,16 +65,15 @@ capabilitySparkThreadMachine = Machine
   , delta   = capabilitySparkThreadDelta
   }
  where
-  capabilitySparkThreadAlpha capEvent = case spec . ce_event $ capEvent of
+  capabilitySparkThreadAlpha evt = case evSpec evt of
     (CreateSparkThread _)         -> True
     (RunThread _)                 -> True
     (StopThread _ _)              -> True
     _                             -> False
-  capabilitySparkThreadDelta (m, s) e = do
-    capId <- ce_cap e
-    case spec . ce_event $ e of
+  capabilitySparkThreadDelta (m, s) evt = do
+    capId <- evCap evt
+    case evSpec evt of
       (CreateSparkThread threadId)         -> createThread threadId
-      -- (StopThread threadId ThreadFinished) -> stopThread threadId
       (StopThread threadId _)              -> pauseThread threadId
       (RunThread threadId)                 -> runThread capId threadId
       _                                    -> Just (m, s)
@@ -99,13 +96,12 @@ capabilitySparkThreadMachine = Machine
     pauseThread :: ThreadId -> Maybe (Map Int ThreadId, Set ThreadId)
     pauseThread threadId = Just (M.filter (/= threadId) m, s)
 
-capabilitySparkThreadIndexer :: (Map Int ThreadId, Set ThreadId) -> CapEvent -> Maybe ThreadId
-capabilitySparkThreadIndexer (m, s) capEvent = case spec . ce_event $ capEvent of
+capabilitySparkThreadIndexer :: (Map Int ThreadId, Set ThreadId) -> Event -> Maybe ThreadId
+capabilitySparkThreadIndexer (m, s) evt = case evSpec evt of
   (CreateThread threadId)   -> inSparkThreadPool threadId
   (RunThread threadId)      -> inSparkThreadPool threadId
   (StopThread threadId _)   -> inSparkThreadPool threadId
-  -- (WakeupThread threadId _) -> inSparkThreadPool threadId
-  _                         -> ce_cap capEvent >>= (\capId -> M.lookup capId m)
+  _                         -> evCap evt >>= (\capId -> M.lookup capId m)
  where
   inSparkThreadPool :: ThreadId -> Maybe ThreadId
   inSparkThreadPool threadId

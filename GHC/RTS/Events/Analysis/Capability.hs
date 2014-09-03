@@ -16,7 +16,7 @@ import qualified Data.Map as M
 -- | This state machine tracks threads residing on capabilities.
 -- Each thread can only reside on one capability, but can be migrated between
 -- them.
-capabilityThreadPoolMachine :: Machine (Map ThreadId Int) CapEvent
+capabilityThreadPoolMachine :: Machine (Map ThreadId Int) Event
 capabilityThreadPoolMachine = Machine
   { initial = M.empty
   , final   = const False
@@ -24,15 +24,15 @@ capabilityThreadPoolMachine = Machine
   , delta   = capabilityThreadPoolMachineDelta
   }
  where
-  capabilityThreadPoolMachineAlpha capEvent = case spec . ce_event $ capEvent of
+  capabilityThreadPoolMachineAlpha evt = case evSpec evt of
      (CreateThread _)    -> True
      (StopThread _ _)    -> True
      (MigrateThread _ _) -> True
      _                   -> False
 
-  capabilityThreadPoolMachineDelta mapping capEvent = do
-    capId <- ce_cap capEvent
-    case spec . ce_event $ capEvent of
+  capabilityThreadPoolMachineDelta mapping evt = do
+    capId <- evCap evt
+    case evSpec evt of
       (CreateThread threadId)              -> insertThread threadId capId mapping
       (StopThread threadId ThreadFinished) -> deleteThread threadId mapping
       (StopThread _ _)                     -> Just mapping
@@ -52,7 +52,7 @@ capabilityThreadPoolMachine = Machine
 
 -- | This state machine tracks threads running on capabilities, only one thread
 -- may run on a capability at a time.
-capabilityThreadRunMachine :: Machine (Map Int ThreadId) CapEvent
+capabilityThreadRunMachine :: Machine (Map Int ThreadId) Event
 capabilityThreadRunMachine = Machine
   { initial = M.empty
   , final   = const False
@@ -60,7 +60,7 @@ capabilityThreadRunMachine = Machine
   , delta   = threadRunDelta
   }
  where
-  threadRunAlpha capEvent = case spec . ce_event $ capEvent of
+  threadRunAlpha event = case evSpec event of
     -- TODO: can threads be migrated while they are running?
     -- TODO: take into account paused threads
     (RunThread _)     -> True
@@ -70,8 +70,8 @@ capabilityThreadRunMachine = Machine
   -- The indexer fails if a thread is inserted where one already exists,
   -- or if a thread is deleted that doesn't exist.
   threadRunDelta mapping e = do
-    capId <- ce_cap e
-    case spec . ce_event $ e of
+    capId <- evCap e
+    case evSpec $ e of
       (RunThread threadId)     -> runThread capId threadId mapping
       (StopThread threadId _ ) -> stopThread threadId mapping
       _                        -> Just mapping
@@ -86,26 +86,26 @@ capabilityThreadRunMachine = Machine
       | notElem threadId . M.elems $ m = Nothing -- The thread doesn't exist
       | otherwise                      = Just $ M.filter (/= threadId) m
 
-capabilityThreadIndexer :: Map Int ThreadId -> CapEvent -> Maybe ThreadId
-capabilityThreadIndexer m capEvent = case spec . ce_event $ capEvent of
+capabilityThreadIndexer :: Map Int ThreadId -> Event -> Maybe ThreadId
+capabilityThreadIndexer m evt = case evSpec evt of
   (CreateSparkThread threadId)  -> Just threadId
   (CreateThread threadId)       -> Just threadId
   (RunThread threadId)          -> Just threadId
   (StopThread threadId _)       -> Just threadId
   (ThreadRunnable threadId)     -> Just threadId
   (MigrateThread threadId _)    -> Just threadId
-  (WakeupThread threadId capId) -> if Just capId == ce_cap capEvent
+  (WakeupThread threadId capId) -> if Just capId == evCap evt
                                    then Just threadId
                                    else Nothing
   _                             -> mThreadId
  where
-  mThreadId = ce_cap capEvent >>= (\capId -> M.lookup capId m)
+  mThreadId = evCap evt >>= (\capId -> M.lookup capId m)
 
 -- | This state machine tracks Haskell tasks, represented by TaskId,
 -- residing on capabilities.
 -- Each Haskell task can only reside on one capability, but can be migrated
 -- between them.
-capabilityTaskPoolMachine :: Machine (Map TaskId Int) CapEvent
+capabilityTaskPoolMachine :: Machine (Map TaskId Int) Event
 capabilityTaskPoolMachine = Machine
   { initial = M.empty
   , final   = const False
@@ -113,14 +113,14 @@ capabilityTaskPoolMachine = Machine
   , delta   = capabilityTaskPoolMachineDelta
   }
  where
-  capabilityTaskPoolMachineAlpha capEvent = case spec . ce_event $ capEvent of
+  capabilityTaskPoolMachineAlpha evt = case evSpec evt of
      TaskCreate{}  -> True
      TaskDelete{}  -> True
      TaskMigrate{} -> True
      _             -> False
 
-  capabilityTaskPoolMachineDelta mapping capEvent = do
-    case spec . ce_event $ capEvent of
+  capabilityTaskPoolMachineDelta mapping evt = do
+    case evSpec evt of
       TaskCreate {taskId, cap}           -> insertTask taskId cap mapping
       TaskDelete {taskId}                -> deleteTask taskId Nothing mapping
       TaskMigrate {taskId, cap, new_cap} ->
@@ -160,7 +160,7 @@ capabilityTaskPoolMachine = Machine
 -- the data invariant, and offers a richer verification profile.
 capabilityTaskOSMachine :: Machine (Map KernelThreadId Int,
                                     Map TaskId KernelThreadId)
-                                   CapEvent
+                                   Event
 capabilityTaskOSMachine = Machine
   { initial = (M.empty, M.empty)
   , final   = const False
@@ -168,14 +168,14 @@ capabilityTaskOSMachine = Machine
   , delta   = capabilityTaskOSMachineDelta
   }
  where
-  capabilityTaskOSMachineAlpha capEvent = case spec . ce_event $ capEvent of
+  capabilityTaskOSMachineAlpha evt = case evSpec evt of
      TaskCreate{}  -> True
      TaskDelete{}  -> True
      TaskMigrate{} -> True
      _             -> False
 
-  capabilityTaskOSMachineDelta mapping capEvent = do
-    case spec . ce_event $ capEvent of
+  capabilityTaskOSMachineDelta mapping evt = do
+    case evSpec evt of
       TaskCreate {taskId, cap, tid} -> insertTaskOS taskId cap tid mapping
       TaskDelete {taskId}           -> deleteTaskOS taskId mapping
       TaskMigrate {taskId, new_cap} -> migrateTaskOS taskId new_cap mapping
