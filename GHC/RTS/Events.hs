@@ -15,7 +15,6 @@ module GHC.RTS.Events (
   EventHandle,
   ehOpen,
   ehReadEvent,
-  ehReadEvents,
 
   -- * The event log types
   Result(..),
