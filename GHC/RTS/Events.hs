@@ -45,7 +45,7 @@ import Control.Monad
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
 import Control.Monad.Reader
-import Control.Monad.Error
+import Control.Monad.Except
 import qualified Data.ByteString.Lazy as L
 import Data.Function
 import Data.List
@@ -135,7 +135,7 @@ standardParsers = [
       lbs <- lift . lift $ getLazyByteString ((fromIntegral block_size) -
                                               (fromIntegral sz_block_event))
       eparsers <- ask
-      let e_events = runGet (runErrorT $ runReaderT (getEventBlock eparsers) eparsers) lbs
+      let e_events = runGet (runExceptT $ runReaderT (getEventBlock eparsers) eparsers) lbs
       return EventBlock{ end_time=end_time,
                          cap= fromIntegral c,
                          block_events=case e_events of
@@ -619,7 +619,7 @@ getEventBlock parsers = do
       es <- getEventBlock parsers
       return (e:es)
 
-getEventLog :: ErrorT String Get EventLog
+getEventLog :: ExceptT String Get EventLog
 getEventLog = do
     header <- getHeader
     let imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
@@ -644,7 +644,7 @@ getEventLog = do
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
     s <- L.readFile f
-    return $ runGet (do v <- runErrorT $ getEventLog
+    return $ runGet (do v <- runExceptT getEventLog
                         m <- isEmpty
                         m `seq` return v)  s
 

@@ -16,7 +16,7 @@ module GHC.RTS.EventParserUtils (
     ) where
 
 import Control.Monad
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Array
 import Data.Binary
@@ -35,11 +35,11 @@ import Data.List
 import GHC.RTS.EventTypes
 
 -- reader/Get monad that passes around the event types
-type GetEvents a = ReaderT EventParsers (ErrorT String Get) a
+type GetEvents a = ReaderT EventParsers (ExceptT String Get) a
 
 newtype EventParsers = EventParsers (Array Int (GetEvents EventInfo))
 
-type GetHeader a = ErrorT String Get a
+type GetHeader a = ExceptT String Get a
 
 getH :: Binary a => GetHeader a
 getH = lift get
