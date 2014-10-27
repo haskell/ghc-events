@@ -7,19 +7,23 @@ description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
 category:         Development, GHC, Debug, Profiling, Trace
 license:          BSD3
 license-file:     LICENSE
-author:           Donnie Jones <donnie@darthik.com>,
+author:           Donnie Jones <donnie@darthik.com>, 
                   Simon Marlow <marlowsd@gmail.com>,
                   Paul Bone <pbone@csse.unimelb.edu.au>,
+                  Mischa Dieterle <dieterle@mathematik.uni-marburg.de>,
+                  Thomas Horstmeyer <horstmey@mathematik.uni-marburg.de>,
                   Duncan Coutts <duncan@well-typed.com>,
                   Nicolas Wu <nick@well-typed.com>,
+                  Jost Berthold <berthold@diku.dk>
                   Mikolaj Konarski <mikolaj@well-typed.com>
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      http://trac.haskell.org/ThreadScope/
 build-type:       Simple
-tested-with:      GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.8.3
+tested-with:      GHC == 6.12.3, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3
 cabal-version:    >= 1.8
 extra-source-files: GHC/RTS/EventLogFormat.h,
                     test/*.eventlog
+                    test/stop.hs
 
 source-repository head
   type: git
