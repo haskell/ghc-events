@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Main where
 
 import GHC.RTS.Events
@@ -211,7 +212,9 @@ readLogOrDie file = do
         Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
         Right log -> return log
 
+#if ! MIN_VERSION_base(4,8,0)
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
+#endif
 
 showValidate :: (s -> String) -> (i -> String) -> Either (s, i) s -> String
 showValidate showState showInput (Left (state, input)) =
