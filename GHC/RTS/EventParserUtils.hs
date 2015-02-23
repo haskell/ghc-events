@@ -123,8 +123,6 @@ mkEventTypeParsers :: IntMap EventType
 mkEventTypeParsers etypes event_parsers
  = accumArray (flip const) undefined (0, max_event_num)
     [ (num, parser num) | num <- [0..max_event_num] ]
-    --([ (num, undeclared_etype num) | num <- [0..max_event_num] ] ++
-    -- [ (num, parser num etype) | (num, etype) <- M.toList etypes ])
   where
     max_event_num = maximum (M.keys etypes)
     undeclared_etype num = fail ("undeclared event type: " ++ show num)
