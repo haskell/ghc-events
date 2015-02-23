@@ -199,8 +199,8 @@ usage = unlines $ map pad strings
     align = 4 + (maximum . map (length . fst) $ strings)
     pad (x, y) = zipWith const (x ++ repeat ' ') (replicate align ()) ++ y
     strings = [ ("ghc-events --help:",                     "Display this help.")
-              , ("ghc-events inc <file>:",                 "Pretty print an event log incrementally (in the same order as it was writen")
-              , ("ghc-events inc force <file>:",           "Pretty print an event log incrementally (in the same order as it was written) but retry on incomplete input (similar to UNIX 'tail -f').")
+              , ("ghc-events inc <file>:",                 "Pretty print an event log incrementally")
+              , ("ghc-events inc force <file>:",           "Pretty print an event log incrementally. Retry on incomplete input (aka 'tail -f').")
               , ("ghc-events show <file>:",                "Pretty print an event log.")
               , ("ghc-events show threads <file>:",        "Pretty print an event log, ordered by threads.")
               , ("ghc-events show caps <file>:",           "Pretty print an event log, ordered by capabilities.")
