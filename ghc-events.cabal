@@ -46,6 +46,7 @@ library
                     GHC.RTS.EventTypes
   include-dirs:     GHC/RTS
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  other-extensions: FlexibleContexts, CPP
 
 executable ghc-events
   main-is:          GhcEvents.hs
