@@ -17,7 +17,7 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe
 import System.IO
-import System.Exit hiding (die)
+import System.Exit
 
 main = getArgs >>= command
 
