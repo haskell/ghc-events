@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP, FlexibleContexts #-}
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 
 module GHC.RTS.EventParserUtils (
