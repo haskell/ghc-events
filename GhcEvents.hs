@@ -11,19 +11,30 @@ import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
 import System.Environment
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay, forkFinally)
+import Control.Monad (forever)
 import Data.Either (rights)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Network 
 import System.IO
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
 import System.Exit hiding (die)
 #else
 import System.Exit
 #endif
+import Text.Printf
 
 main :: IO ()
 main = getArgs >>= command
+
+port :: Int
+port = 44444
+
+pullEvents :: Handle -> IO ()
+pullEvents h = do
+    eh <- ehOpen h 4096
+    printEventsIncremental eh False
 
 command :: [String] -> IO ()
 command ["--help"] = putStr usage
@@ -32,6 +43,14 @@ command ["inc", file] = do
     h <- openBinaryFile file ReadMode
     eh <- ehOpen h 4096
     printEventsIncremental eh False
+
+command ["exp"] = withSocketsDo $ do
+  sock <- listenOn (PortNumber (fromIntegral port))
+  printf "Listening on port %d\n" port
+  forever $ do
+    (handle, host, port) <- accept sock
+    printf "Accepted connection from %s: %s\n" host (show port)
+    forkFinally (pullEvents handle) (\_ -> hClose handle)
 
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
@@ -184,6 +203,8 @@ command ["profile", "sparks", file] = do
     putStrLn . showProcess $ result
 
 command _ = putStr usage >> die "Unrecognized command"
+-- command (x:xs) = putStr x >> command xs
+-- command _ = putStr usage >> die "Unrecognized command"
 
 die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 
@@ -261,7 +282,7 @@ printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
       One ev -> do
-          putStrLn (ppEvent' ev)
+          --putStrLn (ppEvent' ev)
           printEventsIncremental eh dashf
       PartialEventLog ->
         if dashf
