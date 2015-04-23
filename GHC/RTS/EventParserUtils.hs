@@ -17,8 +17,13 @@ module GHC.RTS.EventParserUtils (
     ) where
 
 import Control.Monad
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad.Trans.Class
+#if MIN_VERSION_transformers(0, 4, 1)
+import Control.Monad.Trans.Except
+#else
+import Control.Monad.Trans.Error
+#endif
+import Control.Monad.Trans.Reader
 import Data.Array
 import Data.Binary
 import Data.Binary.Get hiding (skip)
@@ -34,6 +39,13 @@ import Data.List
 #include "EventLogFormat.h"
 
 import GHC.RTS.EventTypes
+
+#if !(MIN_VERSION_transformers(0, 4, 1))
+-- use Error instead of Except for tranformers-0.3.0.0
+throwE = throwError
+type ExceptT = ErrorT
+#endif
+
 
 -- reader/Get monad that passes around the event types
 type GetEvents a = ReaderT EventParsers (ExceptT String Get) a
@@ -126,7 +138,7 @@ mkEventTypeParsers etypes event_parsers
     -- [ (num, parser num etype) | (num, etype) <- M.toList etypes ])
   where
     max_event_num = maximum (M.keys etypes)
-    undeclared_etype num = throwError ("undeclared event type: " ++ show num)
+    undeclared_etype num = lift (throwE ("undeclared event type: " ++ show num))
     parser_map = makeParserMap event_parsers
     parser num =
             -- Get the event's size from the header,

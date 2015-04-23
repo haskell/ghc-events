@@ -1,5 +1,5 @@
 name:             ghc-events
-version:          0.4.3.0
+version:          0.5.0.1
 synopsis:         Library and tool for parsing .eventlog files from GHC
 description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the ghc-events tool permitting, in particular,
@@ -19,7 +19,7 @@ author:           Donnie Jones <donnie@darthik.com>,
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      http://trac.haskell.org/ThreadScope/
 build-type:       Simple
-tested-with:      GHC == 6.12.3, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3
+tested-with:      GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3
 cabal-version:    >= 1.8
 extra-source-files: GHC/RTS/EventLogFormat.h,
                     test/*.eventlog
@@ -31,7 +31,7 @@ source-repository head
 
 library
   build-depends:    base       == 4.*,
-                    mtl        >= 2.2.1 && < 3.0,
+                    transformers >= 0.3 && < 0.6,
                     containers >= 0.2 && < 0.6,
                     binary     >= 0.5 && < 0.8,
                     bytestring >= 0.9.0,
@@ -50,11 +50,11 @@ library
 
 executable ghc-events
   main-is:          GhcEvents.hs
-  build-depends:    base, mtl, containers, binary, bytestring, array
+  build-depends:    base, transformers, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
   main-is:          test/TestVersions.hs
-  build-depends:    base, mtl, containers, binary, bytestring, array
+  build-depends:    base, transformers, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
