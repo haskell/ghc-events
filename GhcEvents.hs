@@ -16,6 +16,7 @@ import Control.Monad (forever)
 import Data.Either (rights)
 import Data.Map (Map)
 import qualified Data.Map as M
+import Debug.Trace (trace)
 import Network 
 import System.IO
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
@@ -34,7 +35,7 @@ port = 44444
 pullEvents :: Handle -> IO ()
 pullEvents h = do
     eh <- ehOpen h 4096
-    printEventsIncremental eh False
+    trace "Pulling events" $ printEventsIncremental eh False
 
 command :: [String] -> IO ()
 command ["--help"] = putStr usage
@@ -50,7 +51,8 @@ command ["exp"] = withSocketsDo $ do
   forever $ do
     (handle, host, port) <- accept sock
     printf "Accepted connection from %s: %s\n" host (show port)
-    forkFinally (pullEvents handle) (\_ -> hClose handle)
+    forkFinally (pullEvents handle) 
+                (\_ -> putStrLn "closed" >> hClose handle)
 
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
@@ -282,7 +284,7 @@ printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
       One ev -> do
-          --putStrLn (ppEvent' ev)
+          --putStrLn (ppEvent' ev) -- if actual printing is needed
           printEventsIncremental eh dashf
       PartialEventLog ->
         if dashf
