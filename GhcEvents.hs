@@ -17,7 +17,7 @@ import Data.Either (rights)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Debug.Trace (trace)
-import Network 
+import Network
 import System.IO
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
 import System.Exit hiding (die)
@@ -35,7 +35,8 @@ port = 44444
 pullEvents :: Handle -> IO ()
 pullEvents h = do
     eh <- ehOpen h 4096
-    trace "Pulling events" $ printEventsIncremental eh False
+    -- Using True so that the handle would be queried until the log is complete
+    trace "Pulling events" $ printEventsIncremental eh True
 
 command :: [String] -> IO ()
 command ["--help"] = putStr usage
@@ -51,7 +52,7 @@ command ["exp"] = withSocketsDo $ do
   forever $ do
     (handle, host, port) <- accept sock
     printf "Accepted connection from %s: %s\n" host (show port)
-    forkFinally (pullEvents handle) 
+    forkFinally (pullEvents handle)
                 (\_ -> putStrLn "closed" >> hClose handle)
 
 command ["inc", "force", file] = do
@@ -284,11 +285,11 @@ printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
       One ev -> do
-          --putStrLn (ppEvent' ev) -- if actual printing is needed
+          putStrLn (ppEvent' ev) -- if actual printing is needed
           printEventsIncremental eh dashf
       PartialEventLog ->
         if dashf
-          then print "Waiting" >> threadDelay 1000000 >> printEventsIncremental eh dashf
+          then print "Log Incomplete. Waiting for more input." >> threadDelay 1000000 >> printEventsIncremental eh dashf
           else putStrLn "Finished (NOT all file was parsed successfully)"
       CompleteEventLog ->
         putStrLn "Finished (file was parsed successfully)"
