@@ -34,6 +34,7 @@ library
                     network    == 2.6.0.2,
                     array      >= 0.2 && < 0.6
   exposed-modules:  GHC.RTS.Events,
+                    GHC.RTS.LiveLogging
                     GHC.RTS.Events.Merge
                     GHC.RTS.Events.Analysis
                     GHC.RTS.Events.Analysis.Capability

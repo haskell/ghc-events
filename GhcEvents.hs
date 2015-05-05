@@ -9,14 +9,14 @@ import GHC.RTS.Events.Analysis
 import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
+import GHC.RTS.LiveLogging
 
-import System.Environment
 import Control.Concurrent (threadDelay, forkFinally)
 import Control.Monad (forever)
+import System.Environment
 import Data.Either (rights)
 import Data.Map (Map)
 import qualified Data.Map as M
-import Debug.Trace (trace)
 import Network
 import System.IO
 #if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
@@ -25,18 +25,10 @@ import System.Exit hiding (die)
 import System.Exit
 #endif
 import Text.Printf
+import Text.Read (readMaybe)
 
 main :: IO ()
 main = getArgs >>= command
-
-port :: Int
-port = 44444
-
-pullEvents :: Handle -> IO ()
-pullEvents h = do
-    eh <- ehOpen h 4096
-    -- Using True so that the handle would be queried until the log is complete
-    trace "Pulling events" $ printEventsIncremental eh True
 
 command :: [String] -> IO ()
 command ["--help"] = putStr usage
@@ -46,14 +38,11 @@ command ["inc", file] = do
     eh <- ehOpen h 4096
     printEventsIncremental eh False
 
-command ["exp"] = withSocketsDo $ do
-  sock <- listenOn (PortNumber (fromIntegral port))
-  printf "Listening on port %d\n" port
-  forever $ do
-    (handle, host, port) <- accept sock
-    printf "Accepted connection from %s: %s\n" host (show port)
-    forkFinally (pullEvents handle)
-                (\_ -> putStrLn "closed" >> hClose handle)
+command ["live", portString] = withSocketsDo $ do
+  let portInt = readMaybe portString :: Maybe Int
+  case portInt of
+   Just portNo -> do listen portNo
+   _ -> die "Port number unparsable"
 
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
@@ -278,20 +267,3 @@ showMap showKey showValue m =
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
-printEventsIncremental :: EventHandle
-                       -> Bool -- Whether to retry on incomplete logs
-                       -> IO ()
-printEventsIncremental eh dashf = do
-    event <- ehReadEvent eh
-    case event of
-      One ev -> do
-          putStrLn (ppEvent' ev) -- if actual printing is needed
-          printEventsIncremental eh dashf
-      PartialEventLog ->
-        if dashf
-          then print "Log Incomplete. Waiting for more input." >> threadDelay 1000000 >> printEventsIncremental eh dashf
-          else putStrLn "Finished (NOT all file was parsed successfully)"
-      CompleteEventLog ->
-        putStrLn "Finished (file was parsed successfully)"
-      EventLogParsingError errMsg ->
-        putStrLn $ "Error: " ++ errMsg
