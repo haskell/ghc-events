@@ -21,8 +21,21 @@ bug-reports:      https://github.com/haskell/ThreadScope/issues
 build-type:       Simple
 tested-with:      GHC == 6.12.3, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3, GHC == 7.10.1
 cabal-version:    >= 1.8
-extra-source-files: GHC/RTS/EventLogFormat.h,
-                    test/*.eventlog
+extra-source-files: GHC/RTS/EventLogFormat.h
+                    test/queens-ghc-6.12.1.eventlog
+                    test/queens-ghc-6.12.1.eventlog.reference
+                    test/queens-ghc-7.0.2.eventlog
+                    test/queens-ghc-7.0.2.eventlog.reference
+                    test/mandelbrot-mmc-2011-06-14.eventlog
+                    test/mandelbrot-mmc-2011-06-14.eventlog.reference
+                    test/mdlLogMPI1.eventlog
+                    test/mdlLogMPI1.eventlog.reference
+                    test/pre77stop.eventlog
+                    test/pre77stop.eventlog.reference
+                    test/782stop.eventlog
+                    test/782stop.eventlog.reference
+                    test/783stop.eventlog
+                    test/783stop.eventlog.reference
                     test/stop.hs
 
 source-repository head
