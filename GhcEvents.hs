@@ -11,20 +11,12 @@ import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 import GHC.RTS.LiveLogging
 
-import Control.Concurrent (threadDelay, forkFinally)
-import Control.Monad (forever)
-import System.Environment
+import System.Environment (getArgs)
 import Data.Either (rights)
-import Data.Map (Map)
 import qualified Data.Map as M
-import Network
-import System.IO
-#if defined(__GLASGOW_HASKELL__) && __GLASGOW_HASKELL__ >= 709
-import System.Exit hiding (die)
-#else
-import System.Exit
-#endif
-import Text.Printf
+import Network (withSocketsDo)
+import System.IO (IOMode(ReadMode), openBinaryFile)
+import System.Exit (die)
 import Text.Read (readMaybe)
 
 main :: IO ()
@@ -195,10 +187,6 @@ command ["profile", "sparks", file] = do
     putStrLn . showProcess $ result
 
 command _ = putStr usage >> die "Unrecognized command"
--- command (x:xs) = putStr x >> command xs
--- command _ = putStr usage >> die "Unrecognized command"
-
-die s = do hPutStrLn stderr s; exitWith (ExitFailure 1)
 
 readLogOrDie :: FilePath -> IO EventLog
 readLogOrDie file = do
@@ -253,7 +241,7 @@ showProcess process =
   ++ "\n"
   ++ (maybe "Valid." (("Invalid:\n" ++) . show) . toMaybe) process
 
-showIndexed :: (k -> String) -> (v -> String) -> Map k v -> String
+showIndexed :: (k -> String) -> (v -> String) -> M.Map k v -> String
 showIndexed showKey showValue m
   | M.null m  = "Empty map\n"
   | otherwise = "Indexed output:\n" ++
