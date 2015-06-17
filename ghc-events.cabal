@@ -31,8 +31,10 @@ library
                     containers >= 0.2 && < 0.6,
                     binary     >= 0.7 && < 0.8,
                     bytestring >= 0.9.0,
+                    network    == 2.6.0.2,
                     array      >= 0.2 && < 0.6
   exposed-modules:  GHC.RTS.Events,
+                    GHC.RTS.LiveLogging
                     GHC.RTS.Events.Merge
                     GHC.RTS.Events.Analysis
                     GHC.RTS.Events.Analysis.Capability
@@ -46,8 +48,9 @@ library
 
 executable ghc-events
   main-is:          GhcEvents.hs
-  build-depends:    base, mtl, containers, binary, bytestring, array
+  build-depends:    base, mtl, containers, binary, bytestring, array, network
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  ghc-options:      -debug
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
