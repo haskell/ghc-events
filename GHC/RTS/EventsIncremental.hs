@@ -4,7 +4,7 @@
 -}
 
 module GHC.RTS.EventsIncremental (
-  Result(..),
+  ParseResult(..),
 
   -- * ByteString interface
   -- $bytestringapi
@@ -40,8 +40,8 @@ import Data.Word (Word16)
 data EventParserState = ParsingHeader (Decoder Header)
                       | ParsingEvents EventDecoder
 
--- | An abstraction over a 'Handle' and state for a simple incemental parsing
--- interface.
+-- | An abstraction over 'Handle' and 'EventParserState' for a simple incemental
+-- parsing interface.
 data EventHandle =
   EH { ehHandle    :: Handle -- Handle to read from
      , ehChunkSize :: Int -- Chunk size for incremental reading
@@ -62,17 +62,17 @@ data EventDecoder =
      , edPartial   :: Decoder (Maybe Event) }
 
 -- | Datatype that describes the result of a parse
-data Result a =
+data ParseResult a =
   -- | Successfully parsed an item
-    One a
-  -- | The eventlog wasn't complete but the input did not contain any more
+    Item a
+  -- | The log is not finished yet but the input did not contain any more
   -- complete items
-  | PartialEventLog
+  | Incomplete
   -- | Parsing was completed successfully
-  | CompleteEventLog
+  | Complete
   -- | An error in parsing has occurred, returns a (hopefully useful)
   -- error message.
-  | EventLogParsingError String
+  | ParseError String
 
 -- $bytestringapi
 -- The 'ByteString' based API uses 'EventParserState' to keep track of input
@@ -106,36 +106,36 @@ pushBytes (ParsingEvents ed) bs =
 
 -- Reads the header and returns it as a result. Is only required for
 -- readEventLogFromFile functionality, so may be removed in a future version
-readHeader :: Decoder Header -> (Result Header, EventParserState)
+readHeader :: Decoder Header -> (ParseResult Header, EventParserState)
 readHeader (Done bs _ header) =
     let emptyDecoder = mkEventDecoder header
         newState = newParserState Nothing 0 emptyDecoder emptyDecoder bs
-    in (One header, newState)
-readHeader dec@(Partial {}) = (PartialEventLog, ParsingHeader dec)
+    in (Item header, newState)
+readHeader dec@(Partial {}) = (Incomplete, ParsingHeader dec)
 readHeader dec@(Fail _ _ errMsg) =
-    (EventLogParsingError errMsg, ParsingHeader dec)
+    (ParseError errMsg, ParsingHeader dec)
 
 -- Helper to simplify the logic of readEvent
-readHeader' :: Decoder Header -> (Result Event, EventParserState)
+readHeader' :: Decoder Header -> (ParseResult Event, EventParserState)
 readHeader' hd =
     case readHeader hd of
       -- Header was parsed completely so we can safely call readEvents, the
       -- state will be ParsingEvents
-      (One _, state) -> readEvent state
-      (PartialEventLog, state) -> (PartialEventLog, state)
-      (EventLogParsingError errMsg, state) ->
-          (EventLogParsingError errMsg, state)
+      (Item _, state) -> readEvent state
+      (Incomplete, state) -> (Incomplete, state)
+      (ParseError errMsg, state) ->
+          (ParseError errMsg, state)
       -- CompleteEventlog can't happen because we don't read the log yet
       _ -> error "The impossible has happened. Report a bug."
 
--- | Parses at most one event from the state (refer to 'Result' datatype) and
+-- | Parses at most one event from the state (refer to 'ParseResult' datatype) and
 -- returns the updated state that can be used to parse the next event.
 -- readEvent expects its input to follow the structure of a .eventlog file.
-readEvent :: EventParserState -> (Result Event, EventParserState)
+readEvent :: EventParserState -> (ParseResult Event, EventParserState)
 readEvent (ParsingHeader hd) = readHeader' hd
 readEvent (ParsingEvents ed) = readEvent' ed
 
-readEvent' :: EventDecoder -> (Result Event, EventParserState)
+readEvent' :: EventDecoder -> (ParseResult Event, EventParserState)
 readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
     case partial of
       (Done bs sz (Just event)) ->
@@ -148,10 +148,10 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState (mkCap ed sz) newRemaining
                                           emptyDecoder emptyDecoder bs
-            (One (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
-      (Done _ _ Nothing) -> (CompleteEventLog, ParsingEvents ed)
-      (Partial _) -> (PartialEventLog, ParsingEvents ed)
-      (Fail _ _ errMsg) -> (EventLogParsingError errMsg, ParsingEvents ed)
+            (Item (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
+      (Done _ _ Nothing) -> (Complete, ParsingEvents ed)
+      (Partial _) -> (Incomplete, ParsingEvents ed)
+      (Fail _ _ errMsg) -> (ParseError errMsg, ParsingEvents ed)
 
 -- $eventhandleapi
 -- This API uses 'EventHandle' datatype that abstracts away the mutation of
@@ -172,43 +172,43 @@ ehOpen handle sz = do
 -- | Reads at most one event from the EventHandle. Can be called repeadetly. Will
 -- consume input incrementally in chunks of size that is set when instantiating
 -- the 'EventHandle'.
-ehReadEvent :: EventHandle -> IO (Result Event)
+ehReadEvent :: EventHandle -> IO (ParseResult Event)
 ehReadEvent (EH handle chunkSize stateRef) = do
   state <- readIORef stateRef
   let (result, state') = readEvent state
   case result of
-    (One _) -> do
+    (Item _) -> do
       writeIORef stateRef state'
       return result
-    (PartialEventLog) -> do
+    (Incomplete) -> do
       bs <- B.hGetSome handle chunkSize
       if bs == B.empty
-        then return PartialEventLog
+        then return Incomplete
         else do
           writeIORef stateRef $ state' `pushBytes` bs
           ehReadEvent $ EH handle chunkSize stateRef
-    (CompleteEventLog) -> return CompleteEventLog
-    (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
+    (Complete) -> return Complete
+    (ParseError errMsg) -> return (ParseError errMsg)
 
 -- Parses a 'Header' to be used for readEventLogFromFile. Should be removed in
 -- the near future as that functionality appears to be obsolete.
-ehReadHeader :: EventHandle -> IO (Result Header)
+ehReadHeader :: EventHandle -> IO (ParseResult Header)
 ehReadHeader (EH handle chunkSize stateRef) = do
   (ParsingHeader headerDecoder) <- readIORef stateRef
   let (result, state) = readHeader headerDecoder
   case result of
-    (One _) -> do
+    (Item _) -> do
       writeIORef stateRef state
       return result
-    (PartialEventLog) -> do
+    (Incomplete) -> do
       bs <- B.hGetSome handle chunkSize
       if bs == B.empty
-        then return $ EventLogParsingError "Header is incomplete, terminating"
+        then return $ ParseError "Header is incomplete, terminating"
         else do
           writeIORef stateRef $ state `pushBytes` bs
           ehReadHeader $ EH handle chunkSize stateRef
-    (CompleteEventLog) -> return CompleteEventLog
-    (EventLogParsingError errMsg) -> return (EventLogParsingError errMsg)
+    (Complete) -> return Complete
+    (ParseError errMsg) -> return (ParseError errMsg)
 
 -- | Reads a full 'EventLog' from file. If the file is incomplete, will still
 -- return a properly formed 'EventLog' object with all the events until the point
@@ -219,8 +219,8 @@ readEventLogFromFile f = do
     eh     <- ehOpen handle 1048576
     resultHeader <- ehReadHeader eh
     case resultHeader of
-      (EventLogParsingError errMsg) -> error errMsg
-      (One header) -> do
+      (ParseError errMsg) -> error errMsg
+      (Item header) -> do
         !events <- ehReadEvents eh
         return $ Right $ EventLog header (Data events)
       _ -> error "Should never happen"
@@ -230,16 +230,16 @@ readEventLogFromFile f = do
 ehReadEvents :: EventHandle -> IO [Event]
 ehReadEvents = eventRepeater . ehReadEvent
 
-eventRepeater :: IO (Result Event) -> IO [Event]
+eventRepeater :: IO (ParseResult Event) -> IO [Event]
 eventRepeater eventReader = do
   event <- eventReader
   case event of
-    (One a) -> (:) <$> return a <*> eventRepeater eventReader
-    (PartialEventLog) -> do
+    (Item a) -> (:) <$> return a <*> eventRepeater eventReader
+    (Incomplete) -> do
       hPutStrLn stderr "Handle did not contain a complete EventLog."
       return []
-    (CompleteEventLog) -> return []
-    (EventLogParsingError errMsg) -> hPutStrLn stderr errMsg >> return []
+    (Complete) -> return []
+    (ParseError errMsg) -> hPutStrLn stderr errMsg >> return []
 
 -- Checks if the capability is not -1 (which indicates a global eventblock), so
 -- has no associated capability

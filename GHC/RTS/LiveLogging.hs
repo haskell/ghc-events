@@ -39,14 +39,14 @@ printEventsIncremental :: EventHandle
 printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
-      One ev -> do
+      Item ev -> do
           putStrLn (ppEvent' ev) -- if actual printing is needed
           printEventsIncremental eh dashf
-      PartialEventLog ->
+      Incomplete ->
         if dashf
           then print "Log Incomplete. Waiting for more input." >> threadDelay 1000000 >> printEventsIncremental eh dashf
           else putStrLn "Finished (NOT all file was parsed successfully)"
-      CompleteEventLog ->
+      Complete ->
         putStrLn "Finished (file was parsed successfully)"
-      EventLogParsingError errMsg ->
+      ParseError errMsg ->
         putStrLn $ "Error: " ++ errMsg
