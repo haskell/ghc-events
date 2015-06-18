@@ -9,7 +9,7 @@ module GHC.RTS.EventsIncremental (
   -- * ByteString interface
   -- $bytestringapi
   EventParserState,
-  initEventParser,
+  newParser,
   pushBytes, readEvent,
 
   -- * EventHandle interface
@@ -79,10 +79,10 @@ data Result a =
 -- that it has received so far. This API should be used when control over
 -- input generation is required.
 
--- | Creates a new 'EventParserState' that can then be passed to the
+-- | Creates a new, empty 'EventParserState' that can then be passed to the
 -- 'readEvent' function.
-initEventParser :: EventParserState
-initEventParser = ParsingHeader (getToDecoder getHeader)
+newParser :: EventParserState
+newParser = ParsingHeader (getToDecoder getHeader)
 
 -- Creates a new parser state for events
 -- If given a non-empty list of ByteStrings, pushes them all to the partial
@@ -166,7 +166,7 @@ ehOpen :: Handle -- ^ Handle to read the input from. Its contents are expected
               -- from the 'Handle' when needs more input
        -> IO EventHandle
 ehOpen handle sz = do
-  ioref <- newIORef $ initEventParser
+  ioref <- newIORef $ newParser
   return EH { ehHandle = handle, ehChunkSize = sz, ehState = ioref }
 
 -- | Reads at most one event from the EventHandle. Can be called repeadetly. Will
