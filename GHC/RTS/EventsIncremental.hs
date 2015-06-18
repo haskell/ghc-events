@@ -153,6 +153,7 @@ readEvent' (ed@(ED _ remaining emptyDecoder partial)) =
       (Partial _) -> (Incomplete, ParsingEvents ed)
       (Fail _ _ errMsg) -> (ParseError errMsg, ParsingEvents ed)
 
+{-
 -- $eventhandleapi
 -- This API uses 'EventHandle' datatype that abstracts away the mutation of
 -- state and provides a simple interface for parsing events. Just like
@@ -210,6 +211,17 @@ ehReadHeader (EH handle chunkSize stateRef) = do
     (Complete) -> return Complete
     (ParseError errMsg) -> return (ParseError errMsg)
 
+-- TODO: final state that tells how did the parse finish
+-- | Reads all available events from an EventHandle. Reports errors to stderr.
+ehReadEvents :: EventHandle -> IO [Event]
+ehReadEvents = eventRepeater . ehReadEvent
+-}
+
+ehOpen = undefined
+ehReadEvent = undefined
+ehReadEvents = undefined
+ehReadHeader = undefined
+
 -- | Reads a full 'EventLog' from file. If the file is incomplete, will still
 -- return a properly formed 'EventLog' object with all the events until the point
 -- of malformation/cutoff.
@@ -225,10 +237,6 @@ readEventLogFromFile f = do
         return $ Right $ EventLog header (Data events)
       _ -> error "Should never happen"
 
--- TODO: final state that tells how did the parse finish
--- | Reads all available events from an EventHandle. Reports errors to stderr.
-ehReadEvents :: EventHandle -> IO [Event]
-ehReadEvents = eventRepeater . ehReadEvent
 
 eventRepeater :: IO (ParseResult Event) -> IO [Event]
 eventRepeater eventReader = do
