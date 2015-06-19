@@ -161,6 +161,13 @@ ehOpen handle sz = do
   ioref <- newIORef $ newParser
   return EH { ehHandle = handle, ehChunkSize = sz, ehState = ioref }
 
+ehReadHeader :: EventHandle -> IO (Maybe Header)
+ehReadHeader eh = do
+  state <- readIORef $ ehState eh
+  case state of
+    (ParsingHeader _) -> return Nothing
+    (ParsingEvents ed) -> return . Just $ edHeader ed
+
 -- | Reads at most one event from the EventHandle. It is intended called
 -- repeadetly, returning one event at a time. Will consume input incrementally in
 -- chunks of size that is set when instantiating the 'EventHandle' or less
@@ -183,48 +190,43 @@ ehReadEvent (EH handle chunkSize stateRef) = do
     (Complete) -> return Complete
     (ParseError errMsg) -> return (ParseError errMsg)
 
-readEventLogFromFile = undefined
--- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TODAY !!!!!!!!!!!!!!!!!!!!!!!
-{-
 -- | Reads a full 'EventLog' from file. If the file is incomplete, will still
 -- return a properly formed 'EventLog' object with all the events until the point
--- of malformation/cutoff.
+-- of malformation/cutoff. NOTE: this function will load the entire file to
+-- memory, so it is better to not use it with large event logs. It's also
+-- deprecated.
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
-    handle <- openBinaryFile f ReadMode
-    eh     <- ehOpen handle 1048576 -- 1MiB
-    !events <- ehReadEvents eh
-    -- R
-    header <- ehState eh
-    case resultHeader of
-      (ParseError errMsg) -> return $ Left errMsg
-      (Complete, _) -> do
-        !events <- ehReadEvents eh
+    bytes <- B.readFile f
+    let (events, finalState, status) =
+          readEventLogFromFile' (newParser `pushBytes` bytes) []
+    let mbHeader = readHeader finalState
+    case (mbHeader, status) of
+      (_, ParseError errMsg) -> return $ Left $ "Parse error: " ++ errMsg
+      (Nothing, _) -> do return $ Left $ \
+                         concat $ ["Header was lost during parsing. This "
+                                  ,"should never happen. Please report a bug."]
+      (Just header, Complete) -> do
         return $ Right $ EventLog header (Data events)
-      _ -> error "Should never happen"
+      (Just header, Incomplete) -> do
+        hPutStrLn stderr $ concat ["Warning: The event log was not fully ",
+                           "parsed. It could have been malformed or incomplete."]
+        return $ Right $ EventLog header (Data events)
+      _ -> error $ concat ["Error: There was no parse error, Header is intact ",
+                            "but the log\ \ is not. This should never happen, ",
+                            "please report a bug."]
 
-
-readEventLogFromFile' :: Handle -> EventParserState ->
-                         (ParseResult Event, EventParserState)
-readEventLogFromFile' handle eps =
-  undefined
-
-
-
-ehReadEvents :: EventHandle -> IO [Event]
-ehReadEvents = eventRepeater . ehReadEvent
--}
-
-eventRepeater :: IO (ParseResult Event) -> IO [Event]
-eventRepeater eventReader = do
-  event <- eventReader
-  case event of
-    (Item a) -> (:) <$> return a <*> eventRepeater eventReader
-    (Incomplete) -> do
-      hPutStrLn stderr "Handle did not contain a complete EventLog."
-      return []
-    (Complete) -> return []
-    (ParseError errMsg) -> hPutStrLn stderr errMsg >> return []
+-- Repeadetly pulls events until EventParserState runs out. Should only be used
+-- when all input is fed to the EventParserState already.
+readEventLogFromFile' :: EventParserState -> [Event] -> ([Event], EventParserState, ParseResult ())
+readEventLogFromFile' eps events =
+    case newEvent of
+        (Item ev)        -> readEventLogFromFile' newState (ev:events)
+        (Complete)       -> (events, newState, Complete)
+    -- TODO may cause infinite loops, fix
+        (Incomplete)     -> readEventLogFromFile' newState (events)
+        (ParseError err) -> (events, newState, ParseError err)
+    where (newEvent, newState) = readEvent eps
 
 -- Checks if the capability is not -1 (which indicates a global eventblock), so
 -- has no associated capability
