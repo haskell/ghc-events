@@ -218,13 +218,19 @@ readEventLogFromFile f = do
 
 -- Repeadetly pulls events until EventParserState runs out. Should only be used
 -- when all input is fed to the EventParserState already.
-readEventLogFromFile' :: EventParserState -> [Event] -> ([Event], EventParserState, ParseResult ())
+readEventLogFromFile' :: EventParserState -> [Event]
+                      -> ([Event], EventParserState, ParseResult ())
 readEventLogFromFile' eps events =
     case newEvent of
         (Item ev)        -> readEventLogFromFile' newState (ev:events)
         (Complete)       -> (events, newState, Complete)
     -- TODO may cause infinite loops, fix
-        (Incomplete)     -> readEventLogFromFile' newState (events)
+    -- In incomplete cases we try to call readEvent once more since the first
+    -- event may require two readEvent calls to be acquired
+        (Incomplete)     -> let (newEvent', newState') = readEvent newState
+                            in case newEvent' of
+                            (Item e) -> readEventLogFromFile' newState' (e:events)
+                            _ -> (events, newState', Incomplete)
         (ParseError err) -> (events, newState, ParseError err)
     where (newEvent, newState) = readEvent eps
 
