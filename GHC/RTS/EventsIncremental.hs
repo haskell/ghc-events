@@ -225,7 +225,6 @@ readEventLogFromFile' eps events =
     case newEvent of
         (Item ev)        -> readEventLogFromFile' newState (ev:events)
         (Complete)       -> (events, newState, Complete)
-    -- TODO may cause infinite loops, fix
     -- In incomplete cases we try to call readEvent once more since the first
     -- event may require two readEvent calls to be acquired
         (Incomplete)     -> let (newEvent', newState') = readEvent newState
