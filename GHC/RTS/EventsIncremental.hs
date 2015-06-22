@@ -193,8 +193,9 @@ ehReadEvent (EH handle chunkSize stateRef) = do
 -- | Reads a full 'EventLog' from file. If the file is incomplete, will still
 -- return a properly formed 'EventLog' object with all the events until the point
 -- of malformation/cutoff. NOTE: this function will load the entire file to
--- memory, so it is better to not use it with large event logs. It's also
--- deprecated.
+-- memory, so it is better to not use it with large event logs. 
+{-# DEPRECATED readEventLogFromFile "The incremental parser interface \
+should be used" #-}
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
     bytes <- B.readFile f
