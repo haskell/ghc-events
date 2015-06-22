@@ -5,11 +5,7 @@
 module GHC.RTS.EventParserUtils (
         EventParser(..),
         EventParsers(..),
-        GetEvents,
-        GetHeader,
 
-        getE,
-        getH,
         getString,
         mkEventTypeParsers,
         simpleEvent,
@@ -17,7 +13,6 @@ module GHC.RTS.EventParserUtils (
     ) where
 
 import Control.Monad
-import Control.Monad.Reader
 import Data.Array
 import Data.Binary
 import Data.Binary.Get ()
@@ -33,29 +28,18 @@ import Data.List
 
 import GHC.RTS.EventTypes
 
--- reader/Get monad that passes around the event types
-type GetEvents a = ReaderT EventParsers Get a
+newtype EventParsers = EventParsers (Array Int (Get EventInfo))
 
-newtype EventParsers = EventParsers (Array Int (GetEvents EventInfo))
+nBytes :: Integral a => a -> Get [Word8]
+nBytes n = replicateM (fromIntegral n) get
 
-type GetHeader a = Get a
-
-getH :: Binary a => GetHeader a
-getH = get
-
-getE :: Binary a => GetEvents a
-getE = lift get
-
-nBytes :: Integral a => a -> GetEvents [Word8]
-nBytes n = replicateM (fromIntegral n) getE
-
-getString :: Integral a => a -> GetEvents String
+getString :: Integral a => a -> Get String
 getString len = do
     bytes <- nBytes len
     return $ map (chr . fromIntegral) bytes
 
-skip :: Integral a => a -> GetEvents ()
-skip n = lift $ G.skip (fromIntegral n)
+skip :: Integral a => a -> Get ()
+skip n = G.skip (fromIntegral n)
 
 --
 -- Code to build the event parser table.
@@ -68,14 +52,14 @@ data EventParser a
     = FixedSizeParser {
         fsp_type        :: Int,
         fsp_size        :: EventTypeSize,
-        fsp_parser      :: GetEvents a
+        fsp_parser      :: Get a
     }
     | VariableSizeParser {
         vsp_type        :: Int,
-        vsp_parser      :: GetEvents a
+        vsp_parser      :: Get a
     }
 
-getParser :: EventParser a -> GetEvents a
+getParser :: EventParser a -> Get a
 getParser (FixedSizeParser _ _ p) = p
 getParser (VariableSizeParser _ p) = p
 
@@ -119,7 +103,7 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 
 mkEventTypeParsers :: IntMap EventType
                    -> [EventParser EventInfo]
-                   -> Array Int (GetEvents EventInfo)
+                   -> Array Int (Get EventInfo)
 mkEventTypeParsers etypes event_parsers
  = accumArray (flip const) undefined (0, max_event_num)
     [ (num, parser num) | num <- [0..max_event_num] ]
@@ -190,10 +174,10 @@ makeParserMap = foldl buildParserMap M.empty
           addParser p (Just ps) = Just (p:ps)
 
 noEventTypeParser :: Int -> Maybe EventTypeSize
-                  -> GetEvents EventInfo
+                  -> Get EventInfo
 noEventTypeParser num mb_size = do
   bytes <- case mb_size of
              Just n  -> return n
-             Nothing -> getE :: GetEvents Word16
+             Nothing -> get :: Get Word16
   skip bytes
   return UnknownEvent{ ref = fromIntegral num }

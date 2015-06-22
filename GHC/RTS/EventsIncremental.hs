@@ -25,7 +25,7 @@ import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes hiding (time, spec)
 
 import Control.Applicative ((<$>), (<*>), Applicative(..))
-import Control.Monad.Reader (runReaderT)
+--import Control.Monad.Reader (runReaderT)
 import Data.Binary.Get hiding (remaining)
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
@@ -251,7 +251,7 @@ mkCap ed sz
 -- Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> Decoder (Maybe Event)
 mkEventDecoder header =
-    getToDecoder (runReaderT (getEvent parsers) parsers)
+    getToDecoder (getEvent parsers) 
   where
     imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
     -- This test is complete, no-one has extended this event yet and all future
