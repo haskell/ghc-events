@@ -13,8 +13,6 @@ module GHC.RTS.Events (
    ghc7Parsers,
    mercuryParsers,
    perfParsers,
-   spec,
-   time,
   -- * The event log types
   EventLog(..),
   Header(..),
@@ -57,10 +55,9 @@ import Data.Binary
 import Data.Binary.Get ()
 import qualified Data.Binary.Get as G
 import Data.Binary.Put
-import Control.Monad ()
+import Control.Monad (when, replicateM)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
-import Control.Monad.Reader
 import qualified Data.ByteString.Lazy as L
 import Data.Function
 import Data.List
@@ -77,46 +74,46 @@ import GHC.RTS.EventTypes
 ------------------------------------------------------------------------------
 -- Binary instances
 
-getEventType :: GetHeader EventType
+getEventType :: Get EventType
 getEventType = do
-           etNum <- getH
-           size <- getH :: GetHeader EventTypeSize
+           etNum <- get
+           size <- get :: Get EventTypeSize
            let etSize = if size == 0xffff then Nothing else Just size
            -- 0xffff indicates variable-sized event
-           etDescLen <- getH :: GetHeader EventTypeDescLen
+           etDescLen <- get :: Get EventTypeDescLen
            etDesc <- getEtDesc (fromIntegral etDescLen)
-           etExtraLen <- getH :: GetHeader Word32
+           etExtraLen <- get :: Get Word32
            G.skip (fromIntegral etExtraLen)
-           ete <- getH :: GetHeader Marker
+           ete <- get :: Get Marker
            when (ete /= EVENT_ET_END) $
               fail "Event Type end marker not found."
            return (EventType etNum etDesc etSize)
            where
-             getEtDesc :: Int -> GetHeader [Char]
-             getEtDesc s = replicateM s (getH :: GetHeader Char)
+             getEtDesc :: Int -> Get [Char]
+             getEtDesc s = replicateM s (get :: Get Char)
 
 
 
-getHeader :: GetHeader Header
+getHeader :: Get Header
 getHeader = do
-            hdrb <- getH :: GetHeader Marker
+            hdrb <- get :: Get Marker
             when (hdrb /= EVENT_HEADER_BEGIN) $
                  fail "Header begin marker not found"
-            hetm <- getH :: GetHeader Marker
+            hetm <- get :: Get Marker
             when (hetm /= EVENT_HET_BEGIN) $
                  fail "Header Event Type begin marker not found"
             ets <- getEventTypes
-            emark <- getH :: GetHeader Marker
+            emark <- get :: Get Marker
             when (emark /= EVENT_HEADER_END) $
                  fail "Header end marker not found"
-            db <- getH :: GetHeader Marker
+            db <- get :: Get Marker
             when (db /= EVENT_DATA_BEGIN) $ 
                   fail "My Data begin marker not found" 
             return $ Header ets
      where
-      getEventTypes :: GetHeader [EventType]
+      getEventTypes :: Get [EventType]
       getEventTypes = do
-          m <- getH :: GetHeader Marker
+          m <- get :: Get Marker
           case m of
              EVENT_ET_BEGIN -> do
                   et <- getEventType
@@ -127,12 +124,12 @@ getHeader = do
              _ ->
                   fail "Malformed list of Event Types in header"
 
-getEvent :: EventParsers -> GetEvents (Maybe Event)
+getEvent :: EventParsers -> Get (Maybe Event)
 getEvent (EventParsers parsers) = do
-  etRef <- getE :: GetEvents EventTypeNum
+  etRef <- get :: Get EventTypeNum
   if etRef == EVENT_DATA_END
      then return Nothing
-     else do !ts   <- getE
+     else do !ts   <- get
              -- trace ("event: " ++ show etRef) $ do
              spec <- parsers ! fromIntegral etRef
              return $ Just (Event ts spec undefined)
@@ -143,14 +140,14 @@ getEvent (EventParsers parsers) = do
 standardParsers :: [EventParser EventInfo]
 standardParsers = [
  (FixedSizeParser EVENT_STARTUP sz_cap (do -- (n_caps)
-      c <- getE :: GetEvents CapNo
+      c <- get :: Get CapNo
       return Startup{ n_caps = fromIntegral c }
    )),
 
  (FixedSizeParser EVENT_BLOCK_MARKER (sz_block_size + sz_time + sz_cap) (do -- (size, end_time, cap)
-      block_size <- getE :: GetEvents BlockSize
-      end_time <- getE :: GetEvents Timestamp
-      c <- getE :: GetEvents CapNo
+      block_size <- get :: Get BlockSize
+      end_time <- get :: Get Timestamp
+      c <- get :: Get CapNo
       return EventBlock { end_time   = end_time,
                           cap        = fromIntegral c,
                           block_size = ((fromIntegral block_size) -
@@ -179,156 +176,156 @@ standardParsers = [
  (simpleEvent EVENT_GC_GLOBAL_SYNC GlobalSyncGC),
 
  (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 4) (do  -- (heap_capset, generation, copied_bytes, slop_bytes, frag_bytes, par_n_threads, par_max_copied, par_tot_copied)
-      heapCapset   <- getE
-      gen          <- getE :: GetEvents Word16
-      copied       <- getE :: GetEvents Word64
-      slop         <- getE :: GetEvents Word64
-      frag         <- getE :: GetEvents Word64
-      parNThreads  <- getE :: GetEvents Word32
-      parMaxCopied <- getE :: GetEvents Word64
-      parTotCopied <- getE :: GetEvents Word64
+      heapCapset   <- get
+      gen          <- get :: Get Word16
+      copied       <- get :: Get Word64
+      slop         <- get :: Get Word64
+      frag         <- get :: Get Word64
+      parNThreads  <- get :: Get Word32
+      parMaxCopied <- get :: Get Word64
+      parTotCopied <- get :: Get Word64
       return GCStatsGHC{ gen = fromIntegral gen
                        , parNThreads = fromIntegral parNThreads
                        , ..}
  )),
 
  (FixedSizeParser EVENT_HEAP_ALLOCATED (sz_capset + 8) (do  -- (heap_capset, alloc_bytes)
-      heapCapset <- getE
-      allocBytes <- getE
+      heapCapset <- get
+      allocBytes <- get
       return HeapAllocated{..}
  )),
 
  (FixedSizeParser EVENT_HEAP_SIZE (sz_capset + 8) (do  -- (heap_capset, size_bytes)
-      heapCapset <- getE
-      sizeBytes  <- getE
+      heapCapset <- get
+      sizeBytes  <- get
       return HeapSize{..}
  )),
 
  (FixedSizeParser EVENT_HEAP_LIVE (sz_capset + 8) (do  -- (heap_capset, live_bytes)
-      heapCapset <- getE
-      liveBytes  <- getE
+      heapCapset <- get
+      liveBytes  <- get
       return HeapLive{..}
  )),
 
  (FixedSizeParser EVENT_HEAP_INFO_GHC (sz_capset + 2 + 4*8) (do  -- (heap_capset, n_generations, max_heap_size, alloc_area_size, mblock_size, block_size)
-      heapCapset    <- getE
-      gens          <- getE :: GetEvents Word16
-      maxHeapSize   <- getE :: GetEvents Word64
-      allocAreaSize <- getE :: GetEvents Word64
-      mblockSize    <- getE :: GetEvents Word64
-      blockSize     <- getE :: GetEvents Word64
+      heapCapset    <- get
+      gens          <- get :: Get Word16
+      maxHeapSize   <- get :: Get Word64
+      allocAreaSize <- get :: Get Word64
+      mblockSize    <- get :: Get Word64
+      blockSize     <- get :: Get Word64
       return HeapInfoGHC{gens = fromIntegral gens, ..}
  )),
 
  (FixedSizeParser EVENT_CAP_CREATE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
+      cap <- get :: Get CapNo
       return CapCreate{cap = fromIntegral cap}
  )),
 
  (FixedSizeParser EVENT_CAP_DELETE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
+      cap <- get :: Get CapNo
       return CapDelete{cap = fromIntegral cap}
  )),
 
  (FixedSizeParser EVENT_CAP_DISABLE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
+      cap <- get :: Get CapNo
       return CapDisable{cap = fromIntegral cap}
  )),
 
  (FixedSizeParser EVENT_CAP_ENABLE (sz_cap) (do  -- (cap)
-      cap <- getE :: GetEvents CapNo
+      cap <- get :: Get CapNo
       return CapEnable{cap = fromIntegral cap}
  )),
 
  (FixedSizeParser EVENT_CAPSET_CREATE (sz_capset + sz_capset_type) (do -- (capset, capset_type)
-      cs <- getE
-      ct <- fmap mkCapsetType getE
+      cs <- get
+      ct <- fmap mkCapsetType get
       return CapsetCreate{capset=cs,capsetType=ct}
    )),
 
  (FixedSizeParser EVENT_CAPSET_DELETE sz_capset (do -- (capset)
-      cs <- getE
+      cs <- get
       return CapsetDelete{capset=cs}
    )),
 
  (FixedSizeParser EVENT_CAPSET_ASSIGN_CAP (sz_capset + sz_cap) (do -- (capset, cap)
-      cs <- getE
-      cp <- getE :: GetEvents CapNo
+      cs <- get
+      cp <- get :: Get CapNo
       return CapsetAssignCap{capset=cs,cap=fromIntegral cp}
    )),
 
  (FixedSizeParser EVENT_CAPSET_REMOVE_CAP (sz_capset + sz_cap) (do -- (capset, cap)
-      cs <- getE
-      cp <- getE :: GetEvents CapNo
+      cs <- get
+      cp <- get :: Get CapNo
       return CapsetRemoveCap{capset=cs,cap=fromIntegral cp}
    )),
 
  (FixedSizeParser EVENT_OSPROCESS_PID (sz_capset + sz_pid) (do -- (capset, pid)
-      cs <- getE
-      pd <- getE
+      cs <- get
+      pd <- get
       return OsProcessPid{capset=cs,pid=pd}
    )),
 
  (FixedSizeParser EVENT_OSPROCESS_PPID (sz_capset + sz_pid) (do -- (capset, ppid)
-      cs <- getE
-      pd <- getE
+      cs <- get
+      pd <- get
       return OsProcessParentPid{capset=cs,ppid=pd}
   )),
 
  (FixedSizeParser EVENT_WALL_CLOCK_TIME (sz_capset + 8 + 4) (do -- (capset, unix_epoch_seconds, nanoseconds)
-      cs <- getE
-      s  <- getE
-      ns <- getE
+      cs <- get
+      s  <- get
+      ns <- get
       return WallClockTime{capset=cs,sec=s,nsec=ns}
   )),
 
  (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
-      num <- getE :: GetEvents Word16
+      num <- get :: Get Word16
       string <- getString num
       return Message{ msg = string }
    )),
  (VariableSizeParser EVENT_USER_MSG (do -- (msg)
-      num <- getE :: GetEvents Word16
+      num <- get :: Get Word16
       string <- getString num
       return UserMessage{ msg = string }
    )),
     (VariableSizeParser EVENT_USER_MARKER (do -- (markername)
-      num <- getE :: GetEvents Word16
+      num <- get :: Get Word16
       string <- getString num
       return UserMarker{ markername = string }
    )),
  (VariableSizeParser EVENT_PROGRAM_ARGS (do -- (capset, [arg])
-      num <- getE :: GetEvents Word16
-      cs <- getE
+      num <- get :: Get Word16
+      cs <- get
       string <- getString (num - sz_capset)
       return ProgramArgs{ capset = cs
                         , args = splitNull string }
    )),
  (VariableSizeParser EVENT_PROGRAM_ENV (do -- (capset, [arg])
-      num <- getE :: GetEvents Word16
-      cs <- getE
+      num <- get :: Get Word16
+      cs <- get
       string <- getString (num - sz_capset)
       return ProgramEnv{ capset = cs
                        , env = splitNull string }
    )),
  (VariableSizeParser EVENT_RTS_IDENTIFIER (do -- (capset, str)
-      num <- getE :: GetEvents Word16
-      cs <- getE
+      num <- get :: Get Word16
+      cs <- get
       string <- getString (num - sz_capset)
       return RtsIdentifier{ capset = cs
                           , rtsident = string }
    )),
 
  (VariableSizeParser EVENT_INTERN_STRING (do -- (str, id)
-      num <- getE :: GetEvents Word16
+      num <- get :: Get Word16
       string <- getString (num - sz_string_id)
-      sId <- getE :: GetEvents StringId
+      sId <- get :: Get StringId
       return (InternString string sId)
     )),
 
  (VariableSizeParser EVENT_THREAD_LABEL (do -- (thread, str)
-      num <- getE :: GetEvents Word16
-      tid <- getE
+      num <- get :: Get Word16
+      tid <- get
       str <- getString (num - sz_tid)
       return ThreadLabel{ thread      = tid
                         , threadlabel = str }
@@ -339,19 +336,19 @@ standardParsers = [
 ghc7Parsers :: [EventParser EventInfo]
 ghc7Parsers = [
  (FixedSizeParser EVENT_CREATE_THREAD sz_tid (do  -- (thread)
-      t <- getE
+      t <- get
       return CreateThread{thread=t}
    )),
 
  (FixedSizeParser EVENT_RUN_THREAD sz_tid (do  --  (thread)
-      t <- getE
+      t <- get
       return RunThread{thread=t}
    )),
 
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status) (do
       -- (thread, status)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
+      t <- get
+      s <- get :: Get RawThreadStopStatus
       return StopThread{thread=t, status = if s > maxThreadStopStatus
                                               then NoStatus
                                               else mkStopStatus s}
@@ -359,9 +356,9 @@ ghc7Parsers = [
 
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) (do
       -- (thread, status, info)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
-      i <- getE :: GetEvents ThreadId
+      t <- get
+      s <- get :: Get RawThreadStopStatus
+      i <- get :: Get ThreadId
       return StopThread{thread = t,
                         status = case () of
                                   _ | s > maxThreadStopStatus
@@ -373,13 +370,13 @@ ghc7Parsers = [
    )),
 
  (FixedSizeParser EVENT_THREAD_RUNNABLE sz_tid (do  -- (thread)
-      t <- getE
+      t <- get
       return ThreadRunnable{thread=t}
    )),
 
  (FixedSizeParser EVENT_MIGRATE_THREAD (sz_tid + sz_cap) (do  --  (thread, newCap)
-      t  <- getE
-      nc <- getE :: GetEvents CapNo
+      t  <- get
+      nc <- get :: Get CapNo
       return MigrateThread{thread=t,newCap=fromIntegral nc}
    )),
 
@@ -387,29 +384,29 @@ ghc7Parsers = [
  -- 'ghc6Parsers' section below. Since we're parsing them anyway, we might
  -- as well convert them to the new SparkRun/SparkSteal events.
  (FixedSizeParser EVENT_RUN_SPARK sz_tid (do  -- (thread)
-      _ <- getE :: GetEvents ThreadId
+      _ <- get :: Get ThreadId
       return SparkRun
    )),
 
  (FixedSizeParser EVENT_STEAL_SPARK (sz_tid + sz_cap) (do  -- (thread, victimCap)
-      _  <- getE :: GetEvents ThreadId
-      vc <- getE :: GetEvents CapNo
+      _  <- get :: Get ThreadId
+      vc <- get :: Get CapNo
       return SparkSteal{victimCap=fromIntegral vc}
    )),
 
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_tid (do  -- (sparkThread)
-      st <- getE :: GetEvents ThreadId
+      st <- get :: Get ThreadId
       return CreateSparkThread{sparkThread=st}
    )),
 
  (FixedSizeParser EVENT_SPARK_COUNTERS (7*8) (do -- (crt,dud,ovf,cnv,gcd,fiz,rem)
-      crt <- getE :: GetEvents Word64
-      dud <- getE :: GetEvents Word64
-      ovf <- getE :: GetEvents Word64
-      cnv <- getE :: GetEvents Word64
-      gcd <- getE :: GetEvents Word64
-      fiz <- getE :: GetEvents Word64
-      rem <- getE :: GetEvents Word64
+      crt <- get :: Get Word64
+      dud <- get :: Get Word64
+      ovf <- get :: Get Word64
+      cnv <- get :: Get Word64
+      gcd <- get :: Get Word64
+      fiz <- get :: Get Word64
+      rem <- get :: Get Word64
       return SparkCounters{sparksCreated    = crt, sparksDud       = dud,
                            sparksOverflowed = ovf, sparksConverted = cnv,
                            -- Warning: order of fiz and gcd reversed!
@@ -422,34 +419,34 @@ ghc7Parsers = [
  (simpleEvent EVENT_SPARK_OVERFLOW SparkOverflow),
  (simpleEvent EVENT_SPARK_RUN      SparkRun),
  (FixedSizeParser EVENT_SPARK_STEAL sz_cap (do  -- (victimCap)
-      vc <- getE :: GetEvents CapNo
+      vc <- get :: Get CapNo
       return SparkSteal{victimCap=fromIntegral vc}
    )),
  (simpleEvent EVENT_SPARK_FIZZLE   SparkFizzle),
  (simpleEvent EVENT_SPARK_GC       SparkGC),
 
  (FixedSizeParser EVENT_TASK_CREATE (sz_taskid + sz_cap + sz_kernel_tid) (do  -- (taskID, cap, tid)
-      taskId <- getE :: GetEvents TaskId
-      cap    <- getE :: GetEvents CapNo
-      tid    <- getE :: GetEvents KernelThreadId
+      taskId <- get :: Get TaskId
+      cap    <- get :: Get CapNo
+      tid    <- get :: Get KernelThreadId
       return TaskCreate{ taskId, cap = fromIntegral cap, tid }
    )),
  (FixedSizeParser EVENT_TASK_MIGRATE (sz_taskid + sz_cap*2) (do  -- (taskID, cap, new_cap)
-      taskId  <- getE :: GetEvents TaskId
-      cap     <- getE :: GetEvents CapNo
-      new_cap <- getE :: GetEvents CapNo
+      taskId  <- get :: Get TaskId
+      cap     <- get :: Get CapNo
+      new_cap <- get :: Get CapNo
       return TaskMigrate{ taskId, cap = fromIntegral cap
                                 , new_cap = fromIntegral new_cap
                         }
    )),
  (FixedSizeParser EVENT_TASK_DELETE (sz_taskid) (do  -- (taskID)
-      taskId <- getE :: GetEvents TaskId
+      taskId <- get :: Get TaskId
       return TaskDelete{ taskId }
    )),
 
  (FixedSizeParser EVENT_THREAD_WAKEUP (sz_tid + sz_cap) (do  -- (thread, other_cap)
-      t <- getE
-      oc <- getE :: GetEvents CapNo
+      t <- get
+      oc <- get :: Get CapNo
       return WakeupThread{thread=t,otherCap=fromIntegral oc}
    ))
  ]
@@ -463,23 +460,23 @@ ghc6Parsers = [
  (FixedSizeParser EVENT_STARTUP 0 (do
       -- BUG in GHC 6.12: the startup event was incorrectly
       -- declared as size 0, so we accept it here.
-      c <- getE :: GetEvents CapNo
+      c <- get :: Get CapNo
       return Startup{ n_caps = fromIntegral c }
    )),
 
  (FixedSizeParser EVENT_CREATE_THREAD sz_old_tid (do  -- (thread)
-      t <- getE
+      t <- get
       return CreateThread{thread=t}
    )),
 
  (FixedSizeParser EVENT_RUN_THREAD sz_old_tid (do  --  (thread)
-      t <- getE
+      t <- get
       return RunThread{thread=t}
    )),
 
  (FixedSizeParser EVENT_STOP_THREAD (sz_old_tid + 2) (do  -- (thread, status)
-      t <- getE
-      s <- getE :: GetEvents Word16
+      t <- get
+      s <- get :: Get Word16
       let stat = fromIntegral s
       return StopThread{thread=t, status = if stat > maxBound
                                               then NoStatus
@@ -487,13 +484,13 @@ ghc6Parsers = [
    )),
 
  (FixedSizeParser EVENT_THREAD_RUNNABLE sz_old_tid (do  -- (thread)
-      t <- getE
+      t <- get
       return ThreadRunnable{thread=t}
    )),
 
  (FixedSizeParser EVENT_MIGRATE_THREAD (sz_old_tid + sz_cap) (do  --  (thread, newCap)
-      t  <- getE
-      nc <- getE :: GetEvents CapNo
+      t  <- get
+      nc <- get :: Get CapNo
       return MigrateThread{thread=t,newCap=fromIntegral nc}
    )),
 
@@ -505,24 +502,24 @@ ghc6Parsers = [
  -- out of sync and eventual parse failure. Since we're parsing them anyway,
  -- we might as well convert them to the new SparkRun/SparkSteal events.
  (FixedSizeParser EVENT_RUN_SPARK sz_old_tid (do  -- (thread)
-      _ <- getE :: GetEvents ThreadId
+      _ <- get :: Get ThreadId
       return SparkRun
    )),
 
  (FixedSizeParser EVENT_STEAL_SPARK (sz_old_tid + sz_cap) (do  -- (thread, victimCap)
-      _  <- getE :: GetEvents ThreadId
-      vc <- getE :: GetEvents CapNo
+      _  <- get :: Get ThreadId
+      vc <- get :: Get CapNo
       return SparkSteal{victimCap=fromIntegral vc}
    )),
 
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_old_tid (do  -- (sparkThread)
-      st <- getE :: GetEvents ThreadId
+      st <- get :: Get ThreadId
       return CreateSparkThread{sparkThread=st}
    )),
 
  (FixedSizeParser EVENT_THREAD_WAKEUP (sz_old_tid + sz_cap) (do  -- (thread, other_cap)
-      t <- getE
-      oc <- getE :: GetEvents CapNo
+      t <- get
+      oc <- get :: Get CapNo
       return WakeupThread{thread=t,otherCap=fromIntegral oc}
    ))
  ]
@@ -531,45 +528,45 @@ mercuryParsers :: [EventParser EventInfo]
 mercuryParsers = [
  (FixedSizeParser EVENT_MER_START_PAR_CONJUNCTION
     (sz_par_conj_dyn_id + sz_par_conj_static_id)
-    (do dyn_id <- getE
-        static_id <- getE
+    (do dyn_id <- get
+        static_id <- get
         return (MerStartParConjunction dyn_id static_id))
  ),
 
  (FixedSizeParser EVENT_MER_STOP_PAR_CONJUNCTION sz_par_conj_dyn_id
-    (do dyn_id <- getE
+    (do dyn_id <- get
         return (MerEndParConjunction dyn_id))
  ),
 
  (FixedSizeParser EVENT_MER_STOP_PAR_CONJUNCT sz_par_conj_dyn_id
-    (do dyn_id <- getE
+    (do dyn_id <- get
         return (MerEndParConjunct dyn_id))
  ),
 
  (FixedSizeParser EVENT_MER_CREATE_SPARK (sz_par_conj_dyn_id + sz_spark_id)
-    (do dyn_id <- getE
-        spark_id <- getE
+    (do dyn_id <- get
+        spark_id <- get
         return (MerCreateSpark dyn_id spark_id))
  ),
 
  (FixedSizeParser EVENT_MER_FUT_CREATE (sz_future_id + sz_string_id)
-    (do future_id <- getE
-        name_id <- getE
+    (do future_id <- get
+        name_id <- get
         return (MerFutureCreate future_id name_id))
  ),
 
  (FixedSizeParser EVENT_MER_FUT_WAIT_NOSUSPEND (sz_future_id)
-    (do future_id <- getE
+    (do future_id <- get
         return (MerFutureWaitNosuspend future_id))
  ),
 
  (FixedSizeParser EVENT_MER_FUT_WAIT_SUSPENDED (sz_future_id)
-    (do future_id <- getE
+    (do future_id <- get
         return (MerFutureWaitSuspended future_id))
  ),
 
  (FixedSizeParser EVENT_MER_FUT_SIGNAL (sz_future_id)
-    (do future_id <- getE
+    (do future_id <- get
         return (MerFutureSignal future_id))
  ),
 
@@ -578,7 +575,7 @@ mercuryParsers = [
  (simpleEvent EVENT_MER_LOOKING_FOR_LOCAL_SPARK MerLookingForLocalSpark),
 
  (FixedSizeParser EVENT_MER_RELEASE_CONTEXT sz_tid
-    (do thread_id <- getE
+    (do thread_id <- get
         return (MerReleaseThread thread_id))
  ),
 
@@ -590,22 +587,22 @@ mercuryParsers = [
 perfParsers :: [EventParser EventInfo]
 perfParsers = [
  (VariableSizeParser EVENT_PERF_NAME (do -- (perf_num, name)
-      num     <- getE :: GetEvents Word16
-      perfNum <- getE
+      num     <- get :: Get Word16
+      perfNum <- get
       name    <- getString (num - sz_perf_num)
       return PerfName{perfNum, name}
    )),
 
  (FixedSizeParser EVENT_PERF_COUNTER (sz_perf_num + sz_kernel_tid + 8) (do -- (perf_num, tid, period)
-      perfNum <- getE
-      tid     <- getE
-      period  <- getE
+      perfNum <- get
+      tid     <- get
+      period  <- get
       return PerfCounter{perfNum, tid, period}
   )),
 
  (FixedSizeParser EVENT_PERF_TRACEPOINT (sz_perf_num + sz_kernel_tid) (do -- (perf_num, tid)
-      perfNum <- getE
-      tid     <- getE
+      perfNum <- get
+      tid     <- get
       return PerfTracepoint{perfNum, tid}
   ))
  ]

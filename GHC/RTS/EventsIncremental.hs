@@ -251,7 +251,7 @@ mkCap ed sz
 -- Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> Decoder (Maybe Event)
 mkEventDecoder header =
-    getToDecoder (runReaderT (getEvent parsers) parsers)
+    getToDecoder (getEvent parsers) 
   where
     imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
     -- This test is complete, no-one has extended this event yet and all future
