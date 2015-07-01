@@ -14,9 +14,6 @@ import System.IO
 import Text.Printf (printf)
 
 
-port :: Int
-port = 44444
-
 pullEvents :: Handle -> IO ()
 pullEvents h = do
     eh <- ehOpen h 4096
@@ -24,9 +21,9 @@ pullEvents h = do
     trace "Pulling events" $ printEventsIncremental eh True
 
 listen :: Int -> IO ()
-listen port = withSocketsDo $ do
-  sock <- listenOn (PortNumber (fromIntegral port))
-  printf "Listening on port %d\n" port
+listen portno = withSocketsDo $ do
+  sock <- listenOn (PortNumber (fromIntegral portno))
+  printf "Listening on port %d\n" portno
   forever $ do
     (handle, host, port) <- accept sock
     printf "Accepted connection from %s: %s\n" host (show port)
