@@ -24,13 +24,11 @@ import GHC.RTS.Events
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes hiding (time, spec)
 
-import Control.Applicative ((<$>), (<*>), Applicative(..))
-import Control.Monad.Reader (runReaderT)
 import Data.Binary.Get hiding (remaining)
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import System.IO (IOMode(ReadMode), openBinaryFile, Handle, hPutStrLn, stderr)
+import System.IO (Handle, hPutStrLn, stderr)
 import Data.Word (Word16)
 
 #define EVENTLOG_CONSTANTS_ONLY
@@ -114,7 +112,7 @@ parseHeader dec@(Fail _ _ errMsg) = (ParseError errMsg, ParsingHeader dec)
 
 -- | Returns the 'Header' if it is fully parsed.
 readHeader :: EventParserState -> Maybe Header
-readHeader (ParsingHeader hd) = Nothing
+readHeader (ParsingHeader _ ) = Nothing
 readHeader (ParsingEvents ed) = Just $ edHeader ed
 
 -- | Parses at most one event from the state (refer to 'ParseResult' datatype) and
@@ -160,13 +158,6 @@ ehOpen :: Handle -- ^ Handle to read the input from. Its contents are expected
 ehOpen handle sz = do
   ioref <- newIORef $ newParser
   return EH { ehHandle = handle, ehChunkSize = sz, ehState = ioref }
-
-ehReadHeader :: EventHandle -> IO (Maybe Header)
-ehReadHeader eh = do
-  state <- readIORef $ ehState eh
-  case state of
-    (ParsingHeader _) -> return Nothing
-    (ParsingEvents ed) -> return . Just $ edHeader ed
 
 -- | Reads at most one event from the EventHandle. It is intended called
 -- repeadetly, returning one event at a time. Will consume input incrementally in
