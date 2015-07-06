@@ -18,6 +18,12 @@ module GHC.RTS.EventsIncremental (
   ehOpen, ehReadEvent,
   -- * For compatibility with old clients
   readEventLogFromFile,
+  -- TODO TEMP
+  readEL,
+  capSplitEvents,
+  formEventLog,
+  addBlockMarker,
+  calc
  ) where
 
 import GHC.RTS.Events
@@ -25,11 +31,18 @@ import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes hiding (time, spec)
 
 import Data.Binary.Get hiding (remaining)
+import Data.Binary.Put
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (Handle, hPutStrLn, stderr)
 import Data.Word (Word16)
+
+
+-- TODO temporary import
+import qualified Data.ByteString.Lazy as BL
+import Data.Either (rights)
+import qualified Data.IntMap.Strict as IMap
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
@@ -128,7 +141,6 @@ readEvent' (ed@(ED _ remaining header partial)) =
       (Done bs sz (Just event)) ->
         let emptyDecoder = mkEventDecoder header in
         case evSpec event of
-          -- TODO the actual EventBlock is skipped. Perhaps it shouldn't be?
           EventBlock _ blockCap newRemaining -> do -- process a new block
             let newState = newParserState (isCap blockCap) newRemaining
                                           header emptyDecoder bs
@@ -224,6 +236,55 @@ readEventLogFromFile' eps events =
                             _ -> (events, newState', Incomplete)
         (ParseError err) -> (events, newState, ParseError err)
     where (newEvent, newState) = readEvent eps
+
+-- Testing function to open logs quicker, to be removed
+readEL :: FilePath -> IO [Event]
+readEL fp = do
+  eitherLog <- readEventLogFromFile fp
+  let log = head $ rights [eitherLog]
+  return $ events $ dat log
+
+getIntCap :: Event -> Int
+getIntCap Event{evCap = cap} =
+  case cap of
+  Just capNo -> capNo
+  Nothing    -> -1
+
+-- Creates an IntMap of the events with capability number as the key.
+-- Key -1 indicates global (capless) event
+capSplitEvents :: [Event] -> IMap.IntMap [Event]
+capSplitEvents evts = capSplitEvents' evts IMap.empty
+
+capSplitEvents' :: [Event] -> IMap.IntMap [Event] -> IMap.IntMap [Event]
+capSplitEvents' evts imap =
+  case evts of
+  (x:xs) -> capSplitEvents' xs (IMap.insertWith (++) (getIntCap x) [x] imap)
+  []     -> imap
+
+-- Create EventLog for writing that contains EventBlock markers
+formEventLog :: Header -> IMap.IntMap [Event] -> EventLog
+formEventLog hdr evts =
+  undefined
+
+-- Adds a block marker to the beginnng of a list of events, annotated with
+-- its capability. All events are expected to belong to the same cap.
+addBlockMarker :: [Event] -> Maybe Int -> [Event]
+addBlockMarker evts mbCap =
+  -- TODO EB has end, not start time!
+  (Event startTime (EventBlock endTime cap sz) mbCap) : evts
+  where sz = toInteger . BL.length $ runPut $ calc evts
+        cap = case mbCap of
+          Just c  -> c
+          Nothing -> -1
+        startTime = case evts of
+          (x:_) -> evTime x
+          [] -> error "Cannot add block marker to an empty list of events"
+        endTime = evTime $ last $ sortEvents evts
+
+
+
+calc :: [Event] -> PutEvents ()
+calc es = mapM_ putEvent es
 
 -- Checks if the capability is not -1 (which indicates a global eventblock), so
 -- has no associated capability

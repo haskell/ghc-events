@@ -22,6 +22,8 @@ module GHC.RTS.Events (
   CapEvent(..),
 
   -- * Reading and writing event logs
+  putEvent,
+  PutEvents,
   writeEventLogToFile,
 
   -- * Utilities
