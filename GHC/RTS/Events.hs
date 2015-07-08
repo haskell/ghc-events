@@ -22,8 +22,9 @@ module GHC.RTS.Events (
   CapEvent(..),
 
   -- * Reading and writing event logs
-  putEvent,
   PutEvents,
+  putEvent,
+  putEventLog,
   writeEventLogToFile,
 
   -- * Utilities
@@ -109,8 +110,8 @@ getHeader = do
             when (emark /= EVENT_HEADER_END) $
                  fail "Header end marker not found"
             db <- get :: Get Marker
-            when (db /= EVENT_DATA_BEGIN) $ 
-                  fail "My Data begin marker not found" 
+            when (db /= EVENT_DATA_BEGIN) $
+                  fail "My Data begin marker not found"
             return $ Header ets
      where
       getEventTypes :: Get [EventType]
@@ -822,7 +823,7 @@ ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
       printf (desc (fromJust (M.lookup (fromIntegral ref) imap)))
     _ -> showEventInfo spec
 
--- | Pretty prints an 'Event'. Cannot identify 'UnknownEvent's but has a 
+-- | Pretty prints an 'Event'. Cannot identify 'UnknownEvent's but has a
 -- simple type signature
 ppEvent' :: Event -> String
 ppEvent' (Event time spec evCap) =
@@ -1278,4 +1279,3 @@ splitNull :: String -> [String]
 splitNull [] = []
 splitNull xs = case span (/= '\0') xs of
                 (x, xs') -> x : splitNull (drop 1 xs')
-
