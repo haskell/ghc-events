@@ -19,6 +19,7 @@ module GHC.RTS.EventsIncremental (
   -- * For compatibility with old clients
   readEventLogFromFile,
   -- TODO TEMP
+  writeElToFile,
   readEL,
   capSplitEvents,
   formEventLog,
@@ -196,7 +197,7 @@ ehReadEvent (EH handle chunkSize stateRef) = do
 -- | Reads a full 'EventLog' from file. If the file is incomplete, will still
 -- return a properly formed 'EventLog' object with all the events until the point
 -- of malformation/cutoff. NOTE: this function will load the entire file to
--- memory, so it is better to not use it with large event logs. 
+-- memory, so it is better to not use it with large event logs.
 {-# DEPRECATED readEventLogFromFile "The incremental parser interface \
 should be used" #-}
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
@@ -237,6 +238,16 @@ readEventLogFromFile' eps events =
         (ParseError err) -> (events, newState, ParseError err)
     where (newEvent, newState) = readEvent eps
 
+-- Writes eventlog to file after wrapping its events in EventBlocks
+writeElToFile :: FilePath -> EventLog -> IO ()
+writeElToFile fp el@(EventLog header (Data events)) = do
+  BL.writeFile fp $ runPut $ putEventLog blockedEl
+  where
+    eventsMap = capSplitEvents events
+    blockedEventsMap = IMap.mapWithKey addBlockMarker eventsMap
+    blockedEl = el{dat = (Data $ IMap.foldr (++) [] blockedEventsMap)}
+
+
 -- Testing function to open logs quicker, to be removed
 readEL :: FilePath -> IO [Event]
 readEL fp = do
@@ -268,18 +279,15 @@ formEventLog hdr evts =
 
 -- Adds a block marker to the beginnng of a list of events, annotated with
 -- its capability. All events are expected to belong to the same cap.
-addBlockMarker :: [Event] -> Maybe Int -> [Event]
-addBlockMarker evts mbCap =
-  -- TODO EB has end, not start time!
-  (Event startTime (EventBlock endTime cap sz) mbCap) : evts
+addBlockMarker :: Int -> [Event] -> [Event]
+addBlockMarker cap evts =
+  (Event startTime (EventBlock endTime cap sz) (isCap cap)) : sortedEvts
   where sz = toInteger . BL.length $ runPut $ calc evts
-        cap = case mbCap of
-          Just c  -> c
-          Nothing -> -1
-        startTime = case evts of
+        startTime = case sortedEvts of
           (x:_) -> evTime x
           [] -> error "Cannot add block marker to an empty list of events"
-        endTime = evTime $ last $ sortEvents evts
+        sortedEvts = sortEvents evts
+        endTime = evTime $ last sortedEvts
 
 
 
@@ -303,7 +311,7 @@ mkCap ed sz
 -- Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> Decoder (Maybe Event)
 mkEventDecoder header =
-    getToDecoder (getEvent parsers) 
+    getToDecoder (getEvent parsers)
   where
     imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
     -- This test is complete, no-one has extended this event yet and all future
