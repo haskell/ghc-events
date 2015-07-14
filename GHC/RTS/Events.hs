@@ -71,6 +71,9 @@ import Data.Array
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 
+
+import Debug.Trace
+
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
@@ -134,6 +137,7 @@ getEvent (EventParsers parsers) = do
      then return Nothing
      else do !ts   <- get
              -- trace ("event: " ++ show etRef) $ do
+             -- spec <- traceShow etRef $ parsers ! fromIntegral etRef
              spec <- parsers ! fromIntegral etRef
              return $ Just (Event ts spec undefined)
 
@@ -977,10 +981,9 @@ putEventSpec (Startup caps) = do
     putCap (fromIntegral caps)
 
 putEventSpec (EventBlock end cap sz) = do
+    putE (fromIntegral (sz+24) :: BlockSize)
     putE end
     putE (fromIntegral cap :: CapNo)
-    putE end
-    putE (fromIntegral sz :: Integer)
 
 putEventSpec (CreateThread t) =
     putE t

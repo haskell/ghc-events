@@ -19,6 +19,7 @@ module GHC.RTS.EventsIncremental (
   -- * For compatibility with old clients
   readEventLogFromFile,
   -- TODO TEMP
+  blockLog,
   writeElToFile,
   readEL,
   capSplitEvents,
@@ -37,7 +38,7 @@ import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (Handle, hPutStrLn, stderr)
-import Data.Word (Word16)
+import Data.Word (Word16, Word32)
 
 
 -- TODO temporary import
@@ -64,7 +65,7 @@ data EventDecoder =
   ED { -- If in EventBlock, we track it's capability
        edCap       :: Maybe Int
        -- Tracks the number of remaining bytes in an EventBlock
-     , edRemaining :: Integer
+     , edRemaining :: Word32
        -- The full parsed header that is used to create a new decoder once
        -- edPartial returns an 'Item'
      , edHeader   :: Header
@@ -97,7 +98,7 @@ newParser = ParsingHeader (getToDecoder getHeader)
 
 -- Creates a new parser state for events
 -- ByteString is fed to the partial decoder
-newParserState :: Maybe Int -> Integer -> Header
+newParserState :: Maybe Int -> Word32 -> Header
                -> Decoder (Maybe Event) -> B.ByteString
                -> EventParserState
 newParserState cap remaining header partial bss =
@@ -241,19 +242,30 @@ readEventLogFromFile' eps events =
 -- Writes eventlog to file after wrapping its events in EventBlocks
 writeElToFile :: FilePath -> EventLog -> IO ()
 writeElToFile fp el@(EventLog header (Data events)) = do
+  mapM_ print blockedEvents
   BL.writeFile fp $ runPut $ putEventLog blockedEl
   where
     eventsMap = capSplitEvents events
     blockedEventsMap = IMap.mapWithKey addBlockMarker eventsMap
-    blockedEl = el{dat = (Data $ IMap.foldr (++) [] blockedEventsMap)}
+    blockedEl = el{dat = Data blockedEvents}
+    blockedEvents = IMap.foldr (++) [] blockedEventsMap
 
+blockLog :: FilePath -> IO [Event]
+blockLog fp  = do
+  eitherEl <- readEventLogFromFile fp
+  let   el@(EventLog header (Data events)) = head $ rights [eitherEl]
+        eventsMap = capSplitEvents events
+        blockedEventsMap = IMap.mapWithKey addBlockMarker eventsMap
+        blockedEl = el{dat = Data blockedEvents}
+        blockedEvents = IMap.foldr (++) [] blockedEventsMap
+  return blockedEvents
 
--- Testing function to open logs quicker, to be removed
-readEL :: FilePath -> IO [Event]
+-- Testing function to read+write
+readEL :: FilePath -> IO ()
 readEL fp = do
   eitherLog <- readEventLogFromFile fp
   let log = head $ rights [eitherLog]
-  return $ events $ dat log
+  writeElToFile "test.eventlog" log
 
 getIntCap :: Event -> Int
 getIntCap Event{evCap = cap} =
@@ -282,7 +294,7 @@ formEventLog hdr evts =
 addBlockMarker :: Int -> [Event] -> [Event]
 addBlockMarker cap evts =
   (Event startTime (EventBlock endTime cap sz) (isCap cap)) : sortedEvts
-  where sz = toInteger . BL.length $ runPut $ calc evts
+  where sz = fromIntegral . BL.length $ runPut $ calc evts
         startTime = case sortedEvts of
           (x:_) -> evTime x
           [] -> error "Cannot add block marker to an empty list of events"
