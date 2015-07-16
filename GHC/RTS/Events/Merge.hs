@@ -47,6 +47,7 @@ mergeOn f (x:xs) (y:ys) | f x <= f y = x : mergeOn f xs (y:ys)
 data MaxVars = MaxVars { mcapset :: !Word32
                        , mcap :: !Int
                        , mthread :: !ThreadId }
+-- TODO introduce parallel RTS process and machine var.s
 
 instance Monoid MaxVars where
     mempty  = MaxVars 0 0 0
@@ -110,3 +111,4 @@ shift (MaxVars mcs mc mt) = map (updateSpec shift')
     shift' (OsProcessParentPid cs ppid) = OsProcessParentPid (sh mcs cs) ppid
     shift' (WallClockTime cs sec nsec) = WallClockTime (sh mcs cs) sec nsec
     shift' x = x
+    -- TODO extend by new shift for Eden events

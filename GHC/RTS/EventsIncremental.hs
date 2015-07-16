@@ -334,11 +334,32 @@ mkEventDecoder header =
     -- different set of event parsers.  Note that the ghc7 event parsers
     -- are standard events, and can be used by other runtime systems that
     -- make use of threadscope.
-    event_parsers = standardParsers ++
-                    if is_ghc_6
-                        then ghc6Parsers
-                        else ghc7Parsers
-                             ++ mercuryParsers ++ perfParsers
+
+    -- GHC-7.8.2 uses a different thread block status encoding,
+    -- and therefore requires a different parser for the stop
+    -- event. Later, in GHC-7.8.3, the old encoding was restored.
+    -- GHC-7.8.2 can be recognised by presence and absence of
+    -- events in the header:
+    --   * User markers were added in GHC-7.8 
+    --   * an empty event HACK_BUG_T9003 was added in GHC-7.8.3
+    -- This fix breaks software which uses ghc-events and combines
+    -- user markers with the older stop status encoding. We don't
+    -- know of any such software, though.
+    is_pre77  = M.notMember EVENT_USER_MARKER imap
+    is_ghc782 = M.member EVENT_USER_MARKER imap &&
+                M.notMember EVENT_HACK_BUG_T9003 imap
+
+    stopParsers = if is_pre77 then pre77StopParsers
+                    else if is_ghc782 then [ghc782StopParser]
+                        else [post782StopParser]
+
+    event_parsers = if is_ghc_6
+                        then standardParsers ++ ghc6Parsers ++
+                            parRTSParsers sz_old_tid
+                        else standardParsers ++ ghc7Parsers ++
+                            stopParsers ++ parRTSParsers sz_tid ++
+                            mercuryParsers ++ perfParsers
+
     parsers = EventParsers $ mkEventTypeParsers imap event_parsers
 
 -- Turns an instance of Get into a Decoder
