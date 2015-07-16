@@ -1,5 +1,5 @@
 name:             ghc-events
-version:          0.4.3.0
+version:          0.4.4.0
 synopsis:         Library and tool for parsing .eventlog files from GHC
 description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the ghc-events tool permitting, in particular,
@@ -7,19 +7,36 @@ description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
 category:         Development, GHC, Debug, Profiling, Trace
 license:          BSD3
 license-file:     LICENSE
-author:           Donnie Jones <donnie@darthik.com>,
+author:           Donnie Jones <donnie@darthik.com>, 
                   Simon Marlow <marlowsd@gmail.com>,
                   Paul Bone <pbone@csse.unimelb.edu.au>,
+                  Mischa Dieterle <dieterle@mathematik.uni-marburg.de>,
+                  Thomas Horstmeyer <horstmey@mathematik.uni-marburg.de>,
                   Duncan Coutts <duncan@well-typed.com>,
                   Nicolas Wu <nick@well-typed.com>,
+                  Jost Berthold <berthold@diku.dk>
                   Mikolaj Konarski <mikolaj@well-typed.com>
 maintainer:       Simon Marlow <marlowsd@gmail.com>
-bug-reports:      http://trac.haskell.org/ThreadScope/
+bug-reports:      https://github.com/haskell/ThreadScope/issues
 build-type:       Simple
-tested-with:      GHC == 6.12.3, GHC == 7.0.4, GHC == 7.2.1, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.8.2, GHC == 7.8.3
+tested-with:      GHC == 6.12.3, GHC == 7.4.1, GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3, GHC == 7.10.1
 cabal-version:    >= 1.8
-extra-source-files: GHC/RTS/EventLogFormat.h,
-                    test/*.eventlog
+extra-source-files: GHC/RTS/EventLogFormat.h
+                    test/queens-ghc-6.12.1.eventlog
+                    test/queens-ghc-6.12.1.eventlog.reference
+                    test/queens-ghc-7.0.2.eventlog
+                    test/queens-ghc-7.0.2.eventlog.reference
+                    test/mandelbrot-mmc-2011-06-14.eventlog
+                    test/mandelbrot-mmc-2011-06-14.eventlog.reference
+                    test/mdlLogMPI1.eventlog
+                    test/mdlLogMPI1.eventlog.reference
+                    test/pre77stop.eventlog
+                    test/pre77stop.eventlog.reference
+                    test/782stop.eventlog
+                    test/782stop.eventlog.reference
+                    test/783stop.eventlog
+                    test/783stop.eventlog.reference
+                    test/stop.hs
 
 source-repository head
   type: git
@@ -44,10 +61,11 @@ library
                     GHC.RTS.EventTypes
   include-dirs:     GHC/RTS
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  other-extensions: FlexibleContexts, CPP
 
 executable ghc-events
   main-is:          GhcEvents.hs
-  build-depends:    base, mtl, containers, binary, bytestring, array, network
+  build-depends:    base, containers, binary, bytestring, array, network
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   ghc-options:      -debug
 
