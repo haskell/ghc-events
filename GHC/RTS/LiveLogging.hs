@@ -1,4 +1,4 @@
-module GHC.RTS.LiveLogging (
+module GHC.RTS.LiveLogging {-# WARNING "Live logging is VERY experimental." #-} (
   listen,
   printEventsIncremental,
   pullEvents) where
