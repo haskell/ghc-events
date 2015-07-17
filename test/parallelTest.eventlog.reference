@@ -1,0 +1,487 @@
+Event Types:
+   0: Create thread (size 4)
+   1: Run thread (size 4)
+   2: Stop thread (size 10)
+   3: Thread runnable (size 4)
+   4: Migrate thread (size 6)
+   8: Wakeup thread (size 6)
+   9: Starting GC (size 0)
+  10: Finished GC (size 0)
+  11: Request sequential GC (size 0)
+  12: Request parallel GC (size 0)
+  15: Create spark thread (size 4)
+  16: Log message (size variable)
+  17: Create capabilities (size 2)
+  18: Block marker (size 14)
+  19: User message (size variable)
+  20: GC idle (size 0)
+  21: GC working (size 0)
+  22: GC done (size 0)
+  23: Version (size variable)
+  24: Program invocation (size variable)
+  25: Create capability set (size 6)
+  26: Delete capability set (size 4)
+  27: Add capability to capability set (size 6)
+  28: Remove capability from capability set (size 6)
+  29: RTS name and version (size variable)
+  30: Program arguments (size variable)
+  31: Program environment variables (size variable)
+  32: Process ID (size 8)
+  33: Parent process ID (size 8)
+  34: Spark counters (size 56)
+  35: Spark create (size 0)
+  36: Spark dud (size 0)
+  37: Spark overflow (size 0)
+  38: Spark run (size 0)
+  39: Spark steal (size 2)
+  40: Spark fizzle (size 0)
+  41: Spark GC (size 0)
+  43: Wall clock time (size 16)
+  44: Thread label (size variable)
+  45: Create capability (size 2)
+  46: Delete capability (size 2)
+  47: Disable capability (size 2)
+  48: Enable capability (size 2)
+  49: Total heap mem ever allocated (size 12)
+  50: Current heap size (size 12)
+  51: Current heap live data (size 12)
+  52: Heap static parameters (size 38)
+  53: GC statistics (size 50)
+  54: Synchronise stop-the-world GC (size 0)
+  55: Task create (size 18)
+  56: Task migrate (size 12)
+  57: Task delete (size 8)
+  58: User marker (size variable)
+  59: Empty event for bug #9003 (size 0)
+  60: Starting message receival (size 0)
+  61: Finished message receival (size 0)
+  62: Creating Process (size 4)
+  63: Killing Process (size 4)
+  64: Assigning thread to process (size 8)
+  65: Creating machine (size 10)
+  66: Killing machine (size 2)
+  67: Sending message (size 19)
+  68: Receiving message (size 23)
+  69: Sending/Receiving local message (size 17)
+
+Events:
+1016690453: startup: 1 capabilities
+      965: creating machine 2 at 143714457434916300
+1016695409: compiler version is 7.10.20150612
+1016698802: program invocation: /opt/Eden/test/./jost=ChainDep 2 3 +RTS -l -RTS
+1016705678: created capset 0 of type CapsetOsProcess
+1016705969: created capset 1 of type CapsetClockDomain
+1016707377: created cap 0
+1016707532: assigned cap 0 to capset 0
+1016707657: assigned cap 0 to capset 1
+1016711376: capset 1: wall clock time 1437144575s 365872000ns (unix epoch)
+1016714262: capset 0: pid 5847
+1016717224: capset 0: parent pid 5845
+1016723343: capset 0: RTS version "GHC-7.10.20150612 rts_l_pm"
+1016724280: capset 0: args: ["/opt/Eden/test/./jost=ChainDep","3","+RTS","-l","-RTS"]
+1016728194: capset 0: env: ["OMPI_MCA_orte_precondition_transports=4d4d233a0e00747c-c08b0d7505a2985d","PVM_RSH=/usr/bin/ssh","LS_COLORS=","PVM_ROOT=/usr/lib/pvm3","PVM_ARCH=LINUX64","PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/.cabal/bin","_=./ChainDep","PWD=/opt/Eden/test","SHLVL=1","PVM_EXPORT=DISPLAY","LESSOPEN=| /usr/bin/lesspipe %s","LESSCLOSE=/usr/bin/lesspipe %s %s","OMPI_MCA_orte_local_daemon_uri=1755316224.0;tcp://192.168.1.15:60361","OMPI_MCA_orte_hnp_uri=1755316224.0;tcp://192.168.1.15:60361","OMPI_MCA_mpi_yield_when_idle=0","OMPI_MCA_orte_app_num=0","OMPI_UNIVERSE_SIZE=1","OMPI_MCA_ess=env","OMPI_MCA_orte_ess_num_procs=2","OMPI_COMM_WORLD_SIZE=2","OMPI_COMM_WORLD_LOCAL_SIZE=2","OMPI_MCA_orte_ess_jobid=1755316225","OMPI_MCA_orte_ess_vpid=1","OMPI_COMM_WORLD_RANK=1","OMPI_COMM_WORLD_LOCAL_RANK=1","OMPI_MCA_opal_cr_is_tool=0","OPAL_OUTPUT_STDERR_FD=22"]
+1016844227: heap stats for heap capset 0: generations 2, 0 bytes max heap size, 524288 bytes alloc area size, 1048576 bytes mblock size, 4096 bytes block size
+1016949065: task 0x1c42f50 created on cap 0 with OS kernel thread 5847
+1020647546: cap 0: starting to receive
+1020647784: cap 0: receiving message with tag RFork at process 0, inport 0 from machine 1, process 1, thread 0 with size 19
+1020663383: cap 0: creating thread 1
+1020666580: creating process 1
+1020666681: cap 0: assigning thread 1 to process 1
+1020669258: cap 0: stop receiving
+1020670948: cap 0: running thread 1
+1020683435: newInport (1,1), blackhole 0x7f31e7e05480
+
+1020684432: connectTSO 1 to inport (1,1,2)
+
+1020708793: sending message with tag DataMes from process 1, thread 1 to machine 1, process 1 on inport 2
+1020710401: connectTSO 1 to inport (1,1,1)
+
+1020962248: sending message with tag Connect from process 1, thread 1 to machine 1, process 1 on inport 1
+1020975009: cap 0: stopping thread 1 (blocked on black hole owned by thread 23150672)
+1020993377: cap 0: starting to receive
+1020994887: cap 0: stop receiving
+1021163829: cap 0: starting to receive
+1021172134: cap 0: receiving message with tag Head at process 1, inport 1 from machine 1, process 1, thread 2 with size 3
+1021172996: cap 0: waking up thread 1 on cap 0
+1021174214: cap 0: stop receiving
+1021174870: cap 0: running thread 1
+1022012154: cap 0: stopping thread 1 (heap overflow)
+1022025732: cap 0: starting GC
+1022030836: cap 0: GC working
+1022048807: cap 0: GC idle
+1022049006: cap 0: GC done
+1022049708: cap 0: GC idle
+1022049746: cap 0: GC done
+1022052664: cap 0: all caps stopped for GC
+1022052988: cap 0: GC stats for heap capset 0: generation 0, 1480 bytes copied, 6712 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1022053665: cap 0: finished GC
+1022054054: cap 0: allocated on heap capset 0: 521488 total bytes till now
+1022054251: cap 0: size of heap capset 0: 1048576 bytes
+1022066437: cap 0: running thread 1
+1022575820: cap 0: stopping thread 1 (heap overflow)
+1022576987: cap 0: starting GC
+1022578110: cap 0: GC working
+1022586192: cap 0: GC idle
+1022586253: cap 0: GC done
+1022586485: cap 0: GC idle
+1022586523: cap 0: GC done
+1022587366: cap 0: all caps stopped for GC
+1022587476: cap 0: GC stats for heap capset 0: generation 0, 1456 bytes copied, 6744 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1022587977: cap 0: finished GC
+1022588072: cap 0: allocated on heap capset 0: 1045776 total bytes till now
+1022588192: cap 0: size of heap capset 0: 1048576 bytes
+1022595448: cap 0: starting to receive
+1022602936: cap 0: receiving message with tag Head at process 1, inport 1 from machine 1, process 1, thread 2 with size 3
+1022609437: cap 0: receiving message with tag Head at process 1, inport 1 from machine 1, process 1, thread 2 with size 3
+1022613717: cap 0: receiving message with tag DataMes at process 1, inport 1 from machine 1, process 1, thread 2 with size 2
+1022614602: cap 0: stop receiving
+1022614857: cap 0: running thread 1
+1023116425: cap 0: stopping thread 1 (heap overflow)
+1023117800: cap 0: starting GC
+1023118851: cap 0: GC working
+1023124706: cap 0: GC idle
+1023124774: cap 0: GC done
+1023125008: cap 0: GC idle
+1023125046: cap 0: GC done
+1023125927: cap 0: all caps stopped for GC
+1023126023: cap 0: GC stats for heap capset 0: generation 0, 472 bytes copied, 6600 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1023126483: cap 0: finished GC
+1023126593: cap 0: allocated on heap capset 0: 1566080 total bytes till now
+1023126699: cap 0: size of heap capset 0: 1048576 bytes
+1023128987: cap 0: running thread 1
+1023633921: cap 0: stopping thread 1 (heap overflow)
+1023634943: cap 0: starting GC
+1023635776: cap 0: GC working
+1023637901: cap 0: GC idle
+1023637951: cap 0: GC done
+1023638120: cap 0: GC idle
+1023638155: cap 0: GC done
+1023638882: cap 0: all caps stopped for GC
+1023638997: cap 0: GC stats for heap capset 0: generation 0, 280 bytes copied, 6520 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1023639342: cap 0: finished GC
+1023639418: cap 0: allocated on heap capset 0: 2090368 total bytes till now
+1023639494: cap 0: size of heap capset 0: 1048576 bytes
+1023641473: cap 0: running thread 1
+1024152336: cap 0: stopping thread 1 (heap overflow)
+1024153886: cap 0: starting GC
+1024154864: cap 0: GC working
+1024156939: cap 0: GC idle
+1024156990: cap 0: GC done
+1024157152: cap 0: GC idle
+1024157190: cap 0: GC done
+1024157995: cap 0: all caps stopped for GC
+1024158092: cap 0: GC stats for heap capset 0: generation 0, 136 bytes copied, 6664 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1024158481: cap 0: finished GC
+1024158576: cap 0: allocated on heap capset 0: 2614656 total bytes till now
+1024158663: cap 0: size of heap capset 0: 1048576 bytes
+1024161612: cap 0: running thread 1
+1024464591: sending message with tag Head from process 1, thread 1 to machine 1, process 1 on inport 1
+1024852218: cap 0: stopping thread 1 (heap overflow)
+1024854903: cap 0: starting GC
+1024857481: cap 0: GC working
+1024862179: cap 0: GC idle
+1024862248: cap 0: GC done
+1024862554: cap 0: GC idle
+1024862592: cap 0: GC done
+1024864137: cap 0: all caps stopped for GC
+1024864234: cap 0: GC stats for heap capset 0: generation 0, 560 bytes copied, 6232 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1024864706: cap 0: finished GC
+1024864813: cap 0: allocated on heap capset 0: 3138904 total bytes till now
+1024864896: cap 0: size of heap capset 0: 1048576 bytes
+1024869616: cap 0: running thread 1
+1025413849: cap 0: stopping thread 1 (heap overflow)
+1025419839: cap 0: starting GC
+1025423868: cap 0: GC working
+1025434468: cap 0: GC idle
+1025434719: cap 0: GC done
+1025435429: cap 0: GC idle
+1025435464: cap 0: GC done
+1025438379: cap 0: all caps stopped for GC
+1025438777: cap 0: GC stats for heap capset 0: generation 0, 480 bytes copied, 6232 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1025439537: cap 0: finished GC
+1025439779: cap 0: allocated on heap capset 0: 3663192 total bytes till now
+1025440120: cap 0: size of heap capset 0: 1048576 bytes
+1025452968: cap 0: running thread 1
+1025986039: cap 0: stopping thread 1 (heap overflow)
+1025989762: cap 0: starting GC
+1025992473: cap 0: GC working
+1025997294: cap 0: GC idle
+1025997478: cap 0: GC done
+1025997720: cap 0: GC idle
+1025997758: cap 0: GC done
+1025999740: cap 0: all caps stopped for GC
+1025999955: cap 0: GC stats for heap capset 0: generation 0, 360 bytes copied, 6280 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1026000391: cap 0: finished GC
+1026000526: cap 0: allocated on heap capset 0: 4187480 total bytes till now
+1026000731: cap 0: size of heap capset 0: 1048576 bytes
+1026005493: cap 0: running thread 1
+1026513329: cap 0: stopping thread 1 (heap overflow)
+1026514156: cap 0: starting GC
+1026514839: cap 0: GC working
+1026517258: cap 0: GC idle
+1026517307: cap 0: GC done
+1026517436: cap 0: GC idle
+1026517475: cap 0: GC done
+1026518137: cap 0: all caps stopped for GC
+1026518269: cap 0: GC stats for heap capset 0: generation 0, 392 bytes copied, 6248 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1026518711: cap 0: finished GC
+1026518810: cap 0: allocated on heap capset 0: 4711768 total bytes till now
+1026518879: cap 0: size of heap capset 0: 1048576 bytes
+1026520905: cap 0: running thread 1
+1026931676: cap 0: stopping thread 1 (thread yielding)
+1026933719: cap 0: running thread 1
+1027040442: cap 0: stopping thread 1 (heap overflow)
+1027041487: cap 0: starting GC
+1027042520: cap 0: GC working
+1027044626: cap 0: GC idle
+1027044691: cap 0: GC done
+1027044855: cap 0: GC idle
+1027044893: cap 0: GC done
+1027045602: cap 0: all caps stopped for GC
+1027045688: cap 0: GC stats for heap capset 0: generation 0, 248 bytes copied, 6216 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1027046008: cap 0: finished GC
+1027046103: cap 0: allocated on heap capset 0: 5236056 total bytes till now
+1027046178: cap 0: size of heap capset 0: 1048576 bytes
+1027047842: cap 0: running thread 1
+1027483007: sending message with tag Head from process 1, thread 1 to machine 1, process 1 on inport 1
+1027763758: cap 0: stopping thread 1 (heap overflow)
+1027769019: cap 0: starting GC
+1027773245: cap 0: GC working
+1027781276: cap 0: GC idle
+1027781516: cap 0: GC done
+1027782027: cap 0: GC idle
+1027782066: cap 0: GC done
+1027784390: cap 0: all caps stopped for GC
+1027784681: cap 0: GC stats for heap capset 0: generation 0, 512 bytes copied, 5944 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1027785214: cap 0: finished GC
+1027785374: cap 0: allocated on heap capset 0: 5760320 total bytes till now
+1027785678: cap 0: size of heap capset 0: 1048576 bytes
+1027796652: cap 0: running thread 1
+1028333218: cap 0: stopping thread 1 (heap overflow)
+1028335233: cap 0: starting GC
+1028336726: cap 0: GC working
+1028340251: cap 0: GC idle
+1028340304: cap 0: GC done
+1028340475: cap 0: GC idle
+1028340513: cap 0: GC done
+1028341397: cap 0: all caps stopped for GC
+1028341525: cap 0: GC stats for heap capset 0: generation 0, 512 bytes copied, 5864 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1028341944: cap 0: finished GC
+1028342058: cap 0: allocated on heap capset 0: 6284608 total bytes till now
+1028342308: cap 0: size of heap capset 0: 1048576 bytes
+1028350725: cap 0: starting to receive
+1028350956: cap 0: receiving message with tag RFork at process 0, inport 0 from machine 1, process 1, thread 0 with size 25
+1028358936: cap 0: creating thread 2
+1028359404: creating process 2
+1028359479: cap 0: assigning thread 2 to process 2
+1028360778: cap 0: stop receiving
+1028360951: cap 0: running thread 1
+1028864269: cap 0: stopping thread 1 (heap overflow)
+1028865693: cap 0: starting GC
+1028866580: cap 0: GC working
+1028870748: cap 0: GC idle
+1028870809: cap 0: GC done
+1028871018: cap 0: GC idle
+1028871056: cap 0: GC done
+1028871958: cap 0: all caps stopped for GC
+1028872081: cap 0: GC stats for heap capset 0: generation 0, 1592 bytes copied, 4720 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1028872522: cap 0: finished GC
+1028872634: cap 0: allocated on heap capset 0: 6806008 total bytes till now
+1028872709: cap 0: size of heap capset 0: 1048576 bytes
+1028874869: cap 0: running thread 1
+1029415791: cap 0: stopping thread 1 (heap overflow)
+1029417389: cap 0: starting GC
+1029418482: cap 0: GC working
+1029421856: cap 0: GC idle
+1029421921: cap 0: GC done
+1029422125: cap 0: GC idle
+1029422160: cap 0: GC done
+1029423011: cap 0: all caps stopped for GC
+1029423108: cap 0: GC stats for heap capset 0: generation 0, 1616 bytes copied, 4688 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1029423490: cap 0: finished GC
+1029423582: cap 0: allocated on heap capset 0: 7330296 total bytes till now
+1029423662: cap 0: size of heap capset 0: 1048576 bytes
+1029426498: cap 0: running thread 1
+1029932465: cap 0: stopping thread 1 (heap overflow)
+1029933669: cap 0: starting GC
+1029934360: cap 0: GC working
+1029936519: cap 0: GC idle
+1029936578: cap 0: GC done
+1029936734: cap 0: GC idle
+1029936769: cap 0: GC done
+1029937451: cap 0: all caps stopped for GC
+1029937521: cap 0: GC stats for heap capset 0: generation 0, 232 bytes copied, 4688 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1029937840: cap 0: finished GC
+1029937912: cap 0: allocated on heap capset 0: 7854584 total bytes till now
+1029937990: cap 0: size of heap capset 0: 1048576 bytes
+1029940102: cap 0: running thread 1
+1030446353: cap 0: stopping thread 1 (heap overflow)
+1030447423: cap 0: starting GC
+1030448338: cap 0: GC working
+1030451144: cap 0: GC idle
+1030451207: cap 0: GC done
+1030451353: cap 0: GC idle
+1030451391: cap 0: GC done
+1030452094: cap 0: all caps stopped for GC
+1030452173: cap 0: GC stats for heap capset 0: generation 0, 512 bytes copied, 4424 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1030452510: cap 0: finished GC
+1030452575: cap 0: allocated on heap capset 0: 8378872 total bytes till now
+1030452655: cap 0: size of heap capset 0: 1048576 bytes
+1030454804: cap 0: running thread 1
+1030959861: cap 0: stopping thread 1 (heap overflow)
+1030960823: cap 0: starting GC
+1030961580: cap 0: GC working
+1030964127: cap 0: GC idle
+1030964190: cap 0: GC done
+1030964326: cap 0: GC idle
+1030964361: cap 0: GC done
+1030965010: cap 0: all caps stopped for GC
+1030965088: cap 0: GC stats for heap capset 0: generation 0, 304 bytes copied, 4424 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1030965388: cap 0: finished GC
+1030965451: cap 0: allocated on heap capset 0: 8903160 total bytes till now
+1030965534: cap 0: size of heap capset 0: 1048576 bytes
+1030967635: cap 0: running thread 1
+1031473544: cap 0: stopping thread 1 (heap overflow)
+1031474484: cap 0: starting GC
+1031475231: cap 0: GC working
+1031477254: cap 0: GC idle
+1031477319: cap 0: GC done
+1031477452: cap 0: GC idle
+1031477486: cap 0: GC done
+1031478125: cap 0: all caps stopped for GC
+1031478197: cap 0: GC stats for heap capset 0: generation 0, 232 bytes copied, 4376 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1031478483: cap 0: finished GC
+1031478547: cap 0: allocated on heap capset 0: 9427448 total bytes till now
+1031478625: cap 0: size of heap capset 0: 1048576 bytes
+1031480638: cap 0: running thread 1
+1031985699: cap 0: stopping thread 1 (heap overflow)
+1031986577: cap 0: starting GC
+1031987317: cap 0: GC working
+1031989096: cap 0: GC idle
+1031989161: cap 0: GC done
+1031989311: cap 0: GC idle
+1031989346: cap 0: GC done
+1031989979: cap 0: all caps stopped for GC
+1031990053: cap 0: GC stats for heap capset 0: generation 0, 216 bytes copied, 4376 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1031990336: cap 0: finished GC
+1031990414: cap 0: allocated on heap capset 0: 9951736 total bytes till now
+1031990487: cap 0: size of heap capset 0: 1048576 bytes
+1031992533: cap 0: running thread 1
+1032497771: cap 0: stopping thread 1 (heap overflow)
+1032498682: cap 0: starting GC
+1032499444: cap 0: GC working
+1032501257: cap 0: GC idle
+1032501318: cap 0: GC done
+1032501467: cap 0: GC idle
+1032501504: cap 0: GC done
+1032502155: cap 0: all caps stopped for GC
+1032502226: cap 0: GC stats for heap capset 0: generation 0, 280 bytes copied, 4312 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1032502511: cap 0: finished GC
+1032502576: cap 0: allocated on heap capset 0: 10476024 total bytes till now
+1032502651: cap 0: size of heap capset 0: 1048576 bytes
+1032504831: cap 0: running thread 1
+1033009500: cap 0: stopping thread 1 (heap overflow)
+1033010352: cap 0: starting GC
+1033011123: cap 0: GC working
+1033012730: cap 0: GC idle
+1033012795: cap 0: GC done
+1033012948: cap 0: GC idle
+1033012986: cap 0: GC done
+1033013636: cap 0: all caps stopped for GC
+1033013692: cap 0: GC stats for heap capset 0: generation 0, 104 bytes copied, 4456 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1033013968: cap 0: finished GC
+1033014042: cap 0: allocated on heap capset 0: 11000312 total bytes till now
+1033014118: cap 0: size of heap capset 0: 1048576 bytes
+1033016153: cap 0: running thread 1
+1033526211: cap 0: stopping thread 1 (heap overflow)
+1033527354: cap 0: starting GC
+1033528248: cap 0: GC working
+1033530168: cap 0: GC idle
+1033530231: cap 0: GC done
+1033530379: cap 0: GC idle
+1033530413: cap 0: GC done
+1033531144: cap 0: all caps stopped for GC
+1033531265: cap 0: GC stats for heap capset 0: generation 0, 232 bytes copied, 4328 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1033531601: cap 0: finished GC
+1033531682: cap 0: allocated on heap capset 0: 11524600 total bytes till now
+1033531756: cap 0: size of heap capset 0: 1048576 bytes
+1033533890: cap 0: running thread 1
+1034038618: cap 0: stopping thread 1 (heap overflow)
+1034039555: cap 0: starting GC
+1034040289: cap 0: GC working
+1034042130: cap 0: GC idle
+1034042192: cap 0: GC done
+1034042316: cap 0: GC idle
+1034042354: cap 0: GC done
+1034042958: cap 0: all caps stopped for GC
+1034043017: cap 0: GC stats for heap capset 0: generation 0, 200 bytes copied, 4328 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1034043283: cap 0: finished GC
+1034043353: cap 0: allocated on heap capset 0: 12048888 total bytes till now
+1034043413: cap 0: size of heap capset 0: 1048576 bytes
+1034045429: cap 0: running thread 1
+1034550158: cap 0: stopping thread 1 (heap overflow)
+1034551080: cap 0: starting GC
+1034551812: cap 0: GC working
+1034553684: cap 0: GC idle
+1034553747: cap 0: GC done
+1034553877: cap 0: GC idle
+1034553916: cap 0: GC done
+1034554536: cap 0: all caps stopped for GC
+1034554595: cap 0: GC stats for heap capset 0: generation 0, 232 bytes copied, 4296 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1034554874: cap 0: finished GC
+1034554955: cap 0: allocated on heap capset 0: 12573176 total bytes till now
+1034555014: cap 0: size of heap capset 0: 1048576 bytes
+1034557010: cap 0: running thread 1
+1034856882: sending message with tag Head from process 1, thread 1 to machine 1, process 1 on inport 1
+1035138473: sending message with tag DataMes from process 1, thread 1 to machine 1, process 1 on inport 1
+1035141040: cap 0: stopping thread 1 (thread finished)
+1035144862: killing process 1
+1035157481: cap 0: running thread 2
+1035171358: newInport (2,2), blackhole 0x7f31e7e20000
+
+1035172381: connectTSO 2 to inport (1,1,7)
+
+1035368512: sending message with tag DataMes from process 2, thread 2 to machine 1, process 1 on inport 7
+1035370635: connectTSO 2 to inport (1,1,6)
+
+1035646908: sending message with tag Connect from process 2, thread 2 to machine 1, process 1 on inport 6
+1035651909: cap 0: stopping thread 2 (blocked on black hole owned by thread 23150672)
+1035668968: cap 0: starting to receive
+1035670418: cap 0: stop receiving
+1035832495: cap 0: starting to receive
+1035837859: cap 0: receiving message with tag DataMes at process 2, inport 2 from machine 1, process 1, thread 5 with size 2
+1035838974: cap 0: waking up thread 2 on cap 0
+1035839922: cap 0: stop receiving
+1035840505: cap 0: running thread 2
+1036013700: sending message with tag Head from process 2, thread 2 to machine 1, process 1 on inport 6
+1036199479: sending message with tag DataMes from process 2, thread 2 to machine 1, process 1 on inport 6
+1036200951: cap 0: stopping thread 2 (thread finished)
+1036203085: killing process 2
+1036673875: cap 0: starting to receive
+1036674075: cap 0: stop receiving
+1036676344: cap 0: starting GC
+1036678097: cap 0: GC working
+1036682705: cap 0: GC idle
+1036682824: cap 0: GC done
+1036682989: cap 0: GC idle
+1036683028: cap 0: GC done
+1036683991: cap 0: all caps stopped for GC
+1036684170: cap 0: GC stats for heap capset 0: generation 0, 112 bytes copied, 4376 bytes slop, 495616 bytes fragmentation, 1 par threads, 0 bytes max par copied, 0 bytes total par copied
+1036684509: cap 0: finished GC
+1036684762: cap 0: allocated on heap capset 0: 12687120 total bytes till now
+1036684892: cap 0: size of heap capset 0: 1048576 bytes
+1036685495: task 0x1c42f50 deleted
+1036686412: task 0x1c42f50 created on cap 0 with OS kernel thread 5847
+1036686852: cap 0: creating thread 3
+1036691152: cap 0: running thread 3
+1036691224: cap 0: stopping thread 3 (thread finished)
+1036691527: task 0x1c42f50 deleted
+1036708176: cap 0: allocated on heap capset 0: 12688144 total bytes till now
+1036708997: removed cap 0 from capset 0
+1036709083: removed cap 0 from capset 1
+1036709178: deleted cap 0
+1036709275: deleted capset 0
+1036709334: deleted capset 1
+1036715687: killing machine 2
+
+
