@@ -213,11 +213,13 @@ readEventLogFromFile f = do
                          concat $ ["Header was lost during parsing. This "
                                   ,"should never happen. Please report a bug."]
       (Just header, Complete) -> do
-        return $ Right $ EventLog header (Data events)
+        -- We reverse the list of events since the original list has them
+        -- in reverse order and reversing ensures stability for sorting.
+        return $ Right $ EventLog header (Data $ reverse events)
       (Just header, Incomplete) -> do
         hPutStrLn stderr $ concat ["Warning: The event log was not fully ",
                            "parsed. It could have been malformed or incomplete."]
-        return $ Right $ EventLog header (Data events)
+        return $ Right $ EventLog header (Data $ reverse events)
       _ -> error $ concat ["Error: There was no parse error, Header is intact ",
                             "but the log\ \ is not. This should never happen, ",
                             "please report a bug."]
