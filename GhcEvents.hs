@@ -30,12 +30,6 @@ command ["inc", file] = do
     eh <- ehOpen h 4096
     printEventsIncremental eh False
 
-command ["live", portString] = withSocketsDo $ do
-  let portInt = readMaybe portString :: Maybe Int
-  case portInt of
-   Just portNo -> do listen portNo
-   _ -> die "Port number unparsable"
-
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
     eh <- ehOpen h 1024
