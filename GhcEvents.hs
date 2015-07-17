@@ -36,9 +36,6 @@ command ["live", portString] = withSocketsDo $ do
    Just portNo -> do listen portNo
    _ -> die "Port number unparsable"
 
-command ["rewrite", infile] = do
-  readEL infile
-
 command ["inc", "force", file] = do
     h <- openBinaryFile file ReadMode
     eh <- ehOpen h 1024
