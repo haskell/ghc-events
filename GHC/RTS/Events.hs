@@ -33,11 +33,10 @@ module GHC.RTS.Events (
        MessageSize,
        MessageTag(..),
 
-       -- * Reading and writing event logs
+       -- * Functions that assist reading and writing event logs
        putEvent,
        PutEvents,
        putEventLog,
-       writeEventLogToFile,
 
        -- * Utilities
        CapEvent(..), sortEvents,
@@ -65,12 +64,12 @@ import Data.Binary.Put
 import Control.Monad (when, replicateM)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
-import qualified Data.ByteString.Lazy as L
-import Data.Function
+import Data.Function hiding (id)
 import Data.List
 import Data.Maybe (fromMaybe, fromJust)
 import Text.Printf
 import Data.Array
+import Prelude hiding (gcd, rem, id)
 
 import GHC.RTS.EventTypes
 import GHC.RTS.EventParserUtils
@@ -78,9 +77,6 @@ import GHC.RTS.EventParserUtils
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
-
-------------------------------------------------------------------------------
--- Binary instances
 
 getEventType :: Get EventType
 getEventType = do
@@ -1025,12 +1021,6 @@ type PutEvents a = PutM a
 
 putE :: Binary a => a -> PutEvents ()
 putE = put
-
-runPutEBS :: PutEvents () -> L.ByteString
-runPutEBS = runPut
-
-writeEventLogToFile :: FilePath -> EventLog -> IO ()
-writeEventLogToFile f el = L.writeFile f $ runPutEBS $ putEventLog el
 
 putType :: EventTypeNum -> PutEvents ()
 putType = putE
