@@ -18,6 +18,14 @@ module GHC.RTS.EventsIncremental (
   ehOpen, ehReadEvent,
   -- * For compatibility with old clients
   readEventLogFromFile,
+  -- TODO TEMP
+  blockLog,
+  writeElToFile,
+  readEL,
+  capSplitEvents,
+  formEventLog,
+  addBlockMarker,
+  calc
  ) where
 
 import GHC.RTS.Events
@@ -25,11 +33,18 @@ import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes hiding (time, spec)
 
 import Data.Binary.Get hiding (remaining)
+import Data.Binary.Put
 import qualified Data.ByteString as B
 import qualified Data.IntMap as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (Handle, hPutStrLn, stderr)
-import Data.Word (Word16)
+import Data.Word (Word16, Word32)
+
+
+-- TODO temporary import
+import qualified Data.ByteString.Lazy as BL
+import Data.Either (rights)
+import qualified Data.IntMap.Strict as IMap
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
@@ -50,7 +65,7 @@ data EventDecoder =
   ED { -- If in EventBlock, we track it's capability
        edCap       :: Maybe Int
        -- Tracks the number of remaining bytes in an EventBlock
-     , edRemaining :: Integer
+     , edRemaining :: Word32
        -- The full parsed header that is used to create a new decoder once
        -- edPartial returns an 'Item'
      , edHeader   :: Header
@@ -83,7 +98,7 @@ newParser = ParsingHeader (getToDecoder getHeader)
 
 -- Creates a new parser state for events
 -- ByteString is fed to the partial decoder
-newParserState :: Maybe Int -> Integer -> Header
+newParserState :: Maybe Int -> Word32 -> Header
                -> Decoder (Maybe Event) -> B.ByteString
                -> EventParserState
 newParserState cap remaining header partial bss =
@@ -128,7 +143,6 @@ readEvent' (ed@(ED _ remaining header partial)) =
       (Done bs sz (Just event)) ->
         let emptyDecoder = mkEventDecoder header in
         case evSpec event of
-          -- TODO the actual EventBlock is skipped. Perhaps it shouldn't be?
           EventBlock _ blockCap newRemaining -> do -- process a new block
             let newState = newParserState (isCap blockCap) newRemaining
                                           header emptyDecoder bs
@@ -184,7 +198,7 @@ ehReadEvent (EH handle chunkSize stateRef) = do
 -- | Reads a full 'EventLog' from file. If the file is incomplete, will still
 -- return a properly formed 'EventLog' object with all the events until the point
 -- of malformation/cutoff. NOTE: this function will load the entire file to
--- memory, so it is better to not use it with large event logs. 
+-- memory, so it is better to not use it with large event logs.
 {-# DEPRECATED readEventLogFromFile "The incremental parser interface \
 should be used" #-}
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
@@ -225,6 +239,73 @@ readEventLogFromFile' eps events =
         (ParseError err) -> (events, newState, ParseError err)
     where (newEvent, newState) = readEvent eps
 
+-- Writes eventlog to file after wrapping its events in EventBlocks
+writeElToFile :: FilePath -> EventLog -> IO ()
+writeElToFile fp el@(EventLog header (Data events)) = do
+  mapM_ print blockedEvents
+  BL.writeFile fp $ runPut $ putEventLog blockedEl
+  where
+    eventsMap = capSplitEvents events
+    blockedEventsMap = IMap.mapWithKey addBlockMarker eventsMap
+    blockedEl = el{dat = Data blockedEvents}
+    blockedEvents = IMap.foldr (++) [] blockedEventsMap
+
+blockLog :: FilePath -> IO [Event]
+blockLog fp  = do
+  eitherEl <- readEventLogFromFile fp
+  let   el@(EventLog header (Data events)) = head $ rights [eitherEl]
+        eventsMap = capSplitEvents events
+        blockedEventsMap = IMap.mapWithKey addBlockMarker eventsMap
+        blockedEl = el{dat = Data blockedEvents}
+        blockedEvents = IMap.foldr (++) [] blockedEventsMap
+  return blockedEvents
+
+-- Testing function to read+write
+readEL :: FilePath -> IO ()
+readEL fp = do
+  eitherLog <- readEventLogFromFile fp
+  let log = head $ rights [eitherLog]
+  writeElToFile "test.eventlog" log
+
+getIntCap :: Event -> Int
+getIntCap Event{evCap = cap} =
+  case cap of
+  Just capNo -> capNo
+  Nothing    -> -1
+
+-- Creates an IntMap of the events with capability number as the key.
+-- Key -1 indicates global (capless) event
+capSplitEvents :: [Event] -> IMap.IntMap [Event]
+capSplitEvents evts = capSplitEvents' evts IMap.empty
+
+capSplitEvents' :: [Event] -> IMap.IntMap [Event] -> IMap.IntMap [Event]
+capSplitEvents' evts imap =
+  case evts of
+  (x:xs) -> capSplitEvents' xs (IMap.insertWith (++) (getIntCap x) [x] imap)
+  []     -> imap
+
+-- Create EventLog for writing that contains EventBlock markers
+formEventLog :: Header -> IMap.IntMap [Event] -> EventLog
+formEventLog hdr evts =
+  undefined
+
+-- Adds a block marker to the beginnng of a list of events, annotated with
+-- its capability. All events are expected to belong to the same cap.
+addBlockMarker :: Int -> [Event] -> [Event]
+addBlockMarker cap evts =
+  (Event startTime (EventBlock endTime cap sz) (isCap cap)) : sortedEvts
+  where sz = fromIntegral . BL.length $ runPut $ calc evts
+        startTime = case sortedEvts of
+          (x:_) -> evTime x
+          [] -> error "Cannot add block marker to an empty list of events"
+        sortedEvts = sortEvents evts
+        endTime = evTime $ last sortedEvts
+
+
+
+calc :: [Event] -> PutEvents ()
+calc es = mapM_ putEvent es
+
 -- Checks if the capability is not -1 (which indicates a global eventblock), so
 -- has no associated capability
 isCap :: Int -> Maybe Int
@@ -242,7 +323,7 @@ mkCap ed sz
 -- Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> Decoder (Maybe Event)
 mkEventDecoder header =
-    getToDecoder (getEvent parsers) 
+    getToDecoder (getEvent parsers)
   where
     imap = M.fromList [ (fromIntegral (num t),t) | t <- eventTypes header]
     -- This test is complete, no-one has extended this event yet and all future
@@ -253,11 +334,32 @@ mkEventDecoder header =
     -- different set of event parsers.  Note that the ghc7 event parsers
     -- are standard events, and can be used by other runtime systems that
     -- make use of threadscope.
-    event_parsers = standardParsers ++
-                    if is_ghc_6
-                        then ghc6Parsers
-                        else ghc7Parsers
-                             ++ mercuryParsers ++ perfParsers
+
+    -- GHC-7.8.2 uses a different thread block status encoding,
+    -- and therefore requires a different parser for the stop
+    -- event. Later, in GHC-7.8.3, the old encoding was restored.
+    -- GHC-7.8.2 can be recognised by presence and absence of
+    -- events in the header:
+    --   * User markers were added in GHC-7.8 
+    --   * an empty event HACK_BUG_T9003 was added in GHC-7.8.3
+    -- This fix breaks software which uses ghc-events and combines
+    -- user markers with the older stop status encoding. We don't
+    -- know of any such software, though.
+    is_pre77  = M.notMember EVENT_USER_MARKER imap
+    is_ghc782 = M.member EVENT_USER_MARKER imap &&
+                M.notMember EVENT_HACK_BUG_T9003 imap
+
+    stopParsers = if is_pre77 then pre77StopParsers
+                    else if is_ghc782 then [ghc782StopParser]
+                        else [post782StopParser]
+
+    event_parsers = if is_ghc_6
+                        then standardParsers ++ ghc6Parsers ++
+                            parRTSParsers sz_old_tid
+                        else standardParsers ++ ghc7Parsers ++
+                            stopParsers ++ parRTSParsers sz_tid ++
+                            mercuryParsers ++ perfParsers
+
     parsers = EventParsers $ mkEventTypeParsers imap event_parsers
 
 -- Turns an instance of Get into a Decoder

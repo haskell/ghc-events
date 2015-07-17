@@ -3,16 +3,16 @@
  * (c) The GHC Team, 2008-2012
  *
  * Event log format
- *
+ * 
  * The log format is designed to be extensible: old tools should be
  * able to parse (but not necessarily understand all of) new versions
  * of the format, and new tools will be able to understand old log
  * files.
- *
+ * 
  * Each event has a specific format.  If you add new events, give them
  * new numbers: we never re-use old event numbers.
  *
- * - The format is endian-independent: all values are represented in
+ * - The format is endian-independent: all values are represented in 
  *    bigendian order.
  *
  * - The format is extensible:
@@ -51,7 +51,7 @@
  *       Word8*         -- extra info (for future extensions)
  *       EVENT_ET_END
  *
- * Event :
+ * Event : 
  *       Word16         -- event_type
  *       Word64         -- time (nanosecs)
  *       [Word16]       -- length of the rest (for variable-sized events only)
@@ -162,12 +162,30 @@
 #define EVENT_TASK_MIGRATE        56 /* (taskID, cap, new_cap)   */
 #define EVENT_TASK_DELETE         57 /* (taskID)                 */
 #define EVENT_USER_MARKER         58 /* (marker_name) */
+#define EVENT_HACK_BUG_T9003      59 /* Hack: see trac #9003 */
 
 /* Range 59 - 59 is available for new GHC and common events. */
 
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/
  */
+
+/* these are used by eden but are replaced by new alternatives for ghc */
+#define EVENT_VERSION                   23 /* (version_string) */
+#define EVENT_PROGRAM_INVOCATION        24 /* (commandline_string) */
+
+/* start of parallel trace events */
+#define EVENT_EDEN_START_RECEIVE         60 /* () */
+#define EVENT_EDEN_END_RECEIVE           61 /* () */
+#define EVENT_CREATE_PROCESS             62 /* (process) */
+#define EVENT_KILL_PROCESS               63 /* (process) */
+#define EVENT_ASSIGN_THREAD_TO_PROCESS   64 /* (thread, process) */
+#define EVENT_CREATE_MACHINE             65 /* (machine, startupTime(in 10^-8 seconds after 19xx)) */
+#define EVENT_KILL_MACHINE               66 /* (machine) */
+#define EVENT_SEND_MESSAGE               67 /* (tag, sender_process, sender_thread, receiver_machine, receiver_process, receiver_inport) */
+#define EVENT_RECEIVE_MESSAGE            68 /* (tag, receiver_process, receiver_inport, sender_machine, sender_process, sender_outport, message_size) */
+#define EVENT_SEND_RECEIVE_LOCAL_MESSAGE 69 /* (tag, sender_process, sender_thread, receiver_process, receiver_inport) */
+
 
 /* Range 100 - 139 is reserved for Mercury, see below. */
 
@@ -178,7 +196,7 @@
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_GHC_EVENT_TAGS        59
+#define NUM_GHC_EVENT_TAGS        70
 
 
 /* DEPRECATED EVENTS: */
@@ -193,9 +211,6 @@
 /* ghc changed how it handles sparks so these are no longer applicable */
 #define EVENT_CREATE_SPARK        13 /* (cap, thread) */
 #define EVENT_SPARK_TO_THREAD     14 /* (cap, thread, spark_thread) */
-/* these are used by eden but are replaced by new alternatives for ghc */
-#define EVENT_VERSION             23 /* (version_string) */
-#define EVENT_PROGRAM_INVOCATION  24 /* (commandline_string) */
 #endif
 
 
@@ -238,7 +253,7 @@
 /*
  * Status values for EVENT_STOP_THREAD
  *
- * 1-5 are the StgRun return values (from includes/Constants.h):
+ * 1-5 are the StgRun return values (from includes/rts/Constants.h):
  *
  * #define HeapOverflow   1
  * #define StackOverflow  2
@@ -247,15 +262,24 @@
  * #define ThreadFinished 5
  * #define ForeignCall                  6
  * #define BlockedOnMVar                7
+ * #define BlockedOnMVarRead            20
+ * NOTE: in GHC-7.8.2, this was 8, and following states shifted one up
  * #define BlockedOnBlackHole           8
  * #define BlockedOnRead                9
  * #define BlockedOnWrite               10
  * #define BlockedOnDelay               11
  * #define BlockedOnSTM                 12
  * #define BlockedOnDoProc              13
+ * NOTE: unused GUM states 8, 9 (here: 14,15) in rts/Constants.h
  * #define BlockedOnCCall               -- not used (see ForeignCall)
  * #define BlockedOnCCall_NoUnblockExc  -- not used (see ForeignCall)
  * #define BlockedOnMsgThrowTo          16
+ * NOTE: 16 because unused GUM states ignored in ghc-events lib
+ *       Otherwise it would be 18, following would be 19, 20
+ * TODO: verify the above is what GHC does (16/17 could be 18/19) 
+ * #define ThreadMigrating              17
+ * #define BlockedOnMsgGlobalise        18 
+ * NOTE: not present in GHC. Mercury-Event?
  */
 #define THREAD_SUSPENDED_FOREIGN_CALL 6
 
@@ -276,6 +300,12 @@ typedef StgWord16 EventPayloadSize; /* variable-size events */
 typedef StgWord16 EventThreadStatus; /* status for EVENT_STOP_THREAD */
 typedef StgWord32 EventCapsetID;
 typedef StgWord16 EventCapsetType;   /* types for EVENT_CAPSET_CREATE */
+typedef StgWord64 EventTaskId;         /* for EVENT_TASK_* */
+typedef StgWord64 EventKernelThreadId; /* for EVENT_TASK_CREATE */
+
+typedef StgWord32 EventProcessID;
+typedef StgWord16 EventMachineID;
+typedef EventThreadID EventPortID;
 
 #endif
 

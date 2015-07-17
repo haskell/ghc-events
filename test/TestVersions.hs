@@ -22,7 +22,9 @@ files :: [FilePath]
 files = map ("test/"++)
     [ "queens-ghc-6.12.1.eventlog"
     , "queens-ghc-7.0.2.eventlog"
-    , "mandelbrot-mmc-2011-06-14.eventlog" ]
+    , "mandelbrot-mmc-2011-06-14.eventlog" 
+    , "mdlLogMPI1.eventlog"
+    , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
 
 -- returns True on success
 testFile :: FilePath -> IO Bool
@@ -38,7 +40,7 @@ testFile f = do
             let newlog = ppEventLog newlogdata ++ "\n" in
                 if oldlog == newlog
                     then putStrLn (f ++ ": success") >> return True
-                    else do print $ diffLines oldlog newlog
+                    else do putStrLn $ diffLines oldlog newlog
                             oops "pretty print output does not match"
 
 main = do
@@ -62,5 +64,5 @@ diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++
 diff l (o:os) (n:ns) = if (o == n)
                         then diff (l+1) os ns
                         else "Different lines at line " ++ show l ++ ":\n" ++
-                            "Original: " ++ o ++
+                            "Original: " ++ o ++ "\n" ++
                             "New:      " ++ n
