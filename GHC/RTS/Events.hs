@@ -76,8 +76,6 @@ import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 
 
-import Debug.Trace
-
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
@@ -140,8 +138,6 @@ getEvent (EventParsers parsers) = do
   if etRef == EVENT_DATA_END
      then return Nothing
      else do !ts   <- get
-             -- trace ("event: " ++ show etRef) $ do
-             -- spec <- traceShow etRef $ parsers ! fromIntegral etRef
              spec <- parsers ! fromIntegral etRef
              return $ Just (Event ts spec undefined)
 
