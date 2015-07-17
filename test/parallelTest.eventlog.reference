@@ -65,8 +65,8 @@ Event Types:
   69: Sending/Receiving local message (size 17)
 
 Events:
-1016690453: startup: 1 capabilities
       965: creating machine 2 at 143714457434916300
+1016690453: startup: 1 capabilities
 1016695409: compiler version is 7.10.20150612
 1016698802: program invocation: /opt/Eden/test/./jost=ChainDep 2 3 +RTS -l -RTS
 1016705678: created capset 0 of type CapsetOsProcess

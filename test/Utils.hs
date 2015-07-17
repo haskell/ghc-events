@@ -5,7 +5,7 @@ files = map ("test/"++)
     [ "queens-ghc-6.12.1.eventlog"
     , "queens-ghc-7.0.2.eventlog"
     , "mandelbrot-mmc-2011-06-14.eventlog"
-    , "mdlLogMPI1.eventlog"
+    , "parallelTest.eventlog"
     , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
 
 

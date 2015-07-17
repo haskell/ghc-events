@@ -29,8 +29,8 @@ extra-source-files: GHC/RTS/EventLogFormat.h
                     test/queens-ghc-7.0.2.eventlog.reference
                     test/mandelbrot-mmc-2011-06-14.eventlog
                     test/mandelbrot-mmc-2011-06-14.eventlog.reference
-                    test/mdlLogMPI1.eventlog
-                    test/mdlLogMPI1.eventlog.reference
+                    test/parallelTest.eventlog
+                    test/parallelTest.eventlog.reference
                     test/pre77stop.eventlog
                     test/pre77stop.eventlog.reference
                     test/782stop.eventlog
