@@ -72,5 +72,11 @@ executable ghc-events
 test-suite test-versions
   type:             exitcode-stdio-1.0
   main-is:          test/TestVersions.hs
-  build-depends:    base, mtl, containers, binary, bytestring, array
+  build-depends:    base, containers, binary, bytestring, array
+  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+
+test-suite write
+  type:             exitcode-stdio-1.0
+  main-is:          test/Write.hs
+  build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
