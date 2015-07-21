@@ -75,8 +75,8 @@ test-suite test-versions
   build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
-test-suite write
+test-suite write-merge
   type:             exitcode-stdio-1.0
-  main-is:          test/Write.hs
+  main-is:          test/WriteMerge.hs
   build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
