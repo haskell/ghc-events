@@ -51,8 +51,8 @@ Event Types:
   69: Sending/Receiving local message (size 17)
 
 Events:
- 19499000: startup: 1 capabilities
      3000: creating machine 1 at 18446744072558799480
+ 19499000: startup: 1 capabilities
  19503000: compiler version is 7.5.20111229
  19506000: program invocation: jost=mdlLogMPI 2 +RTS -l -RTS 10 200 200 
  19511000: created capset 0 of type CapsetOsProcess
