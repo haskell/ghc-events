@@ -19,9 +19,8 @@ module GHC.RTS.EventsIncremental (
   -- * For compatibility with old clients
   readEventLogFromFile,
   writeEventLogToFile,
-  -- TODO TEMP
-  capSplitEvents,
-  addBlockMarker,
+  -- * Helper functions
+  serialiseEventLog
  ) where
 
 import GHC.RTS.Events
@@ -32,8 +31,7 @@ import Data.Binary.Get hiding (remaining)
 import Data.Binary.Put
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.IntMap as M
-import qualified Data.IntMap.Strict as IMap
+import qualified Data.IntMap.Strict as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (Handle, hPutStrLn, stderr)
 import Data.Word (Word16, Word32)
@@ -238,13 +236,16 @@ readEventLogFromFile' eps events =
 -- Writes eventlog to file after wrapping its events in EventBlocks
 writeEventLogToFile :: FilePath -> EventLog -> IO ()
 writeEventLogToFile fp el@(EventLog _ (Data events)) = do
-  mapM_ print blockedEvents
-  BL.writeFile fp $ runPut $ putEventLog blockedEl
+  BL.writeFile fp $ serialiseEventLog el
+
+serialiseEventLog :: EventLog -> BL.ByteString
+serialiseEventLog el@(EventLog _ (Data events)) =
+  runPut $ putEventLog blockedEl
   where
     eventsMap = capSplitEvents events
-    blockedEventsMap = IMap.mapWithKey addBlockMarker eventsMap
+    blockedEventsMap = M.mapWithKey addBlockMarker eventsMap
     blockedEl = el{dat = Data blockedEvents}
-    blockedEvents = IMap.foldr (++) [] blockedEventsMap
+    blockedEvents = M.foldr (++) [] blockedEventsMap
 
 getIntCap :: Event -> Int
 getIntCap Event{evCap = cap} =
@@ -254,13 +255,13 @@ getIntCap Event{evCap = cap} =
 
 -- Creates an IntMap of the events with capability number as the key.
 -- Key -1 indicates global (capless) event
-capSplitEvents :: [Event] -> IMap.IntMap [Event]
-capSplitEvents evts = capSplitEvents' evts IMap.empty
+capSplitEvents :: [Event] -> M.IntMap [Event]
+capSplitEvents evts = capSplitEvents' evts M.empty
 
-capSplitEvents' :: [Event] -> IMap.IntMap [Event] -> IMap.IntMap [Event]
+capSplitEvents' :: [Event] -> M.IntMap [Event] -> M.IntMap [Event]
 capSplitEvents' evts imap =
   case evts of
-  (x:xs) -> capSplitEvents' xs (IMap.insertWith (++) (getIntCap x) [x] imap)
+  (x:xs) -> capSplitEvents' xs (M.insertWith (++) (getIntCap x) [x] imap)
   []     -> imap
 
 -- Adds a block marker to the beginnng of a list of events, annotated with
