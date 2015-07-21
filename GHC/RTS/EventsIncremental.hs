@@ -20,7 +20,8 @@ module GHC.RTS.EventsIncremental (
   readEventLogFromFile,
   writeEventLogToFile,
   -- * Helper functions
-  serialiseEventLog
+  serialiseEventLog,
+  readRemainingEvents
  ) where
 
 import GHC.RTS.Events
@@ -197,7 +198,7 @@ readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile f = do
     bytes <- B.readFile f
     let (events, finalState, status) =
-          readEventLogFromFile' (newParser `pushBytes` bytes) []
+          readRemainingEvents (newParser `pushBytes` bytes)
     let mbHeader = readHeader finalState
     case (mbHeader, status) of
       (_, ParseError errMsg) -> return $ Left $ "Parse error: " ++ errMsg
@@ -216,19 +217,22 @@ readEventLogFromFile f = do
                             "but the log\ \ is not. This should never happen, ",
                             "please report a bug."]
 
--- Repeadetly pulls events until EventParserState runs out. Should only be used
+-- | Repeadetly pulls events until EventParserState runs out. Should only be used
 -- when all input is fed to the EventParserState already.
-readEventLogFromFile' :: EventParserState -> [Event]
+readRemainingEvents :: EventParserState -> ([Event], EventParserState, ParseResult ())
+readRemainingEvents eps = readRemainingEvents' eps []
+
+readRemainingEvents' :: EventParserState -> [Event]
                       -> ([Event], EventParserState, ParseResult ())
-readEventLogFromFile' eps events =
+readRemainingEvents' eps events =
     case newEvent of
-        (Item ev)        -> readEventLogFromFile' newState (ev:events)
+        (Item ev)        -> readRemainingEvents' newState (ev:events)
         (Complete)       -> (events, newState, Complete)
     -- In incomplete cases we try to call readEvent once more since the first
     -- event may require two readEvent calls to be acquired
         (Incomplete)     -> let (newEvent', newState') = readEvent newState
                             in case newEvent' of
-                            (Item e) -> readEventLogFromFile' newState' (e:events)
+                            (Item e) -> readRemainingEvents' newState' (e:events)
                             _ -> (events, newState', Incomplete)
         (ParseError err) -> (events, newState, ParseError err)
     where (newEvent, newState) = readEvent eps
