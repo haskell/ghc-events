@@ -35,7 +35,7 @@ rewriteLog oldLog =
   (ppEventLog oldLog, ppEventLog newLog)
   where
     logBytestring = serialiseEventLog oldLog
-    eps = newParser `pushBytes` (BL.toStrict logBytestring)
+    eps = newParserState `pushBytes` (BL.toStrict logBytestring)
     (newEvts, finalState, _) = readRemainingEvents eps
     newHdr = fromJust $ readHeader finalState
     newLog = (EventLog newHdr (Data newEvts))
