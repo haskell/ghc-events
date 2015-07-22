@@ -37,6 +37,7 @@ extra-source-files: GHC/RTS/EventLogFormat.h
                     test/782stop.eventlog.reference
                     test/783stop.eventlog
                     test/783stop.eventlog.reference
+                    test/Utils.hs
                     test/stop.hs
 
 source-repository head
@@ -72,12 +73,14 @@ executable ghc-events
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
-  main-is:          test/TestVersions.hs
+  main-is:          TestVersions.hs
+  hs-source-dirs:   ., test
   build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite write-merge
   type:             exitcode-stdio-1.0
-  main-is:          test/WriteMerge.hs
+  main-is:          WriteMerge.hs
+  hs-source-dirs:   ., test
   build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards

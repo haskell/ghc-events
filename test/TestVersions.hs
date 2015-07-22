@@ -14,19 +14,13 @@ Steps to produce event log and reference output:
 Where queens.hs is http://darcs.haskell.org/nofib/parallel/queens/Main.hs
 -}
 
+import System.Exit (exitFailure)
+
 import GHC.RTS.Events
 import GHC.RTS.EventsIncremental
-import System.Exit
+import Utils (files, diffLines)
 
-files :: [FilePath]
-files = map ("test/"++)
-    [ "queens-ghc-6.12.1.eventlog"
-    , "queens-ghc-7.0.2.eventlog"
-    , "mandelbrot-mmc-2011-06-14.eventlog"
-    , "mdlLogMPI1.eventlog"
-    , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
 
--- returns True on success
 testFile :: FilePath -> IO Bool
 testFile f = do
     e <- readEventLogFromFile f
@@ -47,20 +41,3 @@ main = do
         then return ()
         else exitFailure
 
---
--- Code to help print the differences between a working test and a failing test.
---
-
-diffLines o n = diff 1 (lines o) (lines n)
-
-diff :: Int -> [String] -> [String] -> String
-diff _ [] [] = "Logs match"
-diff l [] (n:ns) = "Extra lines in new log at line " ++ show l ++ ":\n" ++
-    (unlines (n:ns))
-diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++
-    (unlines (o:os))
-diff l (o:os) (n:ns) = if (o == n)
-                        then diff (l+1) os ns
-                        else "Different lines at line " ++ show l ++ ":\n" ++
-                            "Original: " ++ o ++ "\n" ++
-                            "New:      " ++ n
