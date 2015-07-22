@@ -21,7 +21,8 @@ module GHC.RTS.EventsIncremental (
   writeEventLogToFile,
   -- * Helper functions
   serialiseEventLog,
-  readRemainingEvents
+  readRemainingEvents,
+  printEventsIncremental
  ) where
 
 import GHC.RTS.Events
@@ -32,6 +33,7 @@ import Data.Binary.Get hiding (remaining)
 import Data.Binary.Put
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Control.Concurrent (threadDelay)
 import qualified Data.IntMap.Strict as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO (Handle, hPutStrLn, stderr)
@@ -239,7 +241,7 @@ readRemainingEvents' eps events =
 
 -- Writes eventlog to file after wrapping its events in EventBlocks
 writeEventLogToFile :: FilePath -> EventLog -> IO ()
-writeEventLogToFile fp el@(EventLog _ (Data events)) = do
+writeEventLogToFile fp el = do
   BL.writeFile fp $ serialiseEventLog el
 
 serialiseEventLog :: EventLog -> BL.ByteString
@@ -339,3 +341,22 @@ mkEventDecoder header =
 -- Turns an instance of Get into a Decoder
 getToDecoder :: Get a -> Decoder a
 getToDecoder = runGetIncremental
+
+-- | Pretty-prints events coming from a handle
+printEventsIncremental :: EventHandle
+                       -> Bool -- Whether to retry on incomplete logs
+                       -> IO ()
+printEventsIncremental eh dashf = do
+    event <- ehReadEvent eh
+    case event of
+      Item ev -> do
+          putStrLn (ppEvent' ev) -- if actual printing is needed
+          printEventsIncremental eh dashf
+      Incomplete ->
+        if dashf
+          then print "Log Incomplete. Waiting for more input." >> threadDelay 1000000 >> printEventsIncremental eh dashf
+          else putStrLn "Finished (NOT all file was parsed successfully)"
+      Complete ->
+        putStrLn "Finished (file was parsed successfully)"
+      ParseError errMsg ->
+        putStrLn $ "Error: " ++ errMsg

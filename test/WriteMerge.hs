@@ -3,7 +3,6 @@
 -}
 
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.IntMap.Strict as M
 import Data.Maybe (fromJust)
 import System.Exit (exitFailure)
 
@@ -20,7 +19,7 @@ files = map ("test/"++)
     , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
 
 testWrite :: EventLog -> Bool
-testWrite oldLog@(EventLog oldHdr (Data oldEvts)) =
+testWrite oldLog =
   ppEventLog oldLog == ppEventLog newLog
   where
     logBytestring = serialiseEventLog oldLog
@@ -41,6 +40,7 @@ testFile f = do
                     then putStrLn (f ++ ": success") >> return True
                     else do oops "re-written file does not match the original"
 
+main :: IO ()
 main = do
     successes <- mapM testFile files
     if and successes

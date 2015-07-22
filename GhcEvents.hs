@@ -9,15 +9,12 @@ import GHC.RTS.Events.Analysis
 import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
-import GHC.RTS.LiveLogging
 
 import System.Environment (getArgs)
 import Data.Either (rights)
 import qualified Data.Map as M
-import Network (withSocketsDo)
 import System.IO (IOMode(ReadMode), openBinaryFile)
 import System.Exit (die)
-import Text.Read (readMaybe)
 
 main :: IO ()
 main = getArgs >>= command
@@ -36,8 +33,8 @@ command ["inc", "force", file] = do
     printEventsIncremental eh True
 
 command ["show", file] = do
-    log <- readLogOrDie file
-    putStrLn $ ppEventLog log
+    evtLog <- readLogOrDie file
+    putStrLn $ ppEventLog evtLog
 
 command ["show", "threads", file] = do
     eventLog <- readLogOrDie file
@@ -187,8 +184,9 @@ readLogOrDie file = do
     e <- readEventLogFromFile file
     case e of
         Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
-        Right log -> return log
+        Right evtLog -> return evtLog
 
+usage :: String
 usage = unlines $ map pad strings
  where
     align = 4 + (maximum . map (length . fst) $ strings)
