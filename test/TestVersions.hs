@@ -22,7 +22,7 @@ files :: [FilePath]
 files = map ("test/"++)
     [ "queens-ghc-6.12.1.eventlog"
     , "queens-ghc-7.0.2.eventlog"
-    , "mandelbrot-mmc-2011-06-14.eventlog" 
+    , "mandelbrot-mmc-2011-06-14.eventlog"
     , "mdlLogMPI1.eventlog"
     , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
 
@@ -30,11 +30,9 @@ files = map ("test/"++)
 testFile :: FilePath -> IO Bool
 testFile f = do
     e <- readEventLogFromFile f
-    let oops s = putStrLn (f ++ ": failure" ++ s) >> return False
-
+    let oops s = putStrLn (f ++ ": failure " ++ s) >> return False
     case e of
         Left m -> oops m
-
         Right newlogdata -> do
             oldlog <- readFile (f ++ ".reference")
             let newlog = ppEventLog newlogdata ++ "\n" in
