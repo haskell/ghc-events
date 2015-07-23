@@ -21,11 +21,8 @@ failingCases = map ("test/"++)
   , "782stop.eventlog"]
 
 -- TODO this should not be a thing
+{-# WARNING prunedFiles "This test is intentionally skiping some cases, see source" #-}
 prunedFiles = files \\ failingCases
-
-__fixme :: a -> a
-{-# WARNING __fixme "This test is intentionally skiping some cases, see source" #-}
-__fixme = id
 
 -- Returns a pretty printed version of the log and one that's been reserialised
 -- and reparsed, which should hopefully yield the same result
