@@ -1,5 +1,5 @@
 name:             ghc-events
-version:          0.4.4.0
+version:          0.5.0.0
 synopsis:         Library and tool for parsing .eventlog files from GHC
 description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the ghc-events tool permitting, in particular,
@@ -16,6 +16,7 @@ author:           Donnie Jones <donnie@darthik.com>,
                   Nicolas Wu <nick@well-typed.com>,
                   Jost Berthold <berthold@diku.dk>
                   Mikolaj Konarski <mikolaj@well-typed.com>
+                  Karolis Velicka <karolis.velicka@gmail.com>
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      https://github.com/haskell/ThreadScope/issues
 build-type:       Simple
@@ -36,6 +37,7 @@ extra-source-files: GHC/RTS/EventLogFormat.h
                     test/782stop.eventlog.reference
                     test/783stop.eventlog
                     test/783stop.eventlog.reference
+                    test/Utils.hs
                     test/stop.hs
 
 source-repository head
@@ -71,6 +73,14 @@ executable ghc-events
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
-  main-is:          test/TestVersions.hs
-  build-depends:    base, mtl, containers, binary, bytestring, array
+  main-is:          TestVersions.hs
+  hs-source-dirs:   ., test
+  build-depends:    base, containers, binary, bytestring, array
+  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+
+test-suite write-merge
+  type:             exitcode-stdio-1.0
+  main-is:          WriteMerge.hs
+  hs-source-dirs:   ., test
+  build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
