@@ -13,21 +13,16 @@ import Utils (files, diffLines)
 
 
 -- Failing test cases due to changes introduced some time in the past but
--- went unnoticed. Should be fixed
+-- went unnoticed. Needs fixing. TODO
 failingCases = map ("test/"++)
   [ "queens-ghc-6.12.1.eventlog"
   , "queens-ghc-7.0.2.eventlog"
   , "mandelbrot-mmc-2011-06-14.eventlog"
   , "782stop.eventlog"]
 
--- TODO this should not be a thing
-{-# WARNING prunedFiles "This test is intentionally skiping some cases, see source" #-}
-prunedFiles = files \\ failingCases
-
 -- Returns a pretty printed version of the log and one that's been reserialised
--- and reparsed, which should hopefully yield the same result
+-- and reparsed, which should yield the same result
 rewriteLog :: EventLog -> (String, String)
-{-# WARNING rewriteLog "This test is intentionally skiping some cases, see source" #-}
 rewriteLog oldLog =
   (ppEventLog oldLog, ppEventLog newLog)
   where
@@ -44,7 +39,7 @@ testFile f = do
     case e of
         Left m -> oops m
         Right log -> do
-          let (old, new) = (__fixme rewriteLog) log
+          let (old, new) = rewriteLog log
           if old == new
                     then putStrLn (f ++ ": success") >> return True
                     else do putStrLn $ diffLines old new
@@ -52,7 +47,7 @@ testFile f = do
 
 main :: IO ()
 main = do
-    successes <- mapM testFile prunedFiles
+    successes <- mapM testFile files
     if and successes
         then return ()
         else exitFailure
