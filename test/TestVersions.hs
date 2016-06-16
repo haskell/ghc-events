@@ -32,7 +32,7 @@ testFile f = do
             let newlog = ppEventLog newlogdata ++ "\n" in
                 if oldlog == newlog
                     then putStrLn (f ++ ": success") >> return True
-                    else do print $ diffLines oldlog newlog
+                    else do putStrLn $ diffLines oldlog newlog
                             oops "pretty print output does not match"
 
 main = do

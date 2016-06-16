@@ -71,8 +71,8 @@ import Text.Printf
 import Data.Array
 import Prelude hiding (gcd, rem, id)
 
-import GHC.RTS.EventTypes
 import GHC.RTS.EventParserUtils
+import GHC.RTS.EventTypes
 
 
 #define EVENTLOG_CONSTANTS_ONLY
@@ -85,7 +85,7 @@ getEventType = do
            let etSize = if size == 0xffff then Nothing else Just size
            -- 0xffff indicates variable-sized event
            etDescLen <- get :: Get EventTypeDescLen
-           etDesc <- gettDesc (fromIntegral etDescLen)
+           etDesc <- getEtDesc (fromIntegral etDescLen)
            etExtraLen <- get :: Get Word32
            G.skip (fromIntegral etExtraLen)
            ete <- get :: Get Marker
@@ -93,8 +93,8 @@ getEventType = do
               fail "Event Type end marker not found."
            return (EventType etNum etDesc etSize)
            where
-             gettDesc :: Int -> Get [Char]
-             gettDesc s = replicateM s (get :: Get Char)
+             getEtDesc :: Int -> Get [Char]
+             getEtDesc s = replicateM s (get :: Get Char)
 
 
 

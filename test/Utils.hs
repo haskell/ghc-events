@@ -20,6 +20,6 @@ diff l (o:os) [] = "Missing lines in new log at line " ++ show l ++ ":\n" ++
     (unlines (o:os))
 diff l (o:os) (n:ns) = if (o == n)
                         then diff (l+1) os ns
-                        else "Different lines at line " ++ show l ++ ":\n" ++
+                        else "Different output at line " ++ show l ++ ":\n" ++
                             "Original: " ++ o ++ "\n" ++
                             "New:      " ++ n
