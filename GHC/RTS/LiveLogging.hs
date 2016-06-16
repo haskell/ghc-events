@@ -4,6 +4,7 @@ module GHC.RTS.LiveLogging (
   pullEvents) where
 
 import GHC.RTS.Events
+import GHC.RTS.EventsIncremental
 
 import Control.Concurrent (threadDelay, forkFinally)
 import Control.Monad (forever)
