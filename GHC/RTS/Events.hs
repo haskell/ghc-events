@@ -21,8 +21,6 @@ module GHC.RTS.Events (
        Event(..),
        EventInfo(..),
        ThreadStopStatus(..),
-       Header(..),
-       Data(..),
        CapsetType(..),
        Timestamp,
        ThreadId,
@@ -87,7 +85,7 @@ getEventType = do
            let etSize = if size == 0xffff then Nothing else Just size
            -- 0xffff indicates variable-sized event
            etDescLen <- get :: Get EventTypeDescLen
-           etDesc <- getEtDesc (fromIntegral etDescLen)
+           etDesc <- gettDesc (fromIntegral etDescLen)
            etExtraLen <- get :: Get Word32
            G.skip (fromIntegral etExtraLen)
            ete <- get :: Get Marker
@@ -95,8 +93,8 @@ getEventType = do
               fail "Event Type end marker not found."
            return (EventType etNum etDesc etSize)
            where
-             getEtDesc :: Int -> Get [Char]
-             getEtDesc s = replicateM s (get :: Get Char)
+             gettDesc :: Int -> Get [Char]
+             gettDesc s = replicateM s (get :: Get Char)
 
 
 
@@ -439,9 +437,9 @@ ghc782StopParser :: EventParser EventInfo
 ghc782StopParser =
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) (do
       -- (thread, status, info)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
-      i <- getE :: GetEvents ThreadId
+      t <- get
+      s <- get :: Get RawThreadStopStatus
+      i <- get :: Get ThreadId
       return StopThread{thread = t,
                         status = case () of
                                   _ | s > maxThreadStopStatus782
@@ -460,8 +458,8 @@ pre77StopParsers :: [EventParser EventInfo]
 pre77StopParsers = [
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status) (do
       -- (thread, status)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
+      t <- get
+      s <- get :: Get RawThreadStopStatus
       return StopThread{thread=t, status = if s > maxThreadStopStatusPre77
                                               then NoStatus
                                               else mkStopStatus s}
@@ -471,9 +469,9 @@ pre77StopParsers = [
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) 
     (do
       -- (thread, status, info)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
-      i <- getE :: GetEvents ThreadId
+      t <- get
+      s <- get :: Get RawThreadStopStatus
+      i <- get :: Get ThreadId
       return StopThread{thread = t,
                         status = case () of
                                   _ | s > maxThreadStopStatusPre77
@@ -493,9 +491,9 @@ post782StopParser =
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) 
     (do
       -- (thread, status, info)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
-      i <- getE :: GetEvents ThreadId
+      t <- get
+      s <- get :: Get RawThreadStopStatus
+      i <- get :: Get ThreadId
       return StopThread{thread = t,
                         status = case () of
                                   _ | s > maxThreadStopStatus
@@ -531,8 +529,8 @@ ghc6Parsers = [
    )),
 
  (FixedSizeParser EVENT_STOP_THREAD (sz_old_tid + 2) (do  -- (thread, status)
-      t <- getE
-      s <- getE :: GetEvents RawThreadStopStatus
+      t <- get
+      s <- get :: Get RawThreadStopStatus
       return StopThread{thread=t, status = if s > maxThreadStopStatusPre77
                                               then NoStatus
                                               else mkStopStatus s}
@@ -587,13 +585,13 @@ ghc6Parsers = [
 parRTSParsers :: EventTypeSize -> [EventParser EventInfo]
 parRTSParsers sz_tid = [
  (VariableSizeParser EVENT_VERSION (do -- (version)
-      num <- getE :: GetEvents Word16
+      num <- get :: Get Word16
       string <- getString num
       return Version{ version = string }
    )),
 
  (VariableSizeParser EVENT_PROGRAM_INVOCATION (do -- (cmd. line)
-      num <- getE :: GetEvents Word16
+      num <- get :: Get Word16
       string <- getString num
       return ProgramInvocation{ commandline = string }
    )),
@@ -602,40 +600,40 @@ parRTSParsers sz_tid = [
  (simpleEvent EVENT_EDEN_END_RECEIVE   EdenEndReceive),
 
  (FixedSizeParser EVENT_CREATE_PROCESS sz_procid
-    (do p <- getE
+    (do p <- get
         return CreateProcess{ process = p })
  ),
 
  (FixedSizeParser EVENT_KILL_PROCESS sz_procid
-    (do p <- getE
+    (do p <- get
         return KillProcess{ process = p })
  ),
 
  (FixedSizeParser EVENT_ASSIGN_THREAD_TO_PROCESS (sz_tid + sz_procid)
-    (do t <- getE
-        p <- getE
+    (do t <- get
+        p <- get
         return AssignThreadToProcess { thread = t, process = p })
  ),
 
  (FixedSizeParser EVENT_CREATE_MACHINE (sz_mid + sz_realtime)
-    (do m <- getE
-        t <- getE
+    (do m <- get
+        t <- get
         return CreateMachine { machine = m, realtime = t })
  ),
 
  (FixedSizeParser EVENT_KILL_MACHINE sz_mid
-    (do m <- getE :: GetEvents MachineId
+    (do m <- get :: Get MachineId
         return KillMachine { machine = m })
  ),
 
  (FixedSizeParser EVENT_SEND_MESSAGE
     (sz_msgtag + 2*sz_procid + 2*sz_tid + sz_mid)
-    (do tag <- getE :: GetEvents RawMsgTag
-        sP  <- getE :: GetEvents ProcessId
-        sT  <- getE :: GetEvents ThreadId
-        rM  <- getE :: GetEvents MachineId
-        rP  <- getE :: GetEvents ProcessId
-        rIP <- getE :: GetEvents PortId
+    (do tag <- get :: Get RawMsgTag
+        sP  <- get :: Get ProcessId
+        sT  <- get :: Get ThreadId
+        rM  <- get :: Get MachineId
+        rP  <- get :: Get ProcessId
+        rIP <- get :: Get PortId
         return SendMessage { mesTag = toMsgTag tag,
                              senderProcess = sP,
                              senderThread = sT,
@@ -647,13 +645,13 @@ parRTSParsers sz_tid = [
 
  (FixedSizeParser EVENT_RECEIVE_MESSAGE
     (sz_msgtag + 2*sz_procid + 2*sz_tid + sz_mid + sz_mes)
-    (do tag <- getE :: GetEvents Word8
-        rP  <- getE :: GetEvents ProcessId
-        rIP <- getE :: GetEvents PortId
-        sM  <- getE :: GetEvents MachineId
-        sP  <- getE :: GetEvents ProcessId
-        sT  <- getE :: GetEvents ThreadId
-        mS  <- getE :: GetEvents MessageSize
+    (do tag <- get :: Get Word8
+        rP  <- get :: Get ProcessId
+        rIP <- get :: Get PortId
+        sM  <- get :: Get MachineId
+        sP  <- get :: Get ProcessId
+        sT  <- get :: Get ThreadId
+        mS  <- get :: Get MessageSize
         return  ReceiveMessage { mesTag = toMsgTag tag,
                                  receiverProcess = rP,
                                  receiverInport = rIP,
@@ -666,11 +664,11 @@ parRTSParsers sz_tid = [
 
  (FixedSizeParser EVENT_SEND_RECEIVE_LOCAL_MESSAGE
     (sz_msgtag + 2*sz_procid + 2*sz_tid)
-    (do tag <- getE :: GetEvents Word8
-        sP  <- getE :: GetEvents ProcessId
-        sT  <- getE :: GetEvents ThreadId
-        rP  <- getE :: GetEvents ProcessId
-        rIP <- getE :: GetEvents PortId
+    (do tag <- get :: Get Word8
+        sP  <- get :: Get ProcessId
+        sT  <- get :: Get ThreadId
+        rP  <- get :: Get ProcessId
+        rIP <- get :: Get PortId
         return SendReceiveLocalMessage { mesTag = toMsgTag tag,
                                          senderProcess = sP,
                                          senderThread = sT,
