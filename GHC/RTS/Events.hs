@@ -13,6 +13,10 @@ module GHC.RTS.Events (
        ghc7Parsers,
        mercuryParsers,
        perfParsers,
+       pre77StopParsers,
+       ghc782StopParser,
+       post782StopParser,
+       parRTSParsers,
        -- * The event log types
        EventLog(..),
        Header(..),
