@@ -6,7 +6,7 @@ import GHC.RTS.Events
 import Data.Monoid
 import Data.List (foldl')
 import qualified Data.Map as M
-import Data.Word (Word32, Word16)
+import Data.Word (Word32)
 
 -- TODO: add a merge mode where the events are synchronized using
 -- the wall clock time event at the start of both eventlogs (for newer GHCs).
@@ -35,11 +35,11 @@ mergeEventLogs (EventLog h1 (Data xs)) (EventLog h2 (Data ys)) =
       m = M.unionWith combine m1 m2
       h = Header $ M.elems m
   in h == h `seq`  -- Detect inconsistency ASAP.
-     EventLog h . Data . mergeOn time xs $ shift (maxVars xs) ys
+     EventLog h . Data . mergeOn evTime xs $ shift (maxVars xs) ys
 
 mergeOn :: Ord b => (a -> b) -> [a] -> [a] -> [a]
-mergeOn f [] ys = ys
-mergeOn f xs [] = xs
+mergeOn _ [] ys = ys
+mergeOn _ xs [] = xs
 mergeOn f (x:xs) (y:ys) | f x <= f y = x : mergeOn f xs (y:ys)
                         | otherwise  = y : mergeOn f (x:xs) ys
 
@@ -56,11 +56,6 @@ instance Monoid MaxVars where
     -- avoid space leaks:
     mconcat = foldl' mappend mempty
 
--- Capabilities are represented as Word16.  An event block marked with the
--- capability of 0xffff belongs to no capability
-isCap :: Int -> Bool
-isCap x = fromIntegral x /= ((-1) :: Word16)
-
 -- For caps we find the maximum value by summing the @Startup@ declarations.
 -- TODO: it's not trivial to add CapCreate since we don't know
 -- if created caps are guaranteed to be numbered consecutively or not
@@ -68,7 +63,7 @@ isCap x = fromIntegral x /= ((-1) :: Word16)
 -- just scan all events mentioning a cap and take the maximum,
 -- but it's a slower and much longer code, requiring constant maintenance.
 maxVars :: [Event] -> MaxVars
-maxVars = mconcat . map (maxSpec . spec)
+maxVars = mconcat . map (maxSpec . evSpec)
  where
     -- only checking binding sites right now, sufficient?
     maxSpec (Startup n) = mempty { mcap = n }
@@ -77,18 +72,19 @@ maxVars = mconcat . map (maxSpec . spec)
     maxSpec (CreateSparkThread t) = mempty { mthread = t }
     -- Capsets start at 0.
     maxSpec (CapsetCreate cs _) = mempty {mcapset = cs + 1 }
-    maxSpec (EventBlock _ _ es) = maxVars es
     maxSpec _  = mempty
 
 sh :: Num a => a -> a -> a
 sh x y = x + y
 
+updateSpec :: (EventInfo -> EventInfo) -> Event -> Event
+updateSpec f (Event {evTime = t, evSpec = s, evCap = cap}) = 
+    Event {evTime = t, evSpec = f s, evCap = cap}
+
 shift :: MaxVars -> [Event] -> [Event]
-shift mv@(MaxVars mcs mc mt) = map (\(Event t s) -> Event t $ shift' s)
+shift (MaxVars mcs mc mt) = map (updateSpec shift')
  where
     -- -1 marks a block that isn't attached to a particular capability
-    shift' (EventBlock et c bs) = EventBlock et (msh c) $ shift mv bs
-     where msh x = if isCap x then sh mc x else x
     shift' (CreateThread t) = CreateThread $ sh mt t
     shift' (RunThread t) = RunThread $ sh mt t
     shift' (StopThread t s) = StopThread (sh mt t) s
