@@ -7,7 +7,7 @@ description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
 category:         Development, GHC, Debug, Profiling, Trace
 license:          BSD3
 license-file:     LICENSE
-author:           Donnie Jones <donnie@darthik.com>, 
+author:           Donnie Jones <donnie@darthik.com>,
                   Simon Marlow <marlowsd@gmail.com>,
                   Paul Bone <pbone@csse.unimelb.edu.au>,
                   Mischa Dieterle <dieterle@mathematik.uni-marburg.de>,
@@ -47,7 +47,7 @@ source-repository head
 library
   build-depends:    base       == 4.*,
                     containers >= 0.2 && < 0.6,
-                    binary     >= 0.7 && < 0.8,
+                    binary     >= 0.7 && < 0.9,
                     bytestring >= 0.9.0,
                     array      >= 0.2 && < 0.6
   exposed-modules:  GHC.RTS.Events,
