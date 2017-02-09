@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP,BangPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
 {-
  -   Parser functions for GHC RTS EventLog framework.
@@ -47,8 +48,10 @@ module GHC.RTS.Events (
        buildEventTypeMap,
 
        -- * Printing
-       showEventInfo, showThreadStopStatus,
-       ppEventLog, ppEventType, ppEvent, ppEvent',
+       showEventInfo, buildEventInfo,
+       showThreadStopStatus,
+       ppEventLog, ppEventType,
+       ppEvent, ppEvent', buildEvent,
 
        -- * Perf events
        nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT,
@@ -65,12 +68,15 @@ import Data.Binary
 import Data.Binary.Get ()
 import qualified Data.Binary.Get as G
 import Data.Binary.Put
+import qualified Data.ByteString.Builder as BB
+import qualified Data.ByteString.Lazy.Char8 as BL8
 import Control.Monad (when, replicateM)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
 import Data.Function hiding (id)
 import Data.List
 import Data.Maybe (fromMaybe, fromJust)
+import Data.Monoid ((<>))
 import Text.Printf
 import Data.Array
 import Prelude hiding (gcd, rem, id)
@@ -776,166 +782,221 @@ buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
 -- Some pretty-printing support
 
 showEventInfo :: EventInfo -> String
-showEventInfo spec =
+showEventInfo = BL8.unpack . BB.toLazyByteString . buildEventInfo
+
+buildEventInfo :: EventInfo -> BB.Builder
+buildEventInfo spec =
     case spec of
         EventBlock end_time cap _block_events ->
-          printf "event block: cap %d, end time: %d\n" cap end_time
+          "event block: cap " <> BB.intDec cap
+          <> ", end time: " <> BB.word64Dec end_time <> "\n"
         Startup n_caps ->
-          printf "startup: %d capabilities" n_caps
+          "startup: " <> BB.intDec n_caps <> " capabilities"
         CreateThread thread ->
-          printf "creating thread %d" thread
+          "creating thread " <> BB.word32Dec thread
         RunThread thread ->
-          printf "running thread %d" thread
+          "running thread " <> BB.word32Dec thread
         StopThread thread status ->
-          printf "stopping thread %d (%s)" thread (showThreadStopStatus status)
+          "stopping thread " <> BB.word32Dec thread
+          <> " (" <> BB.stringUtf8 (showThreadStopStatus status) <> ")"
         ThreadRunnable thread ->
-          printf "thread %d is runnable" thread
+          "thread " <> BB.word32Dec thread <> " is runnable"
         MigrateThread thread newCap  ->
-          printf "migrating thread %d to cap %d" thread newCap
+          "migrating thread " <> BB.word32Dec thread
+          <> " to cap " <> BB.intDec newCap
         CreateSparkThread sparkThread ->
-          printf "creating spark thread %d" sparkThread
+          "creating spark thread " <> BB.word32Dec sparkThread
         SparkCounters crt dud ovf cnv fiz gcd rem ->
-          printf "spark stats: %d created, %d converted, %d remaining (%d overflowed, %d dud, %d GC'd, %d fizzled)" crt cnv rem ovf dud gcd fiz
+          "spark stats: "
+          <> BB.word64Dec crt <> " created, "
+          <> BB.word64Dec cnv <> " converted, "
+          <> BB.word64Dec rem <> " remaining ("
+          <> BB.word64Dec ovf <> " overflowed, "
+          <> BB.word64Dec dud <> " dud, "
+          <> BB.word64Dec gcd <> " GC'd, "
+          <> BB.word64Dec fiz <> " fizzled)"
         SparkCreate ->
-          printf "spark created"
+          "spark created"
         SparkDud ->
-          printf "dud spark discarded"
+          "dud spark discarded"
         SparkOverflow ->
-          printf "overflowed spark discarded"
+          "overflowed spark discarded"
         SparkRun ->
-          printf "running a local spark"
+          "running a local spark"
         SparkSteal victimCap ->
-          printf "stealing a spark from cap %d" victimCap
+          "stealing a spark from cap " <> BB.intDec victimCap
         SparkFizzle ->
-          printf "spark fizzled"
+          "spark fizzled"
         SparkGC ->
-          printf "spark GCed"
+          "spark GCed"
         TaskCreate taskId cap tid ->
-          printf "task 0x%x created on cap %d with OS kernel thread %d"
-                 taskId cap (kernelThreadId tid)
+          "task 0x" <> BB.word64Hex taskId
+          <> " created on cap " <> BB.intDec cap
+          <>" with OS kernel thread " <> BB.word64Dec (kernelThreadId tid)
         TaskMigrate taskId cap new_cap ->
-          printf "task 0x%x migrated from cap %d to cap %d"
-                 taskId cap new_cap
+          "task 0x" <> BB.word64Hex taskId
+          <> " migrated from cap " <> BB.intDec cap
+          <> " to cap " <> BB.intDec new_cap
         TaskDelete taskId ->
-          printf "task 0x%x deleted" taskId
+          "task 0x" <> BB.word64Hex taskId <> " deleted"
         Shutdown ->
-          printf "shutting down"
+          "shutting down"
         WakeupThread thread otherCap ->
-          printf "waking up thread %d on cap %d" thread otherCap
+          "waking up thread " <> BB.word32Dec thread
+          <> " on cap " <> BB.intDec otherCap
         ThreadLabel thread label ->
-          printf "thread %d has label \"%s\"" thread label
+          "thread " <> BB.word32Dec thread
+          <> " has label \"" <> BB.stringUtf8 label <> "\""
         RequestSeqGC ->
-          printf "requesting sequential GC"
+          "requesting sequential GC"
         RequestParGC ->
-          printf "requesting parallel GC"
+          "requesting parallel GC"
         StartGC ->
-          printf "starting GC"
+          "starting GC"
         EndGC ->
-          printf "finished GC"
+          "finished GC"
         GCWork ->
-          printf "GC working"
+          "GC working"
         GCIdle ->
-          printf "GC idle"
+          "GC idle"
         GCDone ->
-          printf "GC done"
+          "GC done"
         GlobalSyncGC ->
-          printf "all caps stopped for GC"
+          "all caps stopped for GC"
         GCStatsGHC{..} ->
-          printf "GC stats for heap capset %d: generation %d, %d bytes copied, %d bytes slop, %d bytes fragmentation, %d par threads, %d bytes max par copied, %d bytes total par copied" heapCapset gen copied slop frag parNThreads parMaxCopied parTotCopied
+          "GC stats for heap capset " <> BB.word32Dec heapCapset
+          <> ": generation " <> BB.intDec gen <> ", "
+          <> BB.word64Dec copied <> " bytes copied, "
+          <> BB.word64Dec slop <> " bytes slop, "
+          <> BB.word64Dec frag <> " bytes fragmentation, "
+          <> BB.intDec parNThreads <> " par threads, "
+          <> BB.word64Dec parMaxCopied <> " bytes max par copied, "
+          <> BB.word64Dec parTotCopied <> " bytes total par copied"
         HeapAllocated{..} ->
-          printf "allocated on heap capset %d: %d total bytes till now" heapCapset allocBytes
+          "allocated on heap capset " <> BB.word32Dec heapCapset
+          <> ": " <> BB.word64Dec allocBytes <> " total bytes till now"
         HeapSize{..} ->
-          printf "size of heap capset %d: %d bytes" heapCapset sizeBytes
+          "size of heap capset " <> BB.word32Dec heapCapset
+          <> ": " <> BB.word64Dec sizeBytes <> " bytes"
         HeapLive{..} ->
-          printf "live data in heap capset %d: %d bytes" heapCapset liveBytes
+          "live data in heap capset " <> BB.word32Dec heapCapset
+          <> ": " <> BB.word64Dec liveBytes <> " bytes"
         HeapInfoGHC{..} ->
-          printf "heap stats for heap capset %d: generations %d, %d bytes max heap size, %d bytes alloc area size, %d bytes mblock size, %d bytes block size" heapCapset gens maxHeapSize allocAreaSize mblockSize blockSize
+          "heap stats for heap capset " <> BB.word32Dec heapCapset
+          <> ": generations " <> BB.intDec gens <> ", "
+          <> BB.word64Dec maxHeapSize <> " bytes max heap size, "
+          <> BB.word64Dec allocAreaSize <> " bytes alloc area size, "
+          <> BB.word64Dec mblockSize <> " bytes mblock size, "
+          <> BB.word64Dec blockSize <> " bytes block size"
         CapCreate{cap} ->
-          printf "created cap %d" cap
+          "created cap " <> BB.intDec cap
         CapDelete{cap} ->
-          printf "deleted cap %d" cap
+          "deleted cap " <> BB.intDec cap
         CapDisable{cap} ->
-          printf "disabled cap %d" cap
+          "disabled cap " <> BB.intDec cap
         CapEnable{cap} ->
-          printf "enabled cap %d" cap
+          "enabled cap " <> BB.intDec cap
         Message msg ->
-          msg
+          BB.stringUtf8 msg
         UserMessage msg ->
-          msg
+          BB.stringUtf8 msg
         UserMarker markername ->
-          printf "marker: %s" markername
+          "marker: " <> BB.stringUtf8 markername
         CapsetCreate cs ct ->
-          printf "created capset %d of type %s" cs (show ct)
+          "created capset " <> BB.word32Dec cs
+          <> " of type " <> BB.stringUtf8 (show ct)
         CapsetDelete cs ->
-          printf "deleted capset %d" cs
+          "deleted capset " <> BB.word32Dec cs
         CapsetAssignCap cs cp ->
-          printf "assigned cap %d to capset %d" cp cs
+          "assigned cap " <> BB.intDec cp <> " to capset " <> BB.word32Dec cs
         CapsetRemoveCap cs cp ->
-          printf "removed cap %d from capset %d" cp cs
+          "removed cap " <> BB.intDec cp <> " from capset " <> BB.word32Dec cs
         OsProcessPid cs pid ->
-          printf "capset %d: pid %d" cs pid
+          "capset " <> BB.word32Dec cs <> ": pid " <> BB.word32Dec pid
         OsProcessParentPid cs ppid ->
-          printf "capset %d: parent pid %d" cs ppid
+          "capset " <> BB.word32Dec cs <> ": parent pid " <> BB.word32Dec ppid
         WallClockTime cs sec nsec ->
-          printf "capset %d: wall clock time %ds %dns (unix epoch)" cs sec nsec
+          "capset " <> BB.word32Dec cs <> ": wall clock time "
+          <> BB.word64Dec sec <> "s "
+          <> BB.word32Dec nsec <> "ns (unix epoch)"
         RtsIdentifier cs i ->
-          printf "capset %d: RTS version \"%s\"" cs i
+          "capset " <> BB.word32Dec cs
+          <> ": RTS version \"" <> BB.stringUtf8 i <> "\""
         ProgramArgs cs args ->
-          printf "capset %d: args: %s" cs (show args)
+          "capset " <> BB.word32Dec cs
+          <> ": args: " <> BB.stringUtf8 (show args)
         ProgramEnv cs env ->
-          printf "capset %d: env: %s" cs (show env)
+          "capset " <> BB.word32Dec cs
+          <> ": env: " <> BB.stringUtf8 (show env)
         UnknownEvent n ->
-          printf "Unknown event type %d" n
+          "Unknown event type " <> BB.word16Dec n
         InternString str sId ->
-          printf "Interned string: \"%s\" with id %d" str sId
+          "Interned string: \"" <> BB.stringUtf8 str
+          <> "\" with id " <> BB.word32Dec sId
         -- events for the parallel RTS
         Version version ->
-          printf "compiler version is %s" version
+          "compiler version is " <> BB.stringUtf8 version
         ProgramInvocation  commandline ->
-          printf "program invocation: %s" commandline
+          "program invocation: " <> BB.stringUtf8 commandline
         EdenStartReceive ->
-          printf "starting to receive"
+          "starting to receive"
         EdenEndReceive ->
-          printf "stop receiving"
+          "stop receiving"
         CreateProcess  process ->
-          printf "creating process %d" process
+          "creating process " <> BB.word32Dec process
         KillProcess process ->
-          printf "killing process %d" process
+          "killing process " <> BB.word32Dec process
         AssignThreadToProcess thread process ->
-          printf "assigning thread %d to process %d" thread process
+          "assigning thread " <> BB.word32Dec thread
+          <> " to process " <> BB.word32Dec process
         CreateMachine machine realtime ->
-          printf "creating machine %d at %d" machine realtime
+          "creating machine " <> BB.word16Dec machine
+          <> " at " <> BB.word64Dec realtime
         KillMachine machine ->
-          printf "killing machine %d" machine
+          "killing machine " <> BB.word16Dec machine
         SendMessage mesTag senderProcess senderThread
           receiverMachine receiverProcess receiverInport ->
-            printf "sending message with tag %s from process %d, thread %d to machine %d, process %d on inport %d"
-            (show mesTag) senderProcess senderThread receiverMachine receiverProcess receiverInport
+            "sending message with tag " <> BB.stringUtf8 (show mesTag)
+            <> " from process " <> BB.word32Dec senderProcess
+            <> ", thread " <> BB.word32Dec senderThread
+            <> " to machine " <> BB.word16Dec receiverMachine
+            <> ", process " <> BB.word32Dec receiverProcess
+            <> " on inport " <> BB.word32Dec receiverInport
         ReceiveMessage mesTag receiverProcess receiverInport
           senderMachine senderProcess senderThread messageSize ->
-            printf "receiving message with tag %s at process %d, inport %d from machine %d, process %d, thread %d with size %d"
-            (show mesTag) receiverProcess receiverInport
-            senderMachine senderProcess senderThread messageSize
+            "receiving message with tag " <> BB.stringUtf8 (show mesTag)
+            <> " at process " <> BB.word32Dec receiverProcess
+            <> ", inport " <> BB.word32Dec receiverInport
+            <> " from machine " <> BB.word16Dec senderMachine
+            <> ", process " <> BB.word32Dec senderProcess
+            <> ", thread " <> BB.word32Dec senderThread
+            <> " with size " <> BB.word32Dec messageSize
         SendReceiveLocalMessage mesTag senderProcess senderThread
           receiverProcess receiverInport ->
-            printf "sending/receiving message with tag %s from process %d, thread %d to process %d on inport %d"
-            (show mesTag) senderProcess senderThread receiverProcess receiverInport
+            "sending/receiving message with tag " <> BB.stringUtf8 (show mesTag)
+            <> " from process " <> BB.word32Dec senderProcess
+            <> ", thread " <> BB.word32Dec senderThread
+            <> " to process " <> BB.word32Dec receiverProcess
+            <> " on inport " <> BB.word32Dec receiverInport
         MerStartParConjunction dyn_id static_id ->
-          printf "Start a parallel conjunction 0x%x, static_id: %d" dyn_id static_id
+          "Start a parallel conjunction 0x" <> BB.word64Hex dyn_id
+          <> ", static_id: " <> BB.word32Dec static_id
         MerEndParConjunction dyn_id ->
-          printf "End par conjunction: 0x%x" dyn_id
+          "End par conjunction: 0x" <> BB.word64Hex dyn_id
         MerEndParConjunct dyn_id ->
-          printf "End par conjunct: 0x%x" dyn_id
+          "End par conjunct: 0x" <> BB.word64Hex dyn_id
         MerCreateSpark dyn_id spark_id ->
-          printf "Create spark for conjunction: 0x%x spark: 0x%x" dyn_id spark_id
+          "Create spark for conjunction: 0x" <> BB.word64Hex dyn_id
+          <> " spark: 0x" <> BB.word32Hex spark_id
         MerFutureCreate future_id name_id ->
-          printf "Create future 0x%x named %d" future_id name_id
+          "Create future 0x" <> BB.word64Hex future_id
+          <> " named " <> BB.word32Dec name_id
         MerFutureWaitNosuspend future_id ->
-          printf "Wait didn't suspend for future: 0x%x" future_id
+          "Wait didn't suspend for future: 0x" <> BB.word64Hex future_id
         MerFutureWaitSuspended future_id ->
-          printf "Wait suspended on future: 0x%x" future_id
+          "Wait suspended on future: 0x" <> BB.word64Hex future_id
         MerFutureSignal future_id ->
-          printf "Signaled future 0x%x" future_id
+          "Signaled future 0x" <> BB.word64Hex future_id
         MerLookingForGlobalThread ->
           "Looking for global thread to resume"
         MerWorkStealing ->
@@ -943,19 +1004,21 @@ showEventInfo spec =
         MerLookingForLocalSpark ->
           "Looking for a local spark to execute"
         MerReleaseThread thread_id ->
-          printf "Releasing thread %d to the free pool" thread_id
+          "Releasing thread " <> BB.word32Dec thread_id <> " to the free pool"
         MerCapSleeping ->
           "Capability going to sleep"
         MerCallingMain ->
           "About to call the program entry point"
         PerfName{perfNum, name} ->
-          printf "perf event %d named \"%s\"" perfNum name
+          "perf event " <> BB.word32Dec perfNum
+          <> " named \"" <> BB.stringUtf8 name <> "\""
         PerfCounter{perfNum, tid, period} ->
-          printf "perf event counter %d incremented by %d in OS thread %d"
-                 perfNum (period + 1) (kernelThreadId tid)
+          "perf event counter " <> BB.word32Dec perfNum
+          <> " incremented by " <> BB.word64Dec (period + 1)
+          <> " in OS thread " <> BB.word64Dec (kernelThreadId tid)
         PerfTracepoint{perfNum, tid} ->
-          printf "perf event tracepoint %d reached in OS thread %d"
-                 perfNum (kernelThreadId tid)
+          "perf event tracepoint " <> BB.word32Dec perfNum
+          <> " reached in OS thread " <> BB.word64Dec (kernelThreadId tid)
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -1012,15 +1075,18 @@ ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
 -- | Pretty prints an 'Event'. Cannot identify 'UnknownEvent's but has a
 -- simple type signature
 ppEvent' :: Event -> String
-ppEvent' (Event time spec evCap) =
-  printf "%9d: " time ++
-  (case evCap of
-    Nothing -> ""
-    Just c  -> printf "cap %d: " c) ++
-  case spec of
+ppEvent' = BL8.unpack . BB.toLazyByteString . buildEvent
+
+buildEvent :: Event -> BB.Builder
+buildEvent (Event time spec evCap) =
+  BB.word64Dec time
+  <> ": "
+  <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
+  <> case spec of
     UnknownEvent{ ref=ref } ->
-      printf "Unknown Event (ref: %d)" ref
-    _ -> showEventInfo spec
+      "Unknown Event (ref: " <> BB.word16Dec ref <> ")"
+    _ -> buildEventInfo spec
+
 type PutEvents a = PutM a
 
 putE :: Binary a => a -> PutEvents ()

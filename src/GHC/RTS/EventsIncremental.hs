@@ -7,6 +7,7 @@ This module contains functions used for parsing *.eventlog files emitted
 by the GHC runtime sytem.
 -}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-
 -}
 
@@ -39,11 +40,13 @@ import GHC.RTS.EventTypes hiding (time, spec)
 import Data.Binary.Get hiding (remaining)
 import Data.Binary.Put
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
 import Control.Concurrent (threadDelay)
 import qualified Data.IntMap.Strict as M
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import System.IO (Handle, hPutStrLn, stderr)
+import System.IO (Handle, hPutStrLn, stderr, stdout)
+import Data.Monoid ((<>))
 import Data.Word (Word16, Word32)
 
 
@@ -364,7 +367,7 @@ printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
       Item ev -> do
-          putStrLn (ppEvent' ev) -- if actual printing is needed
+          BB.hPutBuilder stdout (buildEvent ev <> "\n") -- if actual printing is needed
           printEventsIncremental eh dashf
       Incomplete ->
         if dashf
