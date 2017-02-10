@@ -13,8 +13,8 @@ import GHC.RTS.Events.Analysis.Capability
 import System.Environment (getArgs)
 import Data.Either (rights)
 import qualified Data.Map as M
-import System.IO (IOMode(ReadMode), openBinaryFile)
-import System.Exit (die)
+import System.IO
+import System.Exit
 
 main :: IO ()
 main = getArgs >>= command
@@ -247,3 +247,7 @@ showMap showKey showValue m =
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
 
+#if !MIN_VERSION_base(4,8,0)
+die :: String -> IO a
+die err = hPutStrLn stderr err >> exitFailure
+#endif
