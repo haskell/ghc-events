@@ -76,7 +76,13 @@ data EventDecoder =
      , edHeader   :: Header
        -- A decoder that keeps the currently unconsumed bytestring (and possibly)
        -- the next event to be returned by readEvent
-     , edPartial   :: Decoder (Maybe Event) }
+     , edPartial   :: Decoder (Maybe Event)
+       -- | Initial decoder cache.
+       --
+       -- It is expensive to construct a new decoder from a header. We cache
+       -- it for later reuse.
+     , edInitial :: Decoder (Maybe Event)
+     }
 
 -- | Datatype that describes the result of a parse.
 data ParseResult a =
@@ -106,11 +112,13 @@ newParserState = ParsingHeader (getToDecoder getHeader)
 newParserState' :: Maybe Int -> Word32 -> Header
                 -> Decoder (Maybe Event) -> B.ByteString
                 -> EventParserState
-newParserState' cap remaining header partial bss =
+newParserState' cap remaining header initial bss =
   ParsingEvents ED { edCap = cap
                    , edRemaining = remaining
                    , edHeader = header
-                   , edPartial = partial `pushChunk` bss }
+                   , edPartial = initial `pushChunk` bss
+                   , edInitial = initial
+                   }
 
 -- | Pushes a 'ByteString' to 'EventParserState'. This function is the only
 -- supported way of providing input in the ByteString interface.
@@ -144,19 +152,18 @@ readEvent (ParsingHeader hd) = parseHeader hd
 readEvent (ParsingEvents ed) = readEvent' ed
 
 readEvent' :: EventDecoder -> (ParseResult Event, EventParserState)
-readEvent' (ed@(ED _ remaining header partial)) =
+readEvent' (ed@(ED _ remaining header partial initial)) =
     case partial of
       (Done bs sz (Just event)) ->
-        let emptyDecoder = mkEventDecoder header in
         case evSpec event of
           EventBlock _ blockCap newRemaining -> do -- process a new block
             let newState = newParserState' (isCap blockCap) newRemaining
-                                          header emptyDecoder bs
+                                          header initial bs
             readEvent newState
           _ -> do -- other, non-EventBlock event
             let newRemaining = remaining - fromIntegral sz
                 newState = newParserState' (mkCap ed sz) newRemaining
-                                          header emptyDecoder bs
+                                          header initial bs
             (Item (Event (evTime event) (evSpec event) (mkCap ed 0)), newState)
       -- Parse returning Nothing means that the event log is complete
       (Done _ _ Nothing) -> (Complete, ParsingEvents ed)
