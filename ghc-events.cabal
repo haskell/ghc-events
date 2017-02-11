@@ -83,3 +83,4 @@ test-suite write-merge
   hs-source-dirs:   ., test
   build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  buildable:        False
