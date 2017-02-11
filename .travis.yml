@@ -90,7 +90,9 @@ script:
  - if [ "$TEST" != "--enable-tests" ]; then TESTS=(); fi
  - shopt -s globstar;
    RC=true; for T in ${TESTS[@]}; do echo "== $T ==";
-   if dist-newstyle/build/**/$SRC_BASENAME/**/build/$T/$T; then echo "= $T OK =";
-   else echo "= $T FAILED ="; RC=false; fi; done; $RC
+   if [ -x dist-newstyle/build/**/$SRC_BASENAME/**/build/$T/$T ]; then
+     if dist-newstyle/build/**/$SRC_BASENAME/**/build/$T/$T; then echo "= $T OK ="; else echo "= $T FAILED ="; RC=false; fi;
+   fi;
+   done; $RC
 
 # EOF
