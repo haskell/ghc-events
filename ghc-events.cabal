@@ -67,7 +67,6 @@ executable ghc-events
   main-is:          GhcEvents.hs
   build-depends:    base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
-  ghc-options:      -debug
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
