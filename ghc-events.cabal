@@ -67,7 +67,7 @@ library
 
 executable ghc-events
   main-is:          GhcEvents.hs
-  build-depends:    ghc-events, base, containers, binary, bytestring, array
+  build-depends:    ghc-events, base, containers
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
@@ -75,7 +75,7 @@ test-suite test-versions
   main-is:          TestVersions.hs
   other-modules:    Utils
   hs-source-dirs:   ., test
-  build-depends:    ghc-events, base, containers, binary, bytestring, array
+  build-depends:    ghc-events, base
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite write-merge
@@ -83,6 +83,6 @@ test-suite write-merge
   main-is:          WriteMerge.hs
   other-modules:    Utils
   hs-source-dirs:   ., test
-  build-depends:    ghc-events, base, containers, binary, bytestring, array
+  build-depends:    ghc-events, base, bytestring
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   buildable:        False
