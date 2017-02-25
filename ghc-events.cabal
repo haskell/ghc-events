@@ -23,7 +23,7 @@ build-type:       Simple
 tested-with:      GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3, GHC == 7.10.1,
                   GHC == 8.0.2
 cabal-version:    >= 1.8
-extra-source-files: GHC/RTS/EventLogFormat.h
+extra-source-files: include/EventLogFormat.h
                     test/queens-ghc-6.12.1.eventlog
                     test/queens-ghc-6.12.1.eventlog.reference
                     test/queens-ghc-7.0.2.eventlog
@@ -60,26 +60,29 @@ library
                     GHC.RTS.Events.Analysis.Thread
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
-  include-dirs:     GHC/RTS
+  hs-source-dirs:   src
+  include-dirs:     include
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   other-extensions: FlexibleContexts, CPP
 
 executable ghc-events
   main-is:          GhcEvents.hs
-  build-depends:    base, containers, binary, bytestring, array
+  build-depends:    ghc-events, base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
   main-is:          TestVersions.hs
+  other-modules:    Utils
   hs-source-dirs:   ., test
-  build-depends:    base, containers, binary, bytestring, array
+  build-depends:    ghc-events, base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite write-merge
   type:             exitcode-stdio-1.0
   main-is:          WriteMerge.hs
+  other-modules:    Utils
   hs-source-dirs:   ., test
-  build-depends:    base, containers, binary, bytestring, array
+  build-depends:    ghc-events, base, containers, binary, bytestring, array
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   buildable:        False
