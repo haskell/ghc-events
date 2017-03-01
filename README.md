@@ -10,7 +10,7 @@ The package also includes an executable, `ghc-events` that can be used to displa
 * Add example usage/tutorial of the new API to this readme
 
 ## Known Issues
-* Writing event logs back to file does not work. It is hard to say how long has this been broken or how difficult will it be to fix
+* Writing event logs back to file does not work. It is hard to say how long has this been broken or how difficult will it be to fix ([#14](https://github.com/haskell/ghc-events/issues/14))
 
 ## Changelog:
 ### 0.5.0.0
