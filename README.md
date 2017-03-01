@@ -8,7 +8,6 @@ The package also includes an executable, `ghc-events` that can be used to displa
 
 ## TODO
 * Add example usage/tutorial of the new API to this readme
-* Test with GHC 8
 
 ## Known Issues
 * Writing event logs back to file does not work. It is hard to say how long has this been broken or how difficult will it be to fix
