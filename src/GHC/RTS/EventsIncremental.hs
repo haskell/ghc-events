@@ -30,7 +30,9 @@ module GHC.RTS.EventsIncremental (
   -- * Helper functions
   serialiseEventLog,
   readRemainingEvents,
-  printEventsIncremental
+  printEventsIncremental,
+
+  mkEventDecoder
  ) where
 
 import GHC.RTS.Events
