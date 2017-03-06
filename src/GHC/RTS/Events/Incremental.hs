@@ -12,8 +12,10 @@ module GHC.RTS.Events.Incremental
   , readEvents
   , readEventLog
 
-  -- * Legacy API
+  -- * IO interface
   , readEventLogFromFile
+  , printEventsIncremental
+  , hPrintEventsIncremental
   ) where
 import Control.Applicative
 import Control.Monad
@@ -21,15 +23,22 @@ import Data.Either
 import Data.Maybe
 import Data.Monoid
 import Data.Word
+import System.IO
 import Prelude
 
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Internal as BL
+import qualified Data.IntMap.Strict as IM
 
+import GHC.RTS.EventParserUtils
+import GHC.RTS.EventTypes
 import GHC.RTS.Events
-import GHC.RTS.EventsIncremental (mkEventDecoder)
+
+#define EVENTLOG_CONSTANTS_ONLY
+#include "EventLogFormat.h"
 
 data Decoder a
   = Consume (B.ByteString -> Decoder a)
@@ -128,3 +137,69 @@ readEventLog bytes = do
 
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile path = fmap fst . readEventLog <$> BL.readFile path
+
+printEventsIncremental :: FilePath -> IO ()
+printEventsIncremental path = withFile path ReadMode hPrintEventsIncremental
+
+hPrintEventsIncremental :: Handle -> IO ()
+hPrintEventsIncremental hdl = go decodeEventLog
+  where
+    go decoder = case decoder of
+      Produce event decoder' -> do
+        BB.hPutBuilder stdout $ buildEvent event <> "\n"
+        go decoder'
+      Consume k -> do
+        chunk <- B.hGetSome hdl 4096
+        unless (B.null chunk) $ go $ k chunk
+      Done {} -> return ()
+      Error _ err -> fail err
+
+-- | Makes a decoder with all the required parsers when given a Header
+mkEventDecoder :: Header -> G.Decoder (Maybe Event)
+mkEventDecoder header = G.runGetIncremental $ getEvent parsers
+  where
+    imap = IM.fromList [(fromIntegral (num t), t) | t <- eventTypes header]
+    -- This test is complete, no-one has extended this event yet and all future
+    -- extensions will use newly allocated event IDs.
+    is_ghc_6 = Just sz_old_tid == do
+      create_et <- IM.lookup EVENT_CREATE_THREAD imap
+      size create_et
+    -- GHC6 writes an invalid header, we handle it here by using a
+    -- different set of event parsers.  Note that the ghc7 event parsers
+    -- are standard events, and can be used by other runtime systems that
+    -- make use of threadscope.
+
+    -- GHC-7.8.2 uses a different thread block status encoding,
+    -- and therefore requires a different parser for the stop
+    -- event. Later, in GHC-7.8.3, the old encoding was restored.
+    -- GHC-7.8.2 can be recognised by presence and absence of
+    -- events in the header:
+    --   * User markers were added in GHC-7.8
+    --   * an empty event HACK_BUG_T9003 was added in GHC-7.8.3
+    -- This fix breaks software which uses ghc-events and combines
+    -- user markers with the older stop status encoding. We don't
+    -- know of any such software, though.
+    is_pre77 = IM.notMember EVENT_USER_MARKER imap
+    is_ghc782 = IM.member EVENT_USER_MARKER imap
+      && IM.notMember EVENT_HACK_BUG_T9003 imap
+
+    stopParsers
+      | is_pre77 = pre77StopParsers
+      | is_ghc782 = [ghc782StopParser]
+      | otherwise = [post782StopParser]
+
+    event_parsers
+      | is_ghc_6 = concat
+        [ standardParsers
+        , ghc6Parsers
+        , parRTSParsers sz_old_tid
+        ]
+      | otherwise = concat
+        [ standardParsers
+        , ghc7Parsers
+        , stopParsers
+        , parRTSParsers sz_tid
+        , mercuryParsers
+        , perfParsers
+        ]
+    parsers = EventParsers $ mkEventTypeParsers imap event_parsers
