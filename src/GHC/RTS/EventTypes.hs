@@ -130,11 +130,11 @@ data Event =
 
 {-# DEPRECATED time "The field is now called evTime" #-}
 time :: Event -> Timestamp
-time = evTime 
+time = evTime
 
 {-# DEPRECATED spec "The field is now called evSpec" #-}
 spec :: Event -> EventInfo
-spec = evSpec 
+spec = evSpec
 
 data EventInfo
 
@@ -471,7 +471,7 @@ mkStopStatus782 n = case n of
  19 ->  BlockedOnMsgGlobalise
  _  ->  error "mkStat"
 
-maxThreadStopStatusPre77, maxThreadStopStatus782, maxThreadStopStatus 
+maxThreadStopStatusPre77, maxThreadStopStatus782, maxThreadStopStatus
     :: RawThreadStopStatus
 maxThreadStopStatusPre77  = 18 -- see [Stop status in GHC-7.8.2]
 maxThreadStopStatus782    = 19 -- need to distinguish three cases

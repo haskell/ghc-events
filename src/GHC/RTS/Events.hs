@@ -475,7 +475,7 @@ pre77StopParsers = [
                         -- older version of the event, no block info
    )),
 
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) 
+ (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
     (do
       -- (thread, status, info)
       t <- get
@@ -496,8 +496,8 @@ pre77StopParsers = [
 -- parsers for GHC >= 7.8.3, always using block info field parser.
 -- See [Stop status in GHC-7.8.2] in EventTypes.hs
 post782StopParser :: EventParser EventInfo
-post782StopParser = 
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) 
+post782StopParser =
+ (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
     (do
       -- (thread, status, info)
       t <- get
