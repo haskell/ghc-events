@@ -158,7 +158,7 @@ data EventInfo
   | RunThread          { thread :: {-# UNPACK #-}!ThreadId
                        }
   | StopThread         { thread :: {-# UNPACK #-}!ThreadId,
-                         status :: ThreadStopStatus
+                         status :: !ThreadStopStatus
                        }
   | ThreadRunnable     { thread :: {-# UNPACK #-}!ThreadId
                        }
