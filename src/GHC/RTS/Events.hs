@@ -51,7 +51,7 @@ module GHC.RTS.Events (
        showEventInfo, buildEventInfo,
        showThreadStopStatus,
        ppEventLog, ppEventType,
-       ppEvent, ppEvent', buildEvent,
+       ppEvent, buildEvent, buildEvent',
 
        -- * Perf events
        nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT,
@@ -73,6 +73,7 @@ import qualified Data.ByteString.Lazy.Char8 as BL8
 import Control.Monad (when, replicateM)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
+import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
 import Data.Maybe (fromMaybe, fromJust)
@@ -1045,47 +1046,51 @@ showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
 showThreadStopStatus NoStatus = "No stop thread status"
 
 ppEventLog :: EventLog -> String
-ppEventLog (EventLog (Header ets) (Data es)) = unlines $ concat
-    [ ["Event Types:"]
-    , map ppEventType ets
-    , [""] -- newline
-    , ["Events:"]
-    , map (ppEvent imap) sorted
-    , [""] ] -- extra trailing newline
- where
+ppEventLog = BL8.unpack . BB.toLazyByteString . buildEventLog
+
+buildEventLog :: EventLog -> BB.Builder
+buildEventLog (EventLog (Header ets) (Data es)) =
+  "Event Types:\n"
+  <> foldMap (\evType -> buildEventType evType <> "\n") ets
+  <> "\n"
+  <> "Events:\n"
+  <> foldMap (\ev -> buildEvent imap ev <> "\n") sorted
+  where
     imap = buildEventTypeMap ets
     sorted = sortEvents es
 
 ppEventType :: EventType -> String
-ppEventType (EventType num dsc msz) = printf "%4d: %s (size %s)" num dsc
-   (case msz of Nothing -> "variable"; Just x -> show x)
+ppEventType = BL8.unpack . BB.toLazyByteString . buildEventType
+
+buildEventType :: EventType -> BB.Builder
+buildEventType (EventType num dsc msz) =
+  BB.word16Dec num <> ": "
+  <> BB.stringUtf8 dsc <> " (size "
+  <> maybe "variable" BB.word16Dec msz <> ")"
 
 -- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
 ppEvent :: IntMap EventType -> Event -> String
-ppEvent imap (Event {evTime = time, evSpec = spec, evCap = cap}) =
-  printf "%9d: " time ++
-  (case cap of
-    Nothing -> ""
-    Just c  -> printf "cap %d: " c) ++
-  case spec of
-    UnknownEvent{ ref=ref } ->
-      printf (desc (fromJust (M.lookup (fromIntegral ref) imap)))
-    _ -> showEventInfo spec
+ppEvent imap = BL8.unpack . BB.toLazyByteString . buildEvent imap
 
--- | Pretty prints an 'Event'. Cannot identify 'UnknownEvent's but has a
--- simple type signature
-ppEvent' :: Event -> String
-ppEvent' = BL8.unpack . BB.toLazyByteString . buildEvent
-
-buildEvent :: Event -> BB.Builder
-buildEvent (Event time spec evCap) =
+buildEvent :: IntMap EventType -> Event -> BB.Builder
+buildEvent imap (Event time spec evCap) =
   BB.word64Dec time
   <> ": "
   <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
   <> case spec of
     UnknownEvent{ ref=ref } ->
-      "Unknown Event (ref: " <> BB.word16Dec ref <> ")"
+      maybe "" (BB.stringUtf8 . desc) $ M.lookup (fromIntegral ref) imap
     _ -> buildEventInfo spec
+
+buildEvent' :: Event -> BB.Builder
+buildEvent' (Event time spec evCap) =
+   BB.word64Dec time
+   <> ": "
+   <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
+   <> case spec of
+     UnknownEvent{ ref=ref } ->
+      "Unknown Event (ref: " <> BB.word16Dec ref <> ")"
+     _ -> buildEventInfo spec
 
 type PutEvents a = PutM a
 

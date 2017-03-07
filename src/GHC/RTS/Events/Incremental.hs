@@ -146,7 +146,7 @@ hPrintEventsIncremental hdl = go decodeEventLog
   where
     go decoder = case decoder of
       Produce event decoder' -> do
-        BB.hPutBuilder stdout $ buildEvent event <> "\n"
+        BB.hPutBuilder stdout $ buildEvent' event <> "\n"
         go decoder'
       Consume k -> do
         chunk <- B.hGetSome hdl 4096

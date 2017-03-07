@@ -376,7 +376,7 @@ printEventsIncremental eh dashf = do
     event <- ehReadEvent eh
     case event of
       Item ev -> do
-          BB.hPutBuilder stdout (buildEvent ev <> "\n") -- if actual printing is needed
+          BB.hPutBuilder stdout (buildEvent' ev <> "\n") -- if actual printing is needed
           printEventsIncremental eh dashf
       Incomplete ->
         if dashf
