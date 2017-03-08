@@ -17,6 +17,10 @@ module GHC.RTS.Events.Incremental
   , readEventLogFromFile
   , printEventsIncremental
   , hPrintEventsIncremental
+
+  -- * Serialisation
+  , writeEventLogToFile
+  , serialiseEventLog
   ) where
 import Control.Applicative
 import Control.Concurrent
@@ -29,6 +33,7 @@ import System.IO
 import Prelude
 
 import qualified Data.Binary.Get as G
+import qualified Data.Binary.Put as P
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
@@ -88,9 +93,6 @@ decodeEvents header = go (0 :: Int) Nothing decoder0
         Consume $ \chunk -> go remaining blockCap $ k $ Just chunk
       G.Fail leftover _ err ->
         Error leftover err
-    mkCap cap = do
-      guard $ fromIntegral cap /= (-1 :: Word16)
-      return cap
 
 decodeEventLog :: Decoder Event
 decodeEventLog = withHeader $ \header leftover ->
@@ -209,3 +211,58 @@ mkEventDecoder header = G.runGetIncremental $ getEvent parsers
         , perfParsers
         ]
     parsers = EventParsers $ mkEventTypeParsers imap event_parsers
+
+-- | Writes the 'EventLog' to file. The log is expected to __NOT__ have 'EventBlock'
+-- markers/events - the parsers no longer emit them and they are handled behind
+-- the scenes.
+writeEventLogToFile :: FilePath -> EventLog -> IO ()
+writeEventLogToFile fp = BL.writeFile fp . serialiseEventLog
+
+-- | Serialises an 'EventLog' back to a 'ByteString', usually for writing it
+-- back to a file.
+serialiseEventLog :: EventLog -> BL.ByteString
+serialiseEventLog el@(EventLog _ (Data events)) =
+  P.runPut $ putEventLog blockedEl
+  where
+    eventsMap = capSplitEvents events
+    blockedEventsMap = IM.mapWithKey addBlockMarker eventsMap
+    blockedEl = el{dat = Data blockedEvents}
+    blockedEvents = IM.foldr (++) [] blockedEventsMap
+
+-- Gets the Capability of an event in numeric form
+getIntCap :: Event -> Int
+getIntCap Event{evCap = cap} =
+  case cap of
+  Just capNo -> capNo
+  Nothing    -> -1
+
+-- Creates an IntMap of the events with capability number as the key.
+-- Key -1 indicates global (capless) event
+capSplitEvents :: [Event] -> IM.IntMap [Event]
+capSplitEvents evts = capSplitEvents' evts IM.empty
+
+capSplitEvents' :: [Event] -> IM.IntMap [Event] -> IM.IntMap [Event]
+capSplitEvents' evts imap =
+  case evts of
+  (x:xs) -> capSplitEvents' xs (IM.insertWith (++) (getIntCap x) [x] imap)
+  []     -> imap
+
+-- Adds a block marker to the beginnng of a list of events, annotated with
+-- its capability. All events are expected to belong to the same cap.
+addBlockMarker :: Int -> [Event] -> [Event]
+addBlockMarker cap evts =
+  (Event startTime (EventBlock endTime cap sz) (mkCap cap)) : sortedEvts
+  where
+    sz = fromIntegral . BL.length $ P.runPut $ mapM_ putEvent evts
+    startTime = case sortedEvts of
+      (x:_) -> evTime x
+      [] -> error "Cannot add block marker to an empty list of events"
+    sortedEvts = sortEvents evts
+    endTime = evTime $ last sortedEvts
+
+-- Checks if the capability is not -1 (which indicates a global eventblock), so
+-- has no associated capability
+mkCap :: Int -> Maybe Int
+mkCap cap = do
+  guard $ fromIntegral cap /= (-1 :: Word16)
+  return cap
