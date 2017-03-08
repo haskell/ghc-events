@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf #-}
 module GHC.RTS.Events.Incremental
   ( -- * Incremental API
     Decoder(..)
@@ -18,6 +19,7 @@ module GHC.RTS.Events.Incremental
   , hPrintEventsIncremental
   ) where
 import Control.Applicative
+import Control.Concurrent
 import Control.Monad
 import Data.Either
 import Data.Maybe
@@ -138,11 +140,12 @@ readEventLog bytes = do
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile path = fmap fst . readEventLog <$> BL.readFile path
 
-printEventsIncremental :: FilePath -> IO ()
-printEventsIncremental path = withFile path ReadMode hPrintEventsIncremental
+printEventsIncremental :: Bool -> FilePath -> IO ()
+printEventsIncremental follow path =
+  withFile path ReadMode (hPrintEventsIncremental follow)
 
-hPrintEventsIncremental :: Handle -> IO ()
-hPrintEventsIncremental hdl = go decodeEventLog
+hPrintEventsIncremental :: Bool -> Handle -> IO ()
+hPrintEventsIncremental follow hdl = go decodeEventLog
   where
     go decoder = case decoder of
       Produce event decoder' -> do
@@ -150,7 +153,10 @@ hPrintEventsIncremental hdl = go decodeEventLog
         go decoder'
       Consume k -> do
         chunk <- B.hGetSome hdl 4096
-        unless (B.null chunk) $ go $ k chunk
+        if
+          | not (B.null chunk) -> go $ k chunk
+          | follow -> threadDelay 1000000 >> go decoder
+          | otherwise -> return ()
       Done {} -> return ()
       Error _ err -> fail err
 

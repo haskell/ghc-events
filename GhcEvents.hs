@@ -23,12 +23,9 @@ main = getArgs >>= command
 command :: [String] -> IO ()
 command ["--help"] = putStr usage
 
-command ["inc", file] = Inc.printEventsIncremental file
+command ["inc", file] = Inc.printEventsIncremental False file
 
-command ["inc", "force", file] = do
-    h <- openBinaryFile file ReadMode
-    eh <- ehOpen h 1024
-    printEventsIncremental eh True
+command ["inc", "force", file] = Inc.printEventsIncremental True file
 
 command ["show", file] = do
     evtLog <- readLogOrDie file
