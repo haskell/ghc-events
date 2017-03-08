@@ -52,7 +52,6 @@ library
                     bytestring >= 0.10.4,
                     array      >= 0.2 && < 0.6
   exposed-modules:  GHC.RTS.Events,
-                    GHC.RTS.EventsIncremental
                     GHC.RTS.Events.Incremental
                     GHC.RTS.Events.Merge
                     GHC.RTS.Events.Analysis

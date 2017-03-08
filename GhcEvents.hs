@@ -3,8 +3,7 @@
 module Main where
 
 import GHC.RTS.Events
-import GHC.RTS.EventsIncremental
-import qualified GHC.RTS.Events.Incremental as Inc
+import GHC.RTS.Events.Incremental
 import GHC.RTS.Events.Merge
 import GHC.RTS.Events.Analysis
 import GHC.RTS.Events.Analysis.SparkThread
@@ -23,9 +22,9 @@ main = getArgs >>= command
 command :: [String] -> IO ()
 command ["--help"] = putStr usage
 
-command ["inc", file] = Inc.printEventsIncremental False file
+command ["inc", file] = printEventsIncremental False file
 
-command ["inc", "force", file] = Inc.printEventsIncremental True file
+command ["inc", "force", file] = printEventsIncremental True file
 
 command ["show", file] = do
     evtLog <- readLogOrDie file
@@ -176,7 +175,7 @@ command _ = putStr usage >> die "Unrecognized command"
 
 readLogOrDie :: FilePath -> IO EventLog
 readLogOrDie file = do
-    e <- Inc.readEventLogFromFile file
+    e <- readEventLogFromFile file
     case e of
         Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
         Right evtLog -> return evtLog
