@@ -47,12 +47,21 @@ import GHC.RTS.Events
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
+-- | The unfolding of the decoding process.
 data Decoder a
   = Consume (B.ByteString -> Decoder a)
+  -- ^ The decoder has consumed all the available input and needs more to
+  -- continue.
   | Produce !a (Decoder a)
+  -- ^ The decoder has returned a decoded value and the next decoder state to
+  -- continue.
   | Done B.ByteString
+  -- ^ The decoder has ended with leftover input.
   | Error B.ByteString String
+  -- ^ The decoder has encountered an error with lefover input and an error
+  -- message.
 
+-- | Push an input chunk to the decoder
 pushChunk :: Decoder a -> B.ByteString -> Decoder a
 pushChunk decoder chunk = case decoder of
   Consume k -> k chunk
@@ -60,7 +69,11 @@ pushChunk decoder chunk = case decoder of
   Done leftover -> Done $ leftover `B.append` chunk
   Error leftover err -> Error (leftover `B.append` chunk) err
 
-withHeader :: (Header -> B.ByteString -> Decoder r) -> Decoder r
+-- | Decode a header and continue with the provided decoder
+withHeader
+  :: (Header -> B.ByteString -> Decoder r)
+  -- ^ Continuation
+  -> Decoder r
 withHeader f = go $ G.runGetIncremental getHeader
   where
     go decoder = case decoder of
@@ -68,9 +81,11 @@ withHeader f = go $ G.runGetIncremental getHeader
       G.Partial k -> Consume $ \chunk -> go $ k $ Just chunk
       G.Fail leftover _ err -> Error leftover err
 
+-- | Decode a header
 decodeHeader :: Decoder Header
 decodeHeader = withHeader $ \header leftover -> Produce header $ Done leftover
 
+-- | Decode events
 decodeEvents :: Header -> Decoder Event
 decodeEvents header = go (0 :: Int) Nothing decoder0
   where
@@ -94,10 +109,13 @@ decodeEvents header = go (0 :: Int) Nothing decoder0
       G.Fail leftover _ err ->
         Error leftover err
 
+-- | Decode a header and events
 decodeEventLog :: Decoder Event
 decodeEventLog = withHeader $ \header leftover ->
   decodeEvents header `pushChunk` leftover
 
+-- | Read a header from a lazy bytestring and return the header and the
+-- leftover input for subsequent decoding.
 readHeader :: BL.ByteString -> Either String (Header, BL.ByteString)
 readHeader = go $ Left decodeHeader
   where
@@ -113,6 +131,11 @@ readHeader = go $ Left decodeHeader
         Error _ err -> fail err
       Right header -> Right (header, bytes)
 
+-- | Read events from a lazy bytestring. It returns an error message if it
+-- encouters an error while decoding.
+--
+-- Note that it doesn't fail if it consumes all input in the middle of decoding
+-- of an event.
 readEvents :: Header -> BL.ByteString -> ([Event], Maybe String)
 readEvents header = f . go (decodeEvents header)
   where
@@ -133,20 +156,38 @@ readEvents header = f . go (decodeEvents header)
       Done {} -> []
       Error _ err -> [Left err]
 
+-- | Read an entire eventlog from a lazy bytestring. It returns an error message if it
+-- encouters an error while decoding.
+--
+-- Note that it doesn't fail if it consumes all input in the middle of decoding
+-- of an event.
 readEventLog :: BL.ByteString -> Either String (EventLog, Maybe String)
 readEventLog bytes = do
   (header, bytes') <- readHeader bytes
   case readEvents header bytes' of
     (events, err) -> return (EventLog header (Data events), err)
 
+-- | Read an entire eventlog file. It returns an error message if it
+-- encouters an error while decoding.
+--
+-- Note that it doesn't fail if it consumes all input in the middle of decoding
+-- of an event.
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile path = fmap fst . readEventLog <$> BL.readFile path
 
-printEventsIncremental :: Bool -> FilePath -> IO ()
+-- | Read an eventlog file and pretty print it to stdout
+printEventsIncremental
+  :: Bool -- ^ Follow the file or not
+  -> FilePath
+  -> IO ()
 printEventsIncremental follow path =
   withFile path ReadMode (hPrintEventsIncremental follow)
 
-hPrintEventsIncremental :: Bool -> Handle -> IO ()
+-- | Read an eventlog from the Handle and pretty print it to stdout
+hPrintEventsIncremental
+  :: Bool -- ^ Follow the handle or not
+  -> Handle
+  -> IO ()
 hPrintEventsIncremental follow hdl = go decodeEventLog
   where
     go decoder = case decoder of
