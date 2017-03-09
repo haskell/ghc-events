@@ -64,6 +64,7 @@ library
   include-dirs:     include
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   other-extensions: FlexibleContexts, CPP
+  ghc-options:      -Wall
 
 executable ghc-events
   main-is:          GhcEvents.hs

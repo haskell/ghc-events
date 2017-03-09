@@ -76,9 +76,8 @@ import qualified Data.IntMap as M
 import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
-import Data.Maybe (fromMaybe, fromJust)
+import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
-import Text.Printf
 import Data.Array
 import Prelude hiding (gcd, rem, id)
 
@@ -144,9 +143,9 @@ getEvent (EventParsers parsers) = do
   etRef <- get :: Get EventTypeNum
   if etRef == EVENT_DATA_END
      then return Nothing
-     else do !ts   <- get
-             spec <- parsers ! fromIntegral etRef
-             return $ Just (Event ts spec undefined)
+     else do !evTime   <- get
+             evSpec <- parsers ! fromIntegral etRef
+             return $ Just Event { evCap = undefined, .. }
 
 --
 -- standardEventParsers.
@@ -593,7 +592,7 @@ ghc6Parsers = [
 -- Parsers for parallel events. Parameter is the thread_id size, to create
 -- ghc6-parsers (using the wrong size) where necessary.
 parRTSParsers :: EventTypeSize -> [EventParser EventInfo]
-parRTSParsers sz_tid = [
+parRTSParsers sz_tid' = [
  (VariableSizeParser EVENT_VERSION (do -- (version)
       num <- get :: Get Word16
       string <- getString num
@@ -619,7 +618,7 @@ parRTSParsers sz_tid = [
         return KillProcess{ process = p })
  ),
 
- (FixedSizeParser EVENT_ASSIGN_THREAD_TO_PROCESS (sz_tid + sz_procid)
+ (FixedSizeParser EVENT_ASSIGN_THREAD_TO_PROCESS (sz_tid' + sz_procid)
     (do t <- get
         p <- get
         return AssignThreadToProcess { thread = t, process = p })
@@ -637,7 +636,7 @@ parRTSParsers sz_tid = [
  ),
 
  (FixedSizeParser EVENT_SEND_MESSAGE
-    (sz_msgtag + 2*sz_procid + 2*sz_tid + sz_mid)
+    (sz_msgtag + 2*sz_procid + 2*sz_tid' + sz_mid)
     (do tag <- get :: Get RawMsgTag
         sP  <- get :: Get ProcessId
         sT  <- get :: Get ThreadId
@@ -654,7 +653,7 @@ parRTSParsers sz_tid = [
  ),
 
  (FixedSizeParser EVENT_RECEIVE_MESSAGE
-    (sz_msgtag + 2*sz_procid + 2*sz_tid + sz_mid + sz_mes)
+    (sz_msgtag + 2*sz_procid + 2*sz_tid' + sz_mid + sz_mes)
     (do tag <- get :: Get Word8
         rP  <- get :: Get ProcessId
         rIP <- get :: Get PortId
@@ -673,7 +672,7 @@ parRTSParsers sz_tid = [
  ),
 
  (FixedSizeParser EVENT_SEND_RECEIVE_LOCAL_MESSAGE
-    (sz_msgtag + 2*sz_procid + 2*sz_tid)
+    (sz_msgtag + 2*sz_procid + 2*sz_tid')
     (do tag <- get :: Get Word8
         sP  <- get :: Get ProcessId
         sT  <- get :: Get ThreadId
@@ -786,8 +785,8 @@ showEventInfo :: EventInfo -> String
 showEventInfo = BL8.unpack . BB.toLazyByteString . buildEventInfo
 
 buildEventInfo :: EventInfo -> BB.Builder
-buildEventInfo spec =
-    case spec of
+buildEventInfo spec' =
+    case spec' of
         EventBlock end_time cap _block_events ->
           "event block: cap " <> BB.intDec cap
           <> ", end time: " <> BB.word64Dec end_time <> "\n"
@@ -1073,24 +1072,24 @@ ppEvent :: IntMap EventType -> Event -> String
 ppEvent imap = BL8.unpack . BB.toLazyByteString . buildEvent imap
 
 buildEvent :: IntMap EventType -> Event -> BB.Builder
-buildEvent imap (Event time spec evCap) =
-  BB.word64Dec time
+buildEvent imap Event {..} =
+  BB.word64Dec evTime
   <> ": "
   <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
-  <> case spec of
+  <> case evSpec of
     UnknownEvent{ ref=ref } ->
       maybe "" (BB.stringUtf8 . desc) $ M.lookup (fromIntegral ref) imap
-    _ -> buildEventInfo spec
+    _ -> buildEventInfo evSpec
 
 buildEvent' :: Event -> BB.Builder
-buildEvent' (Event time spec evCap) =
-   BB.word64Dec time
+buildEvent' Event {..} =
+   BB.word64Dec evTime
    <> ": "
    <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
-   <> case spec of
+   <> case evSpec of
      UnknownEvent{ ref=ref } ->
       "Unknown Event (ref: " <> BB.word16Dec ref <> ")"
-     _ -> buildEventInfo spec
+     _ -> buildEventInfo evSpec
 
 type PutEvents a = PutM a
 
@@ -1230,10 +1229,10 @@ nEVENT_PERF_COUNTER = EVENT_PERF_COUNTER
 nEVENT_PERF_TRACEPOINT = EVENT_PERF_TRACEPOINT
 
 putEvent :: Event -> PutEvents ()
-putEvent (Event {evTime = t , evSpec = spec}) = do
-    putType (eventTypeNum spec)
-    put t
-    putEventSpec spec
+putEvent Event {..} = do
+    putType (eventTypeNum evSpec)
+    put evTime
+    putEventSpec evSpec
 
 putEventSpec :: EventInfo -> PutEvents ()
 putEventSpec (Startup caps) = do

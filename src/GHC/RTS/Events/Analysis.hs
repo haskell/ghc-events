@@ -41,16 +41,6 @@ data Machine s i = Machine
   , delta   :: s -> i -> Maybe s -- ^ State transition function
   }
 
--- | This machine always accepts, never terminates, and always has unit state.
--- It is not used anywhere.
-unitMachine :: Machine () i
-unitMachine = Machine
-  { initial  = ()
-  , final    = const False
-  , alpha    = const True
-  , delta    = (\_ _ -> Just ())
-  }
-
 -- | The `step` function runs a machine in a state against a single input.
 -- The state remains fixed once a final state is encountered. The
 -- result is `Left state input` if some `state` failed for an `ìnput`, and
@@ -105,7 +95,7 @@ analyse :: Machine s i          -- ^ The machine used
         -> (s -> i -> Maybe o)  -- ^ An extraction function that may produce output
         -> [i]                  -- ^ A list of input
         -> Process (s, i) o     -- ^ A process that produces output
-analyse machine extract is = go (initial machine) is
+analyse machine extract = go (initial machine)
  where
   -- go :: s -> [i] -> Process (s, i) o
   go _ [] = Done
