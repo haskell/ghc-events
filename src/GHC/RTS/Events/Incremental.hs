@@ -12,37 +12,20 @@ module GHC.RTS.Events.Incremental
   , readHeader
   , readEvents
   , readEventLog
-
-  -- * IO interface
-  , readEventLogFromFile
-  , printEventsIncremental
-  , hPrintEventsIncremental
-
-  -- * Serialisation
-  , writeEventLogToFile
-  , serialiseEventLog
   ) where
-import Control.Applicative
-import Control.Concurrent
 import Control.Monad
 import Data.Either
 import Data.Maybe
-import Data.Monoid
-import Data.Word
-import System.IO
 import Prelude
 
 import qualified Data.Binary.Get as G
-import qualified Data.Binary.Put as P
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Internal as BL
 import qualified Data.IntMap.Strict as IM
 
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
-import GHC.RTS.Events
 import GHC.RTS.Events.Binary
 
 #define EVENTLOG_CONSTANTS_ONLY
@@ -168,42 +151,6 @@ readEventLog bytes = do
   case readEvents header bytes' of
     (events, err) -> return (EventLog header (Data events), err)
 
--- | Read an entire eventlog file. It returns an error message if it
--- encouters an error while decoding.
---
--- Note that it doesn't fail if it consumes all input in the middle of decoding
--- of an event.
-readEventLogFromFile :: FilePath -> IO (Either String EventLog)
-readEventLogFromFile path = fmap fst . readEventLog <$> BL.readFile path
-
--- | Read an eventlog file and pretty print it to stdout
-printEventsIncremental
-  :: Bool -- ^ Follow the file or not
-  -> FilePath
-  -> IO ()
-printEventsIncremental follow path =
-  withFile path ReadMode (hPrintEventsIncremental follow)
-
--- | Read an eventlog from the Handle and pretty print it to stdout
-hPrintEventsIncremental
-  :: Bool -- ^ Follow the handle or not
-  -> Handle
-  -> IO ()
-hPrintEventsIncremental follow hdl = go decodeEventLog
-  where
-    go decoder = case decoder of
-      Produce event decoder' -> do
-        BB.hPutBuilder stdout $ buildEvent' event <> "\n"
-        go decoder'
-      Consume k -> do
-        chunk <- B.hGetSome hdl 4096
-        if
-          | not (B.null chunk) -> go $ k chunk
-          | follow -> threadDelay 1000000 >> go decoder
-          | otherwise -> return ()
-      Done {} -> return ()
-      Error _ err -> fail err
-
 -- | Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> G.Decoder (Maybe Event)
 mkEventDecoder header = G.runGetIncremental $ getEvent parsers
@@ -253,58 +200,3 @@ mkEventDecoder header = G.runGetIncremental $ getEvent parsers
         , perfParsers
         ]
     parsers = EventParsers $ mkEventTypeParsers imap event_parsers
-
--- | Writes the 'EventLog' to file. The log is expected to __NOT__ have 'EventBlock'
--- markers/events - the parsers no longer emit them and they are handled behind
--- the scenes.
-writeEventLogToFile :: FilePath -> EventLog -> IO ()
-writeEventLogToFile fp = BL.writeFile fp . serialiseEventLog
-
--- | Serialises an 'EventLog' back to a 'ByteString', usually for writing it
--- back to a file.
-serialiseEventLog :: EventLog -> BL.ByteString
-serialiseEventLog el@(EventLog _ (Data events)) =
-  P.runPut $ putEventLog blockedEl
-  where
-    eventsMap = capSplitEvents events
-    blockedEventsMap = IM.mapWithKey addBlockMarker eventsMap
-    blockedEl = el{dat = Data blockedEvents}
-    blockedEvents = IM.foldr (++) [] blockedEventsMap
-
--- Gets the Capability of an event in numeric form
-getIntCap :: Event -> Int
-getIntCap Event{evCap = cap} =
-  case cap of
-  Just capNo -> capNo
-  Nothing    -> -1
-
--- Creates an IntMap of the events with capability number as the key.
--- Key -1 indicates global (capless) event
-capSplitEvents :: [Event] -> IM.IntMap [Event]
-capSplitEvents evts = capSplitEvents' evts IM.empty
-
-capSplitEvents' :: [Event] -> IM.IntMap [Event] -> IM.IntMap [Event]
-capSplitEvents' evts imap =
-  case evts of
-  (x:xs) -> capSplitEvents' xs (IM.insertWith (++) (getIntCap x) [x] imap)
-  []     -> imap
-
--- Adds a block marker to the beginnng of a list of events, annotated with
--- its capability. All events are expected to belong to the same cap.
-addBlockMarker :: Int -> [Event] -> [Event]
-addBlockMarker cap evts =
-  (Event startTime (EventBlock endTime cap sz) (mkCap cap)) : sortedEvts
-  where
-    sz = fromIntegral . BL.length $ P.runPut $ mapM_ putEvent evts
-    startTime = case sortedEvts of
-      (x:_) -> evTime x
-      [] -> error "Cannot add block marker to an empty list of events"
-    sortedEvts = sortEvents evts
-    endTime = evTime $ last sortedEvts
-
--- Checks if the capability is not -1 (which indicates a global eventblock), so
--- has no associated capability
-mkCap :: Int -> Maybe Int
-mkCap cap = do
-  guard $ fromIntegral cap /= (-1 :: Word16)
-  return cap

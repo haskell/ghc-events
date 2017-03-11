@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 
 module GHC.RTS.EventTypes where
+import Control.Monad
 
 import Data.Binary
 
@@ -520,3 +521,10 @@ toMsgTag = toEnum . fromIntegral . (\n -> n - offset)
 
 fromMsgTag :: MessageTag -> RawMsgTag
 fromMsgTag = (+ offset) . fromIntegral . fromEnum
+
+-- Checks if the capability is not -1 (which indicates a global eventblock), so
+-- has no associated capability
+mkCap :: Int -> Maybe Int
+mkCap cap = do
+  guard $ fromIntegral cap /= (-1 :: Word16)
+  return cap

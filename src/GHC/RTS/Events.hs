@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP,BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -funbox-strict-fields -fwarn-incomplete-patterns #-}
+{-# LANGUAGE MultiWayIf #-}
 {-
  -   Parser functions for GHC RTS EventLog framework.
  -}
@@ -26,11 +26,16 @@ module GHC.RTS.Events (
        MessageSize,
        MessageTag(..),
 
+       -- * Reading and writing event logs
+       readEventLogFromFile,
+       writeEventLogToFile,
+
        -- * Utilities
        CapEvent(..), sortEvents,
        buildEventTypeMap,
 
        -- * Printing
+       printEventsIncremental,
        showEventInfo, buildEventInfo,
        showThreadStopStatus,
        ppEventLog, ppEventType,
@@ -47,28 +52,120 @@ module GHC.RTS.Events (
   ) where
 
 {- Libraries. -}
+import Control.Applicative
+import Control.Concurrent hiding (ThreadId)
+import qualified Data.Binary.Put as P
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Builder as BB
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.IntMap (IntMap)
-import qualified Data.IntMap as M
+import qualified Data.IntMap as IM
 import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
 import Data.Monoid ((<>))
+import System.IO
 import Prelude hiding (gcd, rem, id)
 
 import GHC.RTS.EventTypes
 import GHC.RTS.Events.Binary
+import GHC.RTS.Events.Incremental
 
+-- | Read an entire eventlog file. It returns an error message if it
+-- encouters an error while decoding.
+--
+-- Note that it doesn't fail if it consumes all input in the middle of decoding
+-- of an event.
+readEventLogFromFile :: FilePath -> IO (Either String EventLog)
+readEventLogFromFile path = fmap fst . readEventLog <$> BL.readFile path
+
+-- | Read an eventlog file and pretty print it to stdout
+printEventsIncremental
+  :: Bool -- ^ Follow the file or not
+  -> FilePath
+  -> IO ()
+printEventsIncremental follow path =
+  withFile path ReadMode (hPrintEventsIncremental follow)
+
+-- | Read an eventlog from the Handle and pretty print it to stdout
+hPrintEventsIncremental
+  :: Bool -- ^ Follow the handle or not
+  -> Handle
+  -> IO ()
+hPrintEventsIncremental follow hdl = go decodeEventLog
+  where
+    go decoder = case decoder of
+      Produce event decoder' -> do
+        BB.hPutBuilder stdout $ buildEvent' event <> "\n"
+        go decoder'
+      Consume k -> do
+        chunk <- B.hGetSome hdl 4096
+        if
+          | not (B.null chunk) -> go $ k chunk
+          | follow -> threadDelay 1000000 >> go decoder
+          | otherwise -> return ()
+      Done {} -> return ()
+      Error _ err -> fail err
+
+
+-- | Writes the 'EventLog' to file. The log is expected to __NOT__ have 'EventBlock'
+-- markers/events - the parsers no longer emit them and they are handled behind
+-- the scenes.
+writeEventLogToFile :: FilePath -> EventLog -> IO ()
+writeEventLogToFile fp = BL.writeFile fp . serialiseEventLog
+
+
+-- | Serialises an 'EventLog' back to a 'ByteString', usually for writing it
+-- back to a file.
+serialiseEventLog :: EventLog -> BL.ByteString
+serialiseEventLog el@(EventLog _ (Data events)) =
+  P.runPut $ putEventLog blockedEl
+  where
+    eventsMap = capSplitEvents events
+    blockedEventsMap = IM.mapWithKey addBlockMarker eventsMap
+    blockedEl = el{dat = Data blockedEvents}
+    blockedEvents = IM.foldr (++) [] blockedEventsMap
+
+-- Gets the Capability of an event in numeric form
+getIntCap :: Event -> Int
+getIntCap Event{evCap = cap} =
+  case cap of
+  Just capNo -> capNo
+  Nothing    -> -1
+
+-- Creates an IntMap of the events with capability number as the key.
+-- Key -1 indicates global (capless) event
+capSplitEvents :: [Event] -> IM.IntMap [Event]
+capSplitEvents evts = capSplitEvents' evts IM.empty
+
+capSplitEvents' :: [Event] -> IM.IntMap [Event] -> IM.IntMap [Event]
+capSplitEvents' evts imap =
+  case evts of
+  (x:xs) -> capSplitEvents' xs (IM.insertWith (++) (getIntCap x) [x] imap)
+  []     -> imap
+
+-- Adds a block marker to the beginnng of a list of events, annotated with
+-- its capability. All events are expected to belong to the same cap.
+addBlockMarker :: Int -> [Event] -> [Event]
+addBlockMarker cap evts =
+  (Event startTime (EventBlock endTime cap sz) (mkCap cap)) : sortedEvts
+  where
+    sz = fromIntegral . BL.length $ P.runPut $ mapM_ putEvent evts
+    startTime = case sortedEvts of
+      (x:_) -> evTime x
+      [] -> error "Cannot add block marker to an empty list of events"
+    sortedEvts = sortEvents evts
+    endTime = evTime $ last sortedEvts
 
 -- -----------------------------------------------------------------------------
 -- Utilities
-
 sortEvents :: [Event] -> [Event]
 sortEvents = sortBy (compare `on` evTime)
 
 buildEventTypeMap :: [EventType] -> IntMap EventType
-buildEventTypeMap etypes = M.fromList [ (fromIntegral (num t),t) | t <- etypes ]
+buildEventTypeMap etypes =
+  IM.fromList [ (fromIntegral (num t),t) | t <- etypes ]
 
 -----------------------------------------------------------------------------
 -- Some pretty-printing support
@@ -370,7 +467,7 @@ buildEvent imap Event {..} =
   <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
   <> case evSpec of
     UnknownEvent{ ref=ref } ->
-      maybe "" (BB.stringUtf8 . desc) $ M.lookup (fromIntegral ref) imap
+      maybe "" (BB.stringUtf8 . desc) $ IM.lookup (fromIntegral ref) imap
     _ -> buildEventInfo evSpec
 
 buildEvent' :: Event -> BB.Builder
