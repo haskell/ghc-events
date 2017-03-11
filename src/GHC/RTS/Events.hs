@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP,BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# OPTIONS_GHC -fsimpl-tick-factor=150 #-}
 {-
  -   Parser functions for GHC RTS EventLog framework.
  -}

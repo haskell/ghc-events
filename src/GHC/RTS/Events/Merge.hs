@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -funbox-strict-fields #-}
-
 module GHC.RTS.Events.Merge (mergeEventLogs) where
 
 import GHC.RTS.Events
