@@ -43,6 +43,7 @@ import qualified Data.IntMap.Strict as IM
 import GHC.RTS.EventParserUtils
 import GHC.RTS.EventTypes
 import GHC.RTS.Events
+import GHC.RTS.Events.Binary
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"

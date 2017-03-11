@@ -60,6 +60,7 @@ library
                     GHC.RTS.Events.Analysis.Thread
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
+                    GHC.RTS.Events.Binary
   hs-source-dirs:   src
   include-dirs:     include
   extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
