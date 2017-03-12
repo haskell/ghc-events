@@ -44,7 +44,7 @@ skip n = G.skip (fromIntegral n)
 --
 
 --
--- Event parser data.  Parsers are either fixed or vairable size.
+-- | Event parser data. Parsers are either fixed or vairable size.
 --
 data EventParser a
     = FixedSizeParser {

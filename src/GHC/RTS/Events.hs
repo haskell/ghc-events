@@ -20,12 +20,23 @@ module GHC.RTS.Events (
        ThreadId,
        TaskId,
        KernelThreadId(..),
+       EventTypeNum,
+       EventTypeDesc,
+       EventTypeSize,
+       BlockSize,
+       Capset,
+       StringId,
        -- some types for the parallel RTS
        ProcessId,
        MachineId,
        PortId,
        MessageSize,
        MessageTag(..),
+       ParConjDynId,
+       ParConjStaticId,
+       SparkId,
+       FutureId,
+       PerfEventTypeNum,
 
        -- * Reading and writing event logs
        readEventLogFromFile,
