@@ -100,6 +100,9 @@ decodeEventLog = withHeader $ \header leftover ->
 
 -- | Read a header from a lazy bytestring and return the header and the
 -- leftover input for subsequent decoding.
+--
+-- Note that the input must contain a whole header in one go. If incremental
+-- parsing of a header is necessary, use 'decodeHeader' instead.
 readHeader :: BL.ByteString -> Either String (Header, BL.ByteString)
 readHeader = go $ Left decodeHeader
   where
