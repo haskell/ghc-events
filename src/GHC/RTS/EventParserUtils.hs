@@ -1,7 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
-
 module GHC.RTS.EventParserUtils (
         EventParser(..),
         EventParsers(..),
@@ -46,7 +44,7 @@ skip n = G.skip (fromIntegral n)
 --
 
 --
--- Event parser data.  Parsers are either fixed or vairable size.
+-- | Event parser data. Parsers are either fixed or vairable size.
 --
 data EventParser a
     = FixedSizeParser {
@@ -168,7 +166,7 @@ padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
 
 makeParserMap :: [EventParser a] -> IntMap [EventParser a]
 makeParserMap = foldl buildParserMap M.empty
-    where buildParserMap map' parser = 
+    where buildParserMap map' parser =
               M.alter (addParser parser) (getType parser) map'
           addParser p Nothing = Just [p]
           addParser p (Just ps) = Just (p:ps)

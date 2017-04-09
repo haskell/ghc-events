@@ -1,6 +1,5 @@
-{-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
-
 module GHC.RTS.EventTypes where
+import Control.Monad
 
 import Data.Binary
 
@@ -130,11 +129,11 @@ data Event =
 
 {-# DEPRECATED time "The field is now called evTime" #-}
 time :: Event -> Timestamp
-time = evTime 
+time = evTime
 
 {-# DEPRECATED spec "The field is now called evSpec" #-}
 spec :: Event -> EventInfo
-spec = evSpec 
+spec = evSpec
 
 data EventInfo
 
@@ -158,7 +157,7 @@ data EventInfo
   | RunThread          { thread :: {-# UNPACK #-}!ThreadId
                        }
   | StopThread         { thread :: {-# UNPACK #-}!ThreadId,
-                         status :: ThreadStopStatus
+                         status :: !ThreadStopStatus
                        }
   | ThreadRunnable     { thread :: {-# UNPACK #-}!ThreadId
                        }
@@ -471,7 +470,7 @@ mkStopStatus782 n = case n of
  19 ->  BlockedOnMsgGlobalise
  _  ->  error "mkStat"
 
-maxThreadStopStatusPre77, maxThreadStopStatus782, maxThreadStopStatus 
+maxThreadStopStatusPre77, maxThreadStopStatus782, maxThreadStopStatus
     :: RawThreadStopStatus
 maxThreadStopStatusPre77  = 18 -- see [Stop status in GHC-7.8.2]
 maxThreadStopStatus782    = 19 -- need to distinguish three cases
@@ -520,3 +519,10 @@ toMsgTag = toEnum . fromIntegral . (\n -> n - offset)
 
 fromMsgTag :: MessageTag -> RawMsgTag
 fromMsgTag = (+ offset) . fromIntegral . fromEnum
+
+-- Checks if the capability is not -1 (which indicates a global eventblock), so
+-- has no associated capability
+mkCap :: Int -> Maybe Int
+mkCap cap = do
+  guard $ fromIntegral cap /= (-1 :: Word16)
+  return cap

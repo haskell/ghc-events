@@ -17,7 +17,7 @@ Where queens.hs is http://darcs.haskell.org/nofib/parallel/queens/Main.hs
 import System.Exit (exitFailure)
 
 import GHC.RTS.Events
-import GHC.RTS.EventsIncremental
+import GHC.RTS.Events.Incremental
 import Utils (files, diffLines)
 
 
@@ -40,4 +40,3 @@ main = do
     if and successes
         then return ()
         else exitFailure
-

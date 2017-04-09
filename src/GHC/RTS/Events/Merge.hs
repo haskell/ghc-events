@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -funbox-strict-fields #-}
-
 module GHC.RTS.Events.Merge (mergeEventLogs) where
 
 import GHC.RTS.Events
@@ -7,6 +5,7 @@ import Data.Monoid
 import Data.List (foldl')
 import qualified Data.Map as M
 import Data.Word (Word32)
+import Prelude
 
 -- TODO: add a merge mode where the events are synchronized using
 -- the wall clock time event at the start of both eventlogs (for newer GHCs).
@@ -78,7 +77,7 @@ sh :: Num a => a -> a -> a
 sh x y = x + y
 
 updateSpec :: (EventInfo -> EventInfo) -> Event -> Event
-updateSpec f (Event {evTime = t, evSpec = s, evCap = cap}) = 
+updateSpec f (Event {evTime = t, evSpec = s, evCap = cap}) =
     Event {evTime = t, evSpec = f s, evCap = cap}
 
 shift :: MaxVars -> [Event] -> [Event]
