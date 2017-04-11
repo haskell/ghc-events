@@ -48,7 +48,7 @@ source-repository head
 library
   build-depends:    base       == 4.*,
                     containers >= 0.5 && < 0.6,
-                    binary     >= 0.7 && < 0.9,
+                    binary     >= 0.7 && < 0.10,
                     bytestring >= 0.10.4,
                     array      >= 0.2 && < 0.6
   exposed-modules:  GHC.RTS.Events,
