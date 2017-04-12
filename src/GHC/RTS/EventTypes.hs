@@ -524,5 +524,5 @@ fromMsgTag = (+ offset) . fromIntegral . fromEnum
 -- has no associated capability
 mkCap :: Int -> Maybe Int
 mkCap cap = do
-  guard $ fromIntegral cap /= (-1 :: Word16)
+  guard $ fromIntegral cap /= (maxBound :: Word16)
   return cap
