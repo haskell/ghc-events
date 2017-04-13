@@ -42,6 +42,8 @@ module GHC.RTS.Events (
        readEventLogFromFile,
        writeEventLogToFile,
 
+       serialiseEventLog,
+
        -- * Utilities
        CapEvent(..), sortEvents,
        buildEventTypeMap,
