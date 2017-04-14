@@ -211,6 +211,7 @@
 #define EVENT_CREATE_SPARK        13 /* (cap, thread) */
 #define EVENT_SPARK_TO_THREAD     14 /* (cap, thread, spark_thread) */
 #endif
+#define EVENT_STARTUP             17 /* (num_capabilities)     */
 
 
 /*
