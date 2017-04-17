@@ -75,10 +75,14 @@ import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
 import Data.Monoid ((<>))
+import Data.String (IsString)
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy.Builder.Int as TB
 import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Vector.Unboxed as VU
+import Data.Word
 import System.IO
 import Prelude hiding (gcd, rem, id)
 
@@ -422,6 +426,50 @@ buildEventInfo spec' =
         PerfTracepoint{perfNum, tid} ->
           "perf event tracepoint " <> TB.decimal perfNum
           <> " reached in OS thread " <> TB.decimal (kernelThreadId tid)
+        HeapProfBegin {..} ->
+          "start heap profiling " <> TB.decimal heapProfId
+          <> " at sampling period " <> TB.decimal heapProfSamplingPeriod
+          <> " broken down by " <> showHeapProfBreakdown heapProfBreakdown
+          <> maybe "" (" filtered by " <>)
+            (buildFilters
+              [ heapProfModuleFilter
+              , heapProfClosureDescrFilter
+              , heapProfTypeDescrFilter
+              , heapProfCostCentreFilter
+              , heapProfCostCentreStackFilter
+              , heapProfRetainerFilter
+              , heapProfBiographyFilter
+              ])
+        HeapProfCostCentre {..} ->
+          "cost centre " <> TB.decimal heapProfCostCentreId
+          <> " " <> TB.fromText heapProfLabel
+          <> " in " <> TB.fromText heapProfModule
+          <> " at " <> TB.fromText heapProfSrcLoc
+          <> if isCaf heapProfFlags then " CAF" else ""
+        HeapProfSampleBegin {..} ->
+          "start heap prof sample " <> TB.decimal heapProfSampleEra
+        HeapProfSampleCostCentre {..} ->
+          "heap prof sample " <> TB.decimal heapProfId
+          <> ", residency " <> TB.decimal heapProfResidency
+          <> ", cost centre stack " <> buildCostCentreStack heapProfStack
+        HeapProfSampleString {..} ->
+          "heap prof sample " <> TB.decimal heapProfId
+          <> ", residency " <> TB.decimal heapProfResidency
+          <> ", label " <> TB.fromText heapProfLabel
+
+buildFilters :: [T.Text] -> Maybe TB.Builder
+buildFilters = foldr g Nothing
+  where
+    g f b
+      | T.null f = b
+      | otherwise = Just (TB.fromText f <> ", ") <> b
+
+buildCostCentreStack :: VU.Vector Word32 -> TB.Builder
+buildCostCentreStack = VU.ifoldl' go ""
+  where
+    go b i cc
+      | i == 0 = TB.decimal cc
+      | otherwise = b <> ", " <> TB.decimal cc
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -446,6 +494,15 @@ showThreadStopStatus BlockedOnMsgGlobalise = "waiting for data to be globalised"
 showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
 showThreadStopStatus NoStatus = "No stop thread status"
+
+showHeapProfBreakdown :: IsString s => HeapProfBreakdown -> s
+showHeapProfBreakdown breakdown = case breakdown of
+  HeapProfBreakdownCostCentre -> "cost centre"
+  HeapProfBreakdownModule -> "module"
+  HeapProfBreakdownClosureDescr -> "closure description"
+  HeapProfBreakdownTypeDescr -> "type description"
+  HeapProfBreakdownRetainer -> "retainer"
+  HeapProfBreakdownBiography -> "biography"
 
 ppEventLog :: EventLog -> String
 ppEventLog = TL.unpack . TB.toLazyText . buildEventLog

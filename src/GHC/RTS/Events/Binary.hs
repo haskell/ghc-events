@@ -8,6 +8,7 @@ module GHC.RTS.Events.Binary
   , ghc7Parsers
   , mercuryParsers
   , perfParsers
+  , heapProfParsers
   , pre77StopParsers
   , ghc782StopParser
   , post782StopParser
@@ -24,6 +25,7 @@ module GHC.RTS.Events.Binary
   , nEVENT_PERF_TRACEPOINT
 
   ) where
+import Control.Exception (assert)
 import Control.Monad
 import Data.Maybe
 import Prelude hiding (gcd, rem, id)
@@ -32,9 +34,12 @@ import Data.Array
 import Data.Binary
 import Data.Binary.Put
 import qualified Data.Binary.Get as G
+import qualified Data.ByteString as B
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Data.Vector.Unboxed as VU
 
 import GHC.RTS.EventTypes
 import GHC.RTS.EventParserUtils
@@ -721,6 +726,90 @@ perfParsers = [
   ))
  ]
 
+heapProfParsers :: [EventParser EventInfo]
+heapProfParsers =
+  [ VariableSizeParser EVENT_HEAP_PROF_BEGIN $ do
+    payloadLen <- get :: Get Word16
+    heapProfId <- get
+    heapProfSamplingPeriod <- get
+    heapProfBreakdown <- get
+    heapProfModuleFilter <- getText
+    heapProfClosureDescrFilter <- getText
+    heapProfTypeDescrFilter <- getText
+    heapProfCostCentreFilter <- getText
+    heapProfCostCentreStackFilter <- getText
+    heapProfRetainerFilter <- getText
+    heapProfBiographyFilter <- getText
+    assert
+      (fromIntegral payloadLen == sum
+        [ 1 -- heapProfId
+        , 8 -- heapProfSamplingPeriod
+        , 4 -- heapProfBreakdown
+        , textByteLen heapProfModuleFilter
+        , textByteLen heapProfClosureDescrFilter
+        , textByteLen heapProfTypeDescrFilter
+        , textByteLen heapProfCostCentreFilter
+        , textByteLen heapProfCostCentreStackFilter
+        , textByteLen heapProfRetainerFilter
+        , textByteLen heapProfBiographyFilter
+        ])
+      (return ())
+    return $! HeapProfBegin {..}
+  , VariableSizeParser EVENT_HEAP_PROF_COST_CENTRE $ do
+    payloadLen <- get :: Get Word16
+    heapProfCostCentreId <- get
+    heapProfLabel <- getText
+    heapProfModule <- getText
+    heapProfSrcLoc <- getText
+    heapProfFlags <- get
+    assert
+      (fromIntegral payloadLen == sum
+        [ 4 -- heapProfCostCentreId
+        , textByteLen heapProfLabel
+        , textByteLen heapProfModule
+        , textByteLen heapProfSrcLoc
+        , 1 -- heapProfFlags
+        ])
+      (return ())
+    return $! HeapProfCostCentre {..}
+  , FixedSizeParser EVENT_HEAP_PROF_SAMPLE_BEGIN 8 $ do
+    heapProfSampleEra <- get
+    return $! HeapProfSampleBegin {..}
+  , VariableSizeParser EVENT_HEAP_PROF_SAMPLE_COST_CENTRE $ do
+    payloadLen <- get :: Get Word16
+    heapProfId <- get
+    heapProfResidency <- get
+    heapProfStackDepth <- get
+    heapProfStack <- VU.replicateM (fromIntegral heapProfStackDepth) get
+    assert
+      ((fromIntegral payloadLen :: Int) == sum
+        [ 1 -- heapProfId
+        , 8 -- heapProfResidency
+        , 1 -- heapProfStackDepth
+        , fromIntegral heapProfStackDepth * 4
+        ])
+      (return ())
+    return $! HeapProfSampleCostCentre {..}
+  , VariableSizeParser EVENT_HEAP_PROF_SAMPLE_STRING $ do
+    payloadLen <- get :: Get Word16
+    heapProfId <- get
+    heapProfResidency <- get
+    heapProfLabel <- getText
+    assert
+      (fromIntegral payloadLen == sum
+        [ 1 -- heapProfId
+        , 8 -- heapProfResidency
+        , textByteLen heapProfLabel
+        ])
+      (return ())
+    return $! HeapProfSampleString {..}
+  ]
+
+-- | String byte length in the eventlog format. It includes
+-- 1 byte for NUL.
+textByteLen :: T.Text -> Int
+textByteLen = (+1) . B.length . TE.encodeUtf8
+
 -----------------------------------------------------------
 
 putE :: Binary a => a -> PutM ()
@@ -852,6 +941,11 @@ eventTypeNum e = case e of
     PerfName       {} -> nEVENT_PERF_NAME
     PerfCounter    {} -> nEVENT_PERF_COUNTER
     PerfTracepoint {} -> nEVENT_PERF_TRACEPOINT
+    HeapProfBegin {} -> EVENT_HEAP_PROF_BEGIN
+    HeapProfCostCentre {} -> EVENT_HEAP_PROF_COST_CENTRE
+    HeapProfSampleBegin {} -> EVENT_HEAP_PROF_SAMPLE_BEGIN
+    HeapProfSampleCostCentre {} -> EVENT_HEAP_PROF_SAMPLE_COST_CENTRE
+    HeapProfSampleString {} -> EVENT_HEAP_PROF_SAMPLE_STRING
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1218,6 +1312,41 @@ putEventSpec PerfCounter{..} = do
 putEventSpec PerfTracepoint{..} = do
     putE perfNum
     putE tid
+
+putEventSpec HeapProfBegin {..} = do
+    putE heapProfId
+    putE heapProfSamplingPeriod
+    putE heapProfBreakdown
+    mapM_ (putE . T.unpack)
+      [ heapProfModuleFilter
+      , heapProfClosureDescrFilter
+      , heapProfTypeDescrFilter
+      , heapProfCostCentreFilter
+      , heapProfCostCentreStackFilter
+      , heapProfRetainerFilter
+      , heapProfBiographyFilter
+      ]
+
+putEventSpec HeapProfCostCentre {..} = do
+    putE heapProfCostCentreId
+    putE $ T.unpack heapProfLabel
+    putE $ T.unpack heapProfModule
+    putE $ T.unpack heapProfSrcLoc
+    putE heapProfFlags
+
+putEventSpec HeapProfSampleBegin {..} =
+    putE heapProfSampleEra
+
+putEventSpec HeapProfSampleCostCentre {..} = do
+    putE heapProfId
+    putE heapProfResidency
+    putE heapProfStackDepth
+    VU.mapM_ putE heapProfStack
+
+putEventSpec HeapProfSampleString {..} = do
+    putE heapProfId
+    putE heapProfResidency
+    putE $ T.unpack heapProfLabel
 
 -- [] == []
 -- [x] == x\0
