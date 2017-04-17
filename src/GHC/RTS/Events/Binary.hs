@@ -32,6 +32,9 @@ import Data.Array
 import Data.Binary
 import Data.Binary.Put
 import qualified Data.Binary.Get as G
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TLE
 
 import GHC.RTS.EventTypes
 import GHC.RTS.EventParserUtils
@@ -1226,3 +1229,10 @@ splitNull :: String -> [String]
 splitNull [] = []
 splitNull xs = case span (/= '\0') xs of
                 (x, xs') -> x : splitNull (drop 1 xs')
+
+getText :: Get T.Text
+getText = do
+  chunks <- G.getLazyByteStringNul
+  case TLE.decodeUtf8' chunks of
+    Left err -> fail $ show err
+    Right text -> return $ TL.toStrict text
