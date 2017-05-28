@@ -38,6 +38,16 @@ extra-source-files: include/EventLogFormat.h
                     test/782stop.eventlog.reference
                     test/783stop.eventlog
                     test/783stop.eventlog.reference
+                    test/sleep.h.eventlog
+                    test/sleep.h.eventlog.reference
+                    test/sleep.hC.eventlog
+                    test/sleep.hC.eventlog.reference
+                    test/sleep.hd.eventlog
+                    test/sleep.hd.eventlog.reference
+                    test/sleep.hm.eventlog
+                    test/sleep.hm.eventlog.reference
+                    test/sleep.hy.eventlog
+                    test/sleep.hy.eventlog.reference
                     test/Utils.hs
                     test/stop.hs
 

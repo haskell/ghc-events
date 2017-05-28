@@ -6,7 +6,13 @@ files = map ("test/"++)
     , "queens-ghc-7.0.2.eventlog"
     , "mandelbrot-mmc-2011-06-14.eventlog"
     , "parallelTest.eventlog"
-    , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog" ]
+    , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog"
+    , "sleep.h.eventlog"
+    , "sleep.hC.eventlog"
+    , "sleep.hm.eventlog"
+    , "sleep.hd.eventlog"
+    , "sleep.hy.eventlog"
+    ]
 
 
 -- Code to help print the differences between a working test and a failing test.
