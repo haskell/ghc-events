@@ -1,0 +1,32 @@
+# Change Log
+
+## Unreleased
+
+## 0.6.0 - 2017-05-31
+
+This contains breaking changes.
+
+* The deprecation notice on `readEventLogFromFile` has been retracted
+* The incremental API has been refactored
+
+The details are as follows:
+
+* Update bug tracker URL ([#10](https://github.com/haskell/ghc-events/pull/10))
+* New test for Eden events ([#11](https://github.com/haskell/ghc-events/pull/11))
+* Relax version bound for binary ([#15](https://github.com/haskell/ghc-events/pull/15))
+* Enable Travis CI ([#19](https://github.com/haskell/ghc-events/pull/19))
+* Refactor the incremental API which was introduced in 0.5.0.0 ([#22](https://github.com/haskell/ghc-events/pull/22))
+* Some speed/memory usage improvements ([#18](https://github.com/haskell/ghc-events/pull/18), [#22](https://github.com/haskell/ghc-events/pull/22))
+
+## 0.5.0.0 - unreleased
+
+* Readme added :)
+* Old parser replaced with an incremental implementation
+* General overhaul of the codebase
+* Partial Haddock coverage
+
+The 0.5.* releases should be able to handle large event logs and logs that have been cut off abruptly, e.g. from executable runs that resulted in crashes.
+
+This release should be *mostly* backwards compatible, however the "old" way of reading event logs, namely the `readEventLogFromFile`  function is now **deprecated**.
+
+**NOTE:** Users parsing large logs may notice that this version of the library is noticably slower than the older versions. The incremental parser is at fault here - previous versions of the libray used a "trick" that would let them essentially skip the first step of the mergesort algorithm since `EventBlock`s were already sorted in time order. The new parser reads the file incrementally and cannot take the advantage of this. Apologies for any inconvenience this may have caused.
