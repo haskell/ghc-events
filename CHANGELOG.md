@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add support for heap profiling events
+
 ## 0.6.0 - 2017-05-31
 
 This contains breaking changes.
