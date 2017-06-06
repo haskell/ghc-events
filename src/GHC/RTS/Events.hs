@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP,BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -fsimpl-tick-factor=150 #-}
@@ -70,15 +69,21 @@ import Control.Applicative
 import Control.Concurrent hiding (ThreadId)
 import qualified Data.Binary.Put as P
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Builder as BB
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
 import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
 import Data.Monoid ((<>))
+import Data.String (IsString)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
+import qualified Data.Text.Lazy.Builder.Int as TB
+import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Vector.Unboxed as VU
+import Data.Word
 import System.IO
 import Prelude hiding (gcd, rem, id)
 
@@ -111,7 +116,7 @@ hPrintEventsIncremental follow hdl = go decodeEventLog
   where
     go decoder = case decoder of
       Produce event decoder' -> do
-        BB.hPutBuilder stdout $ buildEvent' event <> "\n"
+        TL.hPutStrLn stdout $ TB.toLazyText $ buildEvent' event
         go decoder'
       Consume k -> do
         chunk <- B.hGetSome hdl 4096
@@ -185,39 +190,39 @@ buildEventTypeMap etypes =
 -- Some pretty-printing support
 
 showEventInfo :: EventInfo -> String
-showEventInfo = BL8.unpack . BB.toLazyByteString . buildEventInfo
+showEventInfo = TL.unpack . TB.toLazyText . buildEventInfo
 
-buildEventInfo :: EventInfo -> BB.Builder
+buildEventInfo :: EventInfo -> TB.Builder
 buildEventInfo spec' =
     case spec' of
         EventBlock end_time cap _block_events ->
-          "event block: cap " <> BB.intDec cap
-          <> ", end time: " <> BB.word64Dec end_time <> "\n"
+          "event block: cap " <> TB.decimal cap
+          <> ", end time: " <> TB.decimal end_time <> "\n"
         Startup n_caps ->
-          "startup: " <> BB.intDec n_caps <> " capabilities"
+          "startup: " <> TB.decimal n_caps <> " capabilities"
         CreateThread thread ->
-          "creating thread " <> BB.word32Dec thread
+          "creating thread " <> TB.decimal thread
         RunThread thread ->
-          "running thread " <> BB.word32Dec thread
+          "running thread " <> TB.decimal thread
         StopThread thread status ->
-          "stopping thread " <> BB.word32Dec thread
-          <> " (" <> BB.stringUtf8 (showThreadStopStatus status) <> ")"
+          "stopping thread " <> TB.decimal thread
+          <> " (" <> TB.fromString (showThreadStopStatus status) <> ")"
         ThreadRunnable thread ->
-          "thread " <> BB.word32Dec thread <> " is runnable"
+          "thread " <> TB.decimal thread <> " is runnable"
         MigrateThread thread newCap  ->
-          "migrating thread " <> BB.word32Dec thread
-          <> " to cap " <> BB.intDec newCap
+          "migrating thread " <> TB.decimal thread
+          <> " to cap " <> TB.decimal newCap
         CreateSparkThread sparkThread ->
-          "creating spark thread " <> BB.word32Dec sparkThread
+          "creating spark thread " <> TB.decimal sparkThread
         SparkCounters crt dud ovf cnv fiz gcd rem ->
           "spark stats: "
-          <> BB.word64Dec crt <> " created, "
-          <> BB.word64Dec cnv <> " converted, "
-          <> BB.word64Dec rem <> " remaining ("
-          <> BB.word64Dec ovf <> " overflowed, "
-          <> BB.word64Dec dud <> " dud, "
-          <> BB.word64Dec gcd <> " GC'd, "
-          <> BB.word64Dec fiz <> " fizzled)"
+          <> TB.decimal crt <> " created, "
+          <> TB.decimal cnv <> " converted, "
+          <> TB.decimal rem <> " remaining ("
+          <> TB.decimal ovf <> " overflowed, "
+          <> TB.decimal dud <> " dud, "
+          <> TB.decimal gcd <> " GC'd, "
+          <> TB.decimal fiz <> " fizzled)"
         SparkCreate ->
           "spark created"
         SparkDud ->
@@ -227,29 +232,29 @@ buildEventInfo spec' =
         SparkRun ->
           "running a local spark"
         SparkSteal victimCap ->
-          "stealing a spark from cap " <> BB.intDec victimCap
+          "stealing a spark from cap " <> TB.decimal victimCap
         SparkFizzle ->
           "spark fizzled"
         SparkGC ->
           "spark GCed"
         TaskCreate taskId cap tid ->
-          "task 0x" <> BB.word64Hex taskId
-          <> " created on cap " <> BB.intDec cap
-          <>" with OS kernel thread " <> BB.word64Dec (kernelThreadId tid)
+          "task 0x" <> TB.hexadecimal taskId
+          <> " created on cap " <> TB.decimal cap
+          <>" with OS kernel thread " <> TB.decimal (kernelThreadId tid)
         TaskMigrate taskId cap new_cap ->
-          "task 0x" <> BB.word64Hex taskId
-          <> " migrated from cap " <> BB.intDec cap
-          <> " to cap " <> BB.intDec new_cap
+          "task 0x" <> TB.hexadecimal taskId
+          <> " migrated from cap " <> TB.decimal cap
+          <> " to cap " <> TB.decimal new_cap
         TaskDelete taskId ->
-          "task 0x" <> BB.word64Hex taskId <> " deleted"
+          "task 0x" <> TB.hexadecimal taskId <> " deleted"
         Shutdown ->
           "shutting down"
         WakeupThread thread otherCap ->
-          "waking up thread " <> BB.word32Dec thread
-          <> " on cap " <> BB.intDec otherCap
+          "waking up thread " <> TB.decimal thread
+          <> " on cap " <> TB.decimal otherCap
         ThreadLabel thread label ->
-          "thread " <> BB.word32Dec thread
-          <> " has label \"" <> BB.stringUtf8 label <> "\""
+          "thread " <> TB.decimal thread
+          <> " has label \"" <> TB.fromString label <> "\""
         RequestSeqGC ->
           "requesting sequential GC"
         RequestParGC ->
@@ -267,139 +272,139 @@ buildEventInfo spec' =
         GlobalSyncGC ->
           "all caps stopped for GC"
         GCStatsGHC{..} ->
-          "GC stats for heap capset " <> BB.word32Dec heapCapset
-          <> ": generation " <> BB.intDec gen <> ", "
-          <> BB.word64Dec copied <> " bytes copied, "
-          <> BB.word64Dec slop <> " bytes slop, "
-          <> BB.word64Dec frag <> " bytes fragmentation, "
-          <> BB.intDec parNThreads <> " par threads, "
-          <> BB.word64Dec parMaxCopied <> " bytes max par copied, "
-          <> BB.word64Dec parTotCopied <> " bytes total par copied"
+          "GC stats for heap capset " <> TB.decimal heapCapset
+          <> ": generation " <> TB.decimal gen <> ", "
+          <> TB.decimal copied <> " bytes copied, "
+          <> TB.decimal slop <> " bytes slop, "
+          <> TB.decimal frag <> " bytes fragmentation, "
+          <> TB.decimal parNThreads <> " par threads, "
+          <> TB.decimal parMaxCopied <> " bytes max par copied, "
+          <> TB.decimal parTotCopied <> " bytes total par copied"
         HeapAllocated{..} ->
-          "allocated on heap capset " <> BB.word32Dec heapCapset
-          <> ": " <> BB.word64Dec allocBytes <> " total bytes till now"
+          "allocated on heap capset " <> TB.decimal heapCapset
+          <> ": " <> TB.decimal allocBytes <> " total bytes till now"
         HeapSize{..} ->
-          "size of heap capset " <> BB.word32Dec heapCapset
-          <> ": " <> BB.word64Dec sizeBytes <> " bytes"
+          "size of heap capset " <> TB.decimal heapCapset
+          <> ": " <> TB.decimal sizeBytes <> " bytes"
         HeapLive{..} ->
-          "live data in heap capset " <> BB.word32Dec heapCapset
-          <> ": " <> BB.word64Dec liveBytes <> " bytes"
+          "live data in heap capset " <> TB.decimal heapCapset
+          <> ": " <> TB.decimal liveBytes <> " bytes"
         HeapInfoGHC{..} ->
-          "heap stats for heap capset " <> BB.word32Dec heapCapset
-          <> ": generations " <> BB.intDec gens <> ", "
-          <> BB.word64Dec maxHeapSize <> " bytes max heap size, "
-          <> BB.word64Dec allocAreaSize <> " bytes alloc area size, "
-          <> BB.word64Dec mblockSize <> " bytes mblock size, "
-          <> BB.word64Dec blockSize <> " bytes block size"
+          "heap stats for heap capset " <> TB.decimal heapCapset
+          <> ": generations " <> TB.decimal gens <> ", "
+          <> TB.decimal maxHeapSize <> " bytes max heap size, "
+          <> TB.decimal allocAreaSize <> " bytes alloc area size, "
+          <> TB.decimal mblockSize <> " bytes mblock size, "
+          <> TB.decimal blockSize <> " bytes block size"
         CapCreate{cap} ->
-          "created cap " <> BB.intDec cap
+          "created cap " <> TB.decimal cap
         CapDelete{cap} ->
-          "deleted cap " <> BB.intDec cap
+          "deleted cap " <> TB.decimal cap
         CapDisable{cap} ->
-          "disabled cap " <> BB.intDec cap
+          "disabled cap " <> TB.decimal cap
         CapEnable{cap} ->
-          "enabled cap " <> BB.intDec cap
+          "enabled cap " <> TB.decimal cap
         Message msg ->
-          BB.stringUtf8 msg
+          TB.fromString msg
         UserMessage msg ->
-          BB.stringUtf8 msg
+          TB.fromString msg
         UserMarker markername ->
-          "marker: " <> BB.stringUtf8 markername
+          "marker: " <> TB.fromString markername
         CapsetCreate cs ct ->
-          "created capset " <> BB.word32Dec cs
-          <> " of type " <> BB.stringUtf8 (show ct)
+          "created capset " <> TB.decimal cs
+          <> " of type " <> TB.fromString (show ct)
         CapsetDelete cs ->
-          "deleted capset " <> BB.word32Dec cs
+          "deleted capset " <> TB.decimal cs
         CapsetAssignCap cs cp ->
-          "assigned cap " <> BB.intDec cp <> " to capset " <> BB.word32Dec cs
+          "assigned cap " <> TB.decimal cp <> " to capset " <> TB.decimal cs
         CapsetRemoveCap cs cp ->
-          "removed cap " <> BB.intDec cp <> " from capset " <> BB.word32Dec cs
+          "removed cap " <> TB.decimal cp <> " from capset " <> TB.decimal cs
         OsProcessPid cs pid ->
-          "capset " <> BB.word32Dec cs <> ": pid " <> BB.word32Dec pid
+          "capset " <> TB.decimal cs <> ": pid " <> TB.decimal pid
         OsProcessParentPid cs ppid ->
-          "capset " <> BB.word32Dec cs <> ": parent pid " <> BB.word32Dec ppid
+          "capset " <> TB.decimal cs <> ": parent pid " <> TB.decimal ppid
         WallClockTime cs sec nsec ->
-          "capset " <> BB.word32Dec cs <> ": wall clock time "
-          <> BB.word64Dec sec <> "s "
-          <> BB.word32Dec nsec <> "ns (unix epoch)"
+          "capset " <> TB.decimal cs <> ": wall clock time "
+          <> TB.decimal sec <> "s "
+          <> TB.decimal nsec <> "ns (unix epoch)"
         RtsIdentifier cs i ->
-          "capset " <> BB.word32Dec cs
-          <> ": RTS version \"" <> BB.stringUtf8 i <> "\""
+          "capset " <> TB.decimal cs
+          <> ": RTS version \"" <> TB.fromString i <> "\""
         ProgramArgs cs args ->
-          "capset " <> BB.word32Dec cs
-          <> ": args: " <> BB.stringUtf8 (show args)
+          "capset " <> TB.decimal cs
+          <> ": args: " <> TB.fromString (show args)
         ProgramEnv cs env ->
-          "capset " <> BB.word32Dec cs
-          <> ": env: " <> BB.stringUtf8 (show env)
+          "capset " <> TB.decimal cs
+          <> ": env: " <> TB.fromString (show env)
         UnknownEvent n ->
-          "Unknown event type " <> BB.word16Dec n
+          "Unknown event type " <> TB.decimal n
         InternString str sId ->
-          "Interned string: \"" <> BB.stringUtf8 str
-          <> "\" with id " <> BB.word32Dec sId
+          "Interned string: \"" <> TB.fromString str
+          <> "\" with id " <> TB.decimal sId
         -- events for the parallel RTS
         Version version ->
-          "compiler version is " <> BB.stringUtf8 version
+          "compiler version is " <> TB.fromString version
         ProgramInvocation  commandline ->
-          "program invocation: " <> BB.stringUtf8 commandline
+          "program invocation: " <> TB.fromString commandline
         EdenStartReceive ->
           "starting to receive"
         EdenEndReceive ->
           "stop receiving"
         CreateProcess  process ->
-          "creating process " <> BB.word32Dec process
+          "creating process " <> TB.decimal process
         KillProcess process ->
-          "killing process " <> BB.word32Dec process
+          "killing process " <> TB.decimal process
         AssignThreadToProcess thread process ->
-          "assigning thread " <> BB.word32Dec thread
-          <> " to process " <> BB.word32Dec process
+          "assigning thread " <> TB.decimal thread
+          <> " to process " <> TB.decimal process
         CreateMachine machine realtime ->
-          "creating machine " <> BB.word16Dec machine
-          <> " at " <> BB.word64Dec realtime
+          "creating machine " <> TB.decimal machine
+          <> " at " <> TB.decimal realtime
         KillMachine machine ->
-          "killing machine " <> BB.word16Dec machine
+          "killing machine " <> TB.decimal machine
         SendMessage mesTag senderProcess senderThread
           receiverMachine receiverProcess receiverInport ->
-            "sending message with tag " <> BB.stringUtf8 (show mesTag)
-            <> " from process " <> BB.word32Dec senderProcess
-            <> ", thread " <> BB.word32Dec senderThread
-            <> " to machine " <> BB.word16Dec receiverMachine
-            <> ", process " <> BB.word32Dec receiverProcess
-            <> " on inport " <> BB.word32Dec receiverInport
+            "sending message with tag " <> TB.fromString (show mesTag)
+            <> " from process " <> TB.decimal senderProcess
+            <> ", thread " <> TB.decimal senderThread
+            <> " to machine " <> TB.decimal receiverMachine
+            <> ", process " <> TB.decimal receiverProcess
+            <> " on inport " <> TB.decimal receiverInport
         ReceiveMessage mesTag receiverProcess receiverInport
           senderMachine senderProcess senderThread messageSize ->
-            "receiving message with tag " <> BB.stringUtf8 (show mesTag)
-            <> " at process " <> BB.word32Dec receiverProcess
-            <> ", inport " <> BB.word32Dec receiverInport
-            <> " from machine " <> BB.word16Dec senderMachine
-            <> ", process " <> BB.word32Dec senderProcess
-            <> ", thread " <> BB.word32Dec senderThread
-            <> " with size " <> BB.word32Dec messageSize
+            "receiving message with tag " <> TB.fromString (show mesTag)
+            <> " at process " <> TB.decimal receiverProcess
+            <> ", inport " <> TB.decimal receiverInport
+            <> " from machine " <> TB.decimal senderMachine
+            <> ", process " <> TB.decimal senderProcess
+            <> ", thread " <> TB.decimal senderThread
+            <> " with size " <> TB.decimal messageSize
         SendReceiveLocalMessage mesTag senderProcess senderThread
           receiverProcess receiverInport ->
-            "sending/receiving message with tag " <> BB.stringUtf8 (show mesTag)
-            <> " from process " <> BB.word32Dec senderProcess
-            <> ", thread " <> BB.word32Dec senderThread
-            <> " to process " <> BB.word32Dec receiverProcess
-            <> " on inport " <> BB.word32Dec receiverInport
+            "sending/receiving message with tag " <> TB.fromString (show mesTag)
+            <> " from process " <> TB.decimal senderProcess
+            <> ", thread " <> TB.decimal senderThread
+            <> " to process " <> TB.decimal receiverProcess
+            <> " on inport " <> TB.decimal receiverInport
         MerStartParConjunction dyn_id static_id ->
-          "Start a parallel conjunction 0x" <> BB.word64Hex dyn_id
-          <> ", static_id: " <> BB.word32Dec static_id
+          "Start a parallel conjunction 0x" <> TB.hexadecimal dyn_id
+          <> ", static_id: " <> TB.decimal static_id
         MerEndParConjunction dyn_id ->
-          "End par conjunction: 0x" <> BB.word64Hex dyn_id
+          "End par conjunction: 0x" <> TB.hexadecimal dyn_id
         MerEndParConjunct dyn_id ->
-          "End par conjunct: 0x" <> BB.word64Hex dyn_id
+          "End par conjunct: 0x" <> TB.hexadecimal dyn_id
         MerCreateSpark dyn_id spark_id ->
-          "Create spark for conjunction: 0x" <> BB.word64Hex dyn_id
-          <> " spark: 0x" <> BB.word32Hex spark_id
+          "Create spark for conjunction: 0x" <> TB.hexadecimal dyn_id
+          <> " spark: 0x" <> TB.hexadecimal spark_id
         MerFutureCreate future_id name_id ->
-          "Create future 0x" <> BB.word64Hex future_id
-          <> " named " <> BB.word32Dec name_id
+          "Create future 0x" <> TB.hexadecimal future_id
+          <> " named " <> TB.decimal name_id
         MerFutureWaitNosuspend future_id ->
-          "Wait didn't suspend for future: 0x" <> BB.word64Hex future_id
+          "Wait didn't suspend for future: 0x" <> TB.hexadecimal future_id
         MerFutureWaitSuspended future_id ->
-          "Wait suspended on future: 0x" <> BB.word64Hex future_id
+          "Wait suspended on future: 0x" <> TB.hexadecimal future_id
         MerFutureSignal future_id ->
-          "Signaled future 0x" <> BB.word64Hex future_id
+          "Signaled future 0x" <> TB.hexadecimal future_id
         MerLookingForGlobalThread ->
           "Looking for global thread to resume"
         MerWorkStealing ->
@@ -407,21 +412,65 @@ buildEventInfo spec' =
         MerLookingForLocalSpark ->
           "Looking for a local spark to execute"
         MerReleaseThread thread_id ->
-          "Releasing thread " <> BB.word32Dec thread_id <> " to the free pool"
+          "Releasing thread " <> TB.decimal thread_id <> " to the free pool"
         MerCapSleeping ->
           "Capability going to sleep"
         MerCallingMain ->
           "About to call the program entry point"
         PerfName{perfNum, name} ->
-          "perf event " <> BB.word32Dec perfNum
-          <> " named \"" <> BB.stringUtf8 name <> "\""
+          "perf event " <> TB.decimal perfNum
+          <> " named \"" <> TB.fromString name <> "\""
         PerfCounter{perfNum, tid, period} ->
-          "perf event counter " <> BB.word32Dec perfNum
-          <> " incremented by " <> BB.word64Dec (period + 1)
-          <> " in OS thread " <> BB.word64Dec (kernelThreadId tid)
+          "perf event counter " <> TB.decimal perfNum
+          <> " incremented by " <> TB.decimal (period + 1)
+          <> " in OS thread " <> TB.decimal (kernelThreadId tid)
         PerfTracepoint{perfNum, tid} ->
-          "perf event tracepoint " <> BB.word32Dec perfNum
-          <> " reached in OS thread " <> BB.word64Dec (kernelThreadId tid)
+          "perf event tracepoint " <> TB.decimal perfNum
+          <> " reached in OS thread " <> TB.decimal (kernelThreadId tid)
+        HeapProfBegin {..} ->
+          "start heap profiling " <> TB.decimal heapProfId
+          <> " at sampling period " <> TB.decimal heapProfSamplingPeriod
+          <> " broken down by " <> showHeapProfBreakdown heapProfBreakdown
+          <> maybe "" (" filtered by " <>)
+            (buildFilters
+              [ heapProfModuleFilter
+              , heapProfClosureDescrFilter
+              , heapProfTypeDescrFilter
+              , heapProfCostCentreFilter
+              , heapProfCostCentreStackFilter
+              , heapProfRetainerFilter
+              , heapProfBiographyFilter
+              ])
+        HeapProfCostCentre {..} ->
+          "cost centre " <> TB.decimal heapProfCostCentreId
+          <> " " <> TB.fromText heapProfLabel
+          <> " in " <> TB.fromText heapProfModule
+          <> " at " <> TB.fromText heapProfSrcLoc
+          <> if isCaf heapProfFlags then " CAF" else ""
+        HeapProfSampleBegin {..} ->
+          "start heap prof sample " <> TB.decimal heapProfSampleEra
+        HeapProfSampleCostCentre {..} ->
+          "heap prof sample " <> TB.decimal heapProfId
+          <> ", residency " <> TB.decimal heapProfResidency
+          <> ", cost centre stack " <> buildCostCentreStack heapProfStack
+        HeapProfSampleString {..} ->
+          "heap prof sample " <> TB.decimal heapProfId
+          <> ", residency " <> TB.decimal heapProfResidency
+          <> ", label " <> TB.fromText heapProfLabel
+
+buildFilters :: [T.Text] -> Maybe TB.Builder
+buildFilters = foldr g Nothing
+  where
+    g f b
+      | T.null f = b
+      | otherwise = Just (TB.fromText f <> ", ") <> b
+
+buildCostCentreStack :: VU.Vector Word32 -> TB.Builder
+buildCostCentreStack = VU.ifoldl' go ""
+  where
+    go b i cc
+      | i == 0 = TB.decimal cc
+      | otherwise = b <> ", " <> TB.decimal cc
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
@@ -447,10 +496,19 @@ showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
 showThreadStopStatus NoStatus = "No stop thread status"
 
-ppEventLog :: EventLog -> String
-ppEventLog = BL8.unpack . BB.toLazyByteString . buildEventLog
+showHeapProfBreakdown :: IsString s => HeapProfBreakdown -> s
+showHeapProfBreakdown breakdown = case breakdown of
+  HeapProfBreakdownCostCentre -> "cost centre"
+  HeapProfBreakdownModule -> "module"
+  HeapProfBreakdownClosureDescr -> "closure description"
+  HeapProfBreakdownTypeDescr -> "type description"
+  HeapProfBreakdownRetainer -> "retainer"
+  HeapProfBreakdownBiography -> "biography"
 
-buildEventLog :: EventLog -> BB.Builder
+ppEventLog :: EventLog -> String
+ppEventLog = TL.unpack . TB.toLazyText . buildEventLog
+
+buildEventLog :: EventLog -> TB.Builder
 buildEventLog (EventLog (Header ets) (Data es)) =
   "Event Types:\n"
   <> foldMap (\evType -> buildEventType evType <> "\n") ets
@@ -462,34 +520,34 @@ buildEventLog (EventLog (Header ets) (Data es)) =
     sorted = sortEvents es
 
 ppEventType :: EventType -> String
-ppEventType = BL8.unpack . BB.toLazyByteString . buildEventType
+ppEventType = TL.unpack . TB.toLazyText . buildEventType
 
-buildEventType :: EventType -> BB.Builder
+buildEventType :: EventType -> TB.Builder
 buildEventType (EventType num dsc msz) =
-  BB.word16Dec num <> ": "
-  <> BB.stringUtf8 dsc <> " (size "
-  <> maybe "variable" BB.word16Dec msz <> ")"
+  TB.decimal num <> ": "
+  <> TB.fromString dsc <> " (size "
+  <> maybe "variable" TB.decimal msz <> ")"
 
 -- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
 ppEvent :: IntMap EventType -> Event -> String
-ppEvent imap = BL8.unpack . BB.toLazyByteString . buildEvent imap
+ppEvent imap = TL.unpack . TB.toLazyText . buildEvent imap
 
-buildEvent :: IntMap EventType -> Event -> BB.Builder
+buildEvent :: IntMap EventType -> Event -> TB.Builder
 buildEvent imap Event {..} =
-  BB.word64Dec evTime
+  TB.decimal evTime
   <> ": "
-  <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
+  <> maybe "" (\c -> "cap " <> TB.decimal c <> ": ") evCap
   <> case evSpec of
     UnknownEvent{ ref=ref } ->
-      maybe "" (BB.stringUtf8 . desc) $ IM.lookup (fromIntegral ref) imap
+      maybe "" (TB.fromString . desc) $ IM.lookup (fromIntegral ref) imap
     _ -> buildEventInfo evSpec
 
-buildEvent' :: Event -> BB.Builder
+buildEvent' :: Event -> TB.Builder
 buildEvent' Event {..} =
-   BB.word64Dec evTime
+   TB.decimal evTime
    <> ": "
-   <> maybe "" (\c -> "cap " <> BB.intDec c <> ": ") evCap
+   <> maybe "" (\c -> "cap " <> TB.decimal c <> ": ") evCap
    <> case evSpec of
      UnknownEvent{ ref=ref } ->
-      "Unknown Event (ref: " <> BB.word16Dec ref <> ")"
+      "Unknown Event (ref: " <> TB.decimal ref <> ")"
      _ -> buildEventInfo evSpec

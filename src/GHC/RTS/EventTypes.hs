@@ -1,7 +1,11 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module GHC.RTS.EventTypes where
 import Control.Monad
+import Data.Bits
 
 import Data.Binary
+import Data.Text (Text)
+import qualified Data.Vector.Unboxed as VU
 
 -- EventType.
 type EventTypeNum = Word16
@@ -373,7 +377,37 @@ data EventInfo
   | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
                        , tid     :: {-# UNPACK #-}!KernelThreadId
                        }
-
+  | HeapProfBegin      { heapProfId :: !Word8
+                       , heapProfSamplingPeriod :: !Word64
+                       , heapProfBreakdown :: !HeapProfBreakdown
+                       , heapProfModuleFilter :: !Text
+                       , heapProfClosureDescrFilter :: !Text
+                       , heapProfTypeDescrFilter :: !Text
+                       , heapProfCostCentreFilter :: !Text
+                       , heapProfCostCentreStackFilter :: !Text
+                       , heapProfRetainerFilter :: !Text
+                       , heapProfBiographyFilter :: !Text
+                       }
+  | HeapProfCostCentre { heapProfCostCentreId :: !Word32
+                       , heapProfLabel :: !Text
+                       , heapProfModule :: !Text
+                       , heapProfSrcLoc :: !Text
+                       , heapProfFlags :: !HeapProfFlags
+                       }
+  | HeapProfSampleBegin
+                       { heapProfSampleEra :: !Word64
+                       }
+  | HeapProfSampleCostCentre
+                       { heapProfId :: !Word8
+                       , heapProfResidency :: !Word64
+                       , heapProfStackDepth :: !Word8
+                       , heapProfStack :: !(VU.Vector Word32)
+                       }
+  | HeapProfSampleString
+                       { heapProfId :: !Word8
+                       , heapProfResidency :: !Word64
+                       , heapProfLabel :: !Text
+                       }
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]
@@ -519,6 +553,41 @@ toMsgTag = toEnum . fromIntegral . (\n -> n - offset)
 
 fromMsgTag :: MessageTag -> RawMsgTag
 fromMsgTag = (+ offset) . fromIntegral . fromEnum
+
+-- | Sample break-down types in heap profiling
+data HeapProfBreakdown
+  = HeapProfBreakdownCostCentre
+  | HeapProfBreakdownModule
+  | HeapProfBreakdownClosureDescr
+  | HeapProfBreakdownTypeDescr
+  | HeapProfBreakdownRetainer
+  | HeapProfBreakdownBiography
+  deriving Show
+
+instance Binary HeapProfBreakdown where
+  get = do
+    n <- get :: Get Word32
+    case n of
+      1 -> return HeapProfBreakdownCostCentre
+      2 -> return HeapProfBreakdownModule
+      3 -> return HeapProfBreakdownClosureDescr
+      4 -> return HeapProfBreakdownTypeDescr
+      5 -> return HeapProfBreakdownRetainer
+      6 -> return HeapProfBreakdownBiography
+      _ -> fail $ "Unknown HeapProfBreakdown: " ++ show n
+  put breakdown = put $ case breakdown of
+    HeapProfBreakdownCostCentre -> (1 :: Word32)
+    HeapProfBreakdownModule -> 2
+    HeapProfBreakdownClosureDescr -> 3
+    HeapProfBreakdownTypeDescr -> 4
+    HeapProfBreakdownRetainer -> 5
+    HeapProfBreakdownBiography -> 6
+
+newtype HeapProfFlags = HeapProfFlags Word8
+  deriving (Show, Binary)
+
+isCaf :: HeapProfFlags -> Bool
+isCaf (HeapProfFlags w8) = testBit w8 0
 
 -- Checks if the capability is not -1 (which indicates a global eventblock), so
 -- has no associated capability

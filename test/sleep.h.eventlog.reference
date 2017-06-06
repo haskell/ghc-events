@@ -1,0 +1,301 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap mem ever allocated (size 12)
+50: Current heap size (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 50)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+160: Start of heap profile (size variable)
+161: Cost center definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+
+Events:
+158325: created capset 0 of type CapsetOsProcess
+160770: created capset 1 of type CapsetClockDomain
+165658: created cap 0
+166776: assigned cap 0 to capset 0
+167754: assigned cap 0 to capset 1
+168941: cap 0: spark stats: 0 created, 0 converted, 0 remaining (0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+175087: capset 1: wall clock time 1496042099s 522698000ns (unix epoch)
+176065: capset 0: pid 30086
+178858: capset 0: parent pid 27111
+182699: capset 0: RTS version "GHC-8.2.0.20170507 rts_thr_p"
+185702: capset 0: args: ["./sleep","+RTS","-l","-h"]
+190451: capset 0: env: ["ADOTDIR=/home/maoe/.antigen","ANTIGEN_COMPDUMPFILE=/home/maoe/.zcompdump","ANTIGEN_DEFAULT_REPO_URL=https://github.com/robbyrussell/oh-my-zsh.git","AUTOJUMP_ERROR_PATH=/home/maoe/.local/share/autojump/errors.log","AUTOJUMP_SOURCED=1","CLUTTER_IM_MODULE=xim","DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-ioIEQwU7Ny","DEFAULTS_PATH=/usr/share/gconf/gnome.default.path","DERBY_HOME=/usr/lib/jvm/java-8-oracle/db","DESKTOP_SESSION=gnome","DISPLAY=:0","EDITOR=vim","GDMSESSION=gnome","GDM_LANG=en","GJS_DEBUG_OUTPUT=stderr","GJS_DEBUG_TOPICS=JS ERROR;JS LOG","GNOME_DESKTOP_SESSION_ID=this-is-deprecated","GNOME_KEYRING_CONTROL=","GNOME_KEYRING_PID=","GOPATH=/home/maoe/.go","GPG_AGENT_INFO=/home/maoe/.gnupg/S.gpg-agent:0:1","GTK_IM_MODULE=ibus","HOME=/home/maoe","IM_CONFIG_PHASE=1","INSTANCE=","J2REDIR=/usr/lib/jvm/java-8-oracle/jre","J2SDKDIR=/usr/lib/jvm/java-8-oracle","JAVA_HOME=/usr/lib/jvm/java-8-oracle","JOB=dbus","LANG=en_US.UTF-8","LANGUAGE=en","LC_ADDRESS=en_US.UTF-8","LC_CTYPE=en_US.UTF-8","LC_IDENTIFICATION=en_US.UTF-8","LC_MEASUREMENT=en_US.UTF-8","LC_MONETARY=en_US.UTF-8","LC_NAME=en_US.UTF-8","LC_NUMERIC=en_US.UTF-8","LC_PAPER=en_US.UTF-8","LC_TELEPHONE=en_US.UTF-8","LC_TIME=en_US.UTF-8","LESS=-R","LIBVIRT_DEFAULT_URI=qemu:///system","LOGNAME=maoe","LS_COLORS=di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30","MANDATORY_PATH=/usr/share/gconf/gnome.mandatory.path","NODE_PATH=/usr/lib/nodejs:/usr/lib/node_modules:/usr/share/javascript","OLDPWD=/home/maoe/src/github.com/haskell/ghc-events","PAGER=less","PAPERSIZE=letter","PATH=/usr/local/ghc/ghc-8.2.0-rc2/bin:/home/maoe/.npm-packages/bin:/home/maoe/Downloads/google-cloud-sdk/bin:/home/maoe/src/github.com/phacility/arcanist/bin:/home/maoe/.cargo/bin:/home/maoe/.local/bin:/home/maoe/.cabal/bin:/home/maoe/bin:/usr/local/bin:/usr/local/sbin:/home/maoe/.npm-packages/bin:/home/maoe/Downloads/google-cloud-sdk/bin:/home/maoe/src/github.com/phacility/arcanist/bin:/home/maoe/.cargo/bin:/home/maoe/.local/bin:/home/maoe/.cabal/bin:/home/maoe/bin:/usr/local/bin:/usr/local/sbin:/home/maoe/.cargo/bin:/home/maoe/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/db/bin:/usr/lib/jvm/java-8-oracle/jre/bin","PWD=/home/maoe/src/github.com/haskell/ghc-events","QT4_IM_MODULE=ibus","QT_ACCESSIBILITY=1","QT_IM_MODULE=ibus","QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1","SESSION=gnome","SESSIONTYPE=gnome-session","SESSION_MANAGER=local/vangelis.tsuru.it:@/tmp/.ICE-unix/5489,unix/vangelis.tsuru.it:/tmp/.ICE-unix/5489","SHELL=/bin/zsh","SHLVL=2","SSH_AUTH_SOCK=/run/user/2016/keyring/ssh","TERM=screen-256color","TMUX=/tmp/tmux-2016/default,10542,3","TMUX_PANE=%93","UBUNTU_MENUPROXY=libappmenu.so","UPSTART_SESSION=unix:abstract=/com/ubuntu/upstart-session/2016/5282","USER=maoe","VTE_VERSION=4205","WINDOWID=71468690","XAUTHORITY=/home/maoe/.Xauthority","XDG_CONFIG_DIRS=/etc/xdg/xdg-gnome:/usr/share/upstart/xdg:/etc/xdg","XDG_CURRENT_DESKTOP=GNOME","XDG_DATA_DIRS=/usr/share/gnome:/usr/local/share/:/usr/share/","XDG_GREETER_DATA_DIR=/var/lib/lightdm-data/maoe","XDG_MENU_PREFIX=gnome-","XDG_RUNTIME_DIR=/run/user/2016","XDG_SEAT=seat0","XDG_SEAT_PATH=/org/freedesktop/DisplayManager/Seat0","XDG_SESSION_DESKTOP=gnome","XDG_SESSION_ID=c2","XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0","XDG_SESSION_TYPE=x11","XDG_VTNR=7","XMODIFIERS=@im=ibus","ZSH=/home/maoe/.antigen/repos/https-COLON--SLASH--SLASH-github.com-SLASH-robbyrussell-SLASH-oh-my-zsh.git","ZSH_CACHE_DIR=/home/maoe/.antigen/repos/https-COLON--SLASH--SLASH-github.com-SLASH-robbyrussell-SLASH-oh-my-zsh.git/cache/","_=/home/maoe/src/github.com/haskell/ghc-events/./sleep","_ANTIGEN_BUNDLE_RECORD=\nhttps://github.com/robbyrussell/oh-my-zsh.git lib plugin true \nhttps://github.com/robbyrussell/oh-my-zsh.git plugins/git plugin true \nhttps://github.com/robbyrussell/oh-my-zsh.git plugins/pass plugin true \nhttps://github.com/zsh-users/zsh-syntax-highlighting.git / plugin true \nhttps://github.com/robbyrussell/oh-my-zsh.git themes/kphoen.zsh-theme theme true ","_ANTIGEN_LOG_PATH=/home/maoe/.antigen/antigen.log","_ZCACHE_BUNDLES_PATH=/home/maoe/.antigen/.cache/.zcache-bundles","_ZCACHE_CACHE_LOADED=true","_ZCACHE_CACHE_VERSION=v1.4.1","_ZCACHE_EXTENSION_BUNDLE=false","_ZCACHE_EXTENSION_CLEAN_FUNCTIONS=true","_ZCACHE_PATH=/home/maoe/.antigen/.cache","_ZCACHE_PAYLOAD_PATH=/home/maoe/.antigen/.cache/.zcache-payload","LSCOLORS=Gxfxcxdxbxegedabagacad","MANPATH=/home/maoe/.npm-packages/share/man:/home/maoe/.local/share/man:/home/maoe/.cabal/share/man:/usr/local/man:/usr/local/share/man:/usr/share/man:/usr/lib/jvm/java-8-oracle/man"]
+259872: heap stats for heap capset 0: generations 2, 0 bytes max heap size, 1048576 bytes alloc area size, 1048576 bytes mblock size, 4096 bytes block size
+445365: start heap profiling 0 at sampling period 100000000 broken down by cost centre
+448088: cost centre 110 IDLE in IDLE at <built-in>
+449695: cost centre 109 PINNED in SYSTEM at <built-in>
+450882: cost centre 108 DONT_CARE in MAIN at <built-in>
+452069: cost centre 107 OVERHEAD_of in PROFILING at <built-in>
+453256: cost centre 106 GC in GC at <built-in>
+454374: cost centre 105 SYSTEM in SYSTEM at <built-in>
+455352: cost centre 104 MAIN in MAIN at <built-in>
+456539: cost centre 103 CAF in GHC.Types at <entire-module> CAF
+457656: cost centre 102 CAF in GHC.Tuple at <entire-module> CAF
+458844: cost centre 101 CAF in GHC.Classes at <entire-module> CAF
+459961: cost centre 100 CAF in GHC.CString at <entire-module> CAF
+461148: cost centre 99 CAF in GHC.Integer.Type at <entire-module> CAF
+462266: cost centre 98 CAF in GHC.Integer.Logarithms.Internals at <entire-module> CAF
+463593: cost centre 97 CAF in GHC.Integer.Logarithms at <entire-module> CAF
+464780: cost centre 96 CAF in GHC.Event.Array at <entire-module> CAF
+465897: cost centre 95 CAF in GHC.Event.Arr at <entire-module> CAF
+466945: cost centre 94 CAF in Data.Proxy at <entire-module> CAF
+468272: cost centre 93 CAF in GHC.Event.Poll at <entire-module> CAF
+469389: cost centre 92 CAF in GHC.Event.PSQ at <entire-module> CAF
+470646: cost centre 91 CAF in GHC.Event.Manager at <entire-module> CAF
+471834: cost centre 90 CAF in GHC.Event.IntTable at <entire-module> CAF
+473161: cost centre 89 CAF in GHC.Event.EPoll at <entire-module> CAF
+474348: cost centre 88 CAF in GHC.Event.Control at <entire-module> CAF
+475395: cost centre 87 CAF in System.Posix.Types at <entire-module> CAF
+476513: cost centre 86 CAF in GHC.Storable at <entire-module> CAF
+477491: cost centre 85 CAF in GHC.Natural at <entire-module> CAF
+478748: cost centre 84 CAF in GHC.IO.FD at <entire-module> CAF
+479935: cost centre 83 CAF in GHC.IO.Device at <entire-module> CAF
+481052: cost centre 82 CAF in GHC.IO.BufferedIO at <entire-module> CAF
+482030: cost centre 81 CAF in GHC.Generics at <entire-module> CAF
+483357: cost centre 80 CAF in GHC.Float.RealFracMethods at <entire-module> CAF
+484405: cost centre 79 CAF in GHC.Float.ConversionUtils at <entire-module> CAF
+485382: cost centre 78 CAF in GHC.Float at <entire-module> CAF
+486500: cost centre 77 CAF in GHC.Enum at <entire-module> CAF
+487548: cost centre 76 CAF in GHC.Char at <entire-module> CAF
+488735: cost centre 75 CAF in GHC.Arr at <entire-module> CAF
+489922: cost centre 74 CAF in Foreign.Storable at <entire-module> CAF
+491179: cost centre 73 CAF in Foreign.Marshal.Array at <entire-module> CAF
+492297: cost centre 72 CAF in Foreign.Marshal.Alloc at <entire-module> CAF
+493274: cost centre 71 CAF in Foreign.C.Types at <entire-module> CAF
+494392: cost centre 70 CAF in Foreign.C.String at <entire-module> CAF
+495649: cost centre 69 CAF in Foreign.C.Error at <entire-module> CAF
+497115: cost centre 68 CAF in Data.Type.Equality at <entire-module> CAF
+498233: cost centre 67 CAF in Data.Tuple at <entire-module> CAF
+499211: cost centre 66 CAF in Data.Maybe at <entire-module> CAF
+500328: cost centre 65 CAF in Data.Dynamic at <entire-module> CAF
+501376: cost centre 64 CAF in Data.Bits at <entire-module> CAF
+502353: cost centre 63 CAF in Control.Monad.Fail at <entire-module> CAF
+503541: cost centre 62 CAF in GHC.Event.Unique at <entire-module> CAF
+504728: cost centre 61 CAF in GHC.Event.TimerManager at <entire-module> CAF
+505845: cost centre 60 CAF in GHC.Event.Thread at <entire-module> CAF
+506963: cost centre 59 CAF in GHC.Event.Internal at <entire-module> CAF
+508080: cost centre 58 CAF in Data.Typeable.Internal at <entire-module> CAF
+509198: cost centre 57 CAF in Data.OldList at <entire-module> CAF
+510245: cost centre 56 CAF in Text.Read.Lex at <entire-module> CAF
+511363: cost centre 55 CAF in Text.ParserCombinators.ReadPrec at <entire-module> CAF
+512340: cost centre 54 CAF in Text.ParserCombinators.ReadP at <entire-module> CAF
+513458: cost centre 53 CAF in System.Posix.Internals at <entire-module> CAF
+514505: cost centre 52 CAF in System.IO at <entire-module> CAF
+515483: cost centre 51 CAF in Numeric at <entire-module> CAF
+516670: cost centre 50 CAF in GHC.Word at <entire-module> CAF
+517788: cost centre 49 CAF in GHC.Weak at <entire-module> CAF
+518766: cost centre 48 CAF in GHC.Unicode at <entire-module> CAF
+520023: cost centre 47 CAF in GHC.TopHandler at <entire-module> CAF
+521070: cost centre 46 CAF in GHC.Stack.Types at <entire-module> CAF
+525680: cost centre 45 CAF in GHC.Stack.CCS at <entire-module> CAF
+526727: cost centre 44 CAF in GHC.Stable at <entire-module> CAF
+527915: cost centre 43 CAF in GHC.Show at <entire-module> CAF
+528962: cost centre 42 CAF in GHC.STRef at <entire-module> CAF
+530149: cost centre 41 CAF in GHC.ST at <entire-module> CAF
+531267: cost centre 40 CAF in GHC.Real at <entire-module> CAF
+532314: cost centre 39 CAF in GHC.Read at <entire-module> CAF
+533362: cost centre 38 CAF in GHC.Ptr at <entire-module> CAF
+534410: cost centre 37 CAF in GHC.Pack at <entire-module> CAF
+535597: cost centre 36 CAF in GHC.Num at <entire-module> CAF
+536644: cost centre 35 CAF in GHC.MVar at <entire-module> CAF
+537902: cost centre 34 CAF in GHC.List at <entire-module> CAF
+539019: cost centre 33 CAF in GHC.Int at <entire-module> CAF
+539997: cost centre 32 CAF in GHC.IORef at <entire-module> CAF
+541044: cost centre 31 CAF in GHC.IO.Unsafe at <entire-module> CAF
+542301: cost centre 30 CAF in GHC.IO.IOMode at <entire-module> CAF
+543628: cost centre 29 CAF in GHC.IO.Handle.Types at <entire-module> CAF
+544676: cost centre 28 CAF in GHC.IO.Handle.Text at <entire-module> CAF
+545793: cost centre 27 CAF in GHC.IO.Handle.Internals at <entire-module> CAF
+546841: cost centre 26 CAF in GHC.IO.Handle.FD at <entire-module> CAF
+548028: cost centre 25 CAF in GHC.IO.Handle at <entire-module> CAF
+549216: cost centre 24 CAF in GHC.IO.Exception at <entire-module> CAF
+550403: cost centre 23 CAF in GHC.IO.Encoding.UTF8 at <entire-module> CAF
+551590: cost centre 22 CAF in GHC.IO.Encoding.UTF32 at <entire-module> CAF
+552638: cost centre 21 CAF in GHC.IO.Encoding.UTF16 at <entire-module> CAF
+553755: cost centre 20 CAF in GHC.IO.Encoding.Types at <entire-module> CAF
+554873: cost centre 19 CAF in GHC.IO.Encoding.Latin1 at <entire-module> CAF
+555990: cost centre 18 CAF in GHC.IO.Encoding.Iconv at <entire-module> CAF
+557107: cost centre 17 CAF in GHC.IO.Encoding.Failure at <entire-module> CAF
+558225: cost centre 16 CAF in GHC.IO.Encoding at <entire-module> CAF
+559272: cost centre 15 CAF in GHC.IO.Buffer at <entire-module> CAF
+560390: cost centre 14 CAF in GHC.IO at <entire-module> CAF
+561577: cost centre 13 CAF in GHC.ForeignPtr at <entire-module> CAF
+562834: cost centre 12 CAF in GHC.Foreign at <entire-module> CAF
+563882: cost centre 11 CAF in GHC.Fingerprint.Type at <entire-module> CAF
+565279: cost centre 10 CAF in GHC.Fingerprint at <entire-module> CAF
+566466: cost centre 9 CAF in GHC.Exception at <entire-module> CAF
+567583: cost centre 8 CAF in GHC.Err at <entire-module> CAF
+568701: cost centre 7 CAF in GHC.Conc.Sync at <entire-module> CAF
+569748: cost centre 6 CAF in GHC.Conc.Signal at <entire-module> CAF
+570936: cost centre 5 CAF in GHC.Conc.IO at <entire-module> CAF
+572053: cost centre 4 CAF in GHC.Base at <entire-module> CAF
+573101: cost centre 3 CAF in Data.Either at <entire-module> CAF
+574148: cost centre 2 CAF in Control.Exception.Base at <entire-module> CAF
+575196: cost centre 1 CAF in Main at <entire-module> CAF
+672901: task 0x7ff358a2b740 created on cap 0 with OS kernel thread 30086
+680374: cap 0: creating thread 1
+685123: cap 0: running thread 1
+762644: cap 0: stopping thread 1 (stack overflow)
+769698: cap 0: running thread 1
+798262: cap 0: creating thread 2
+812929: cap 0: stopping thread 1 (thread yielding)
+926906: task 0x7ff3566e4700 created on cap 0 with OS kernel thread 30088
+928792: cap 0: running thread 2
+964270: cap 0: stopping thread 2 (thread yielding)
+985641: cap 0: running thread 1
+1021189: cap 0: thread 2 has label "IOManager on cap 0"
+1062883: cap 0: creating thread 3
+1068121: cap 0: stopping thread 1 (thread yielding)
+1083416: cap 0: running thread 2
+1090190: cap 0: stopping thread 2 (making a foreign call)
+1206892: task 0x7ff355ee3700 created on cap 0 with OS kernel thread 30089
+1210523: cap 0: running thread 3
+1281829: cap 0: stopping thread 3 (making a foreign call)
+1350691: cap 0: running thread 1
+1362982: cap 0: thread 3 has label "TimerManager"
+1365078: cap 0: stopping thread 1 (thread finished)
+1445951: task 0x7ff358a2b740 deleted
+1480941: task 0x7ff3556e2700 created on cap 0 with OS kernel thread 30090
+1494769: task 0x7ff358a2b740 created on cap 0 with OS kernel thread 30086
+1501194: cap 0: creating thread 4
+1503010: cap 0: running thread 4
+1557694: cap 0: stopping thread 4 (blocked on an MVar)
+1580322: cap 0: running thread 3
+1600296: cap 0: stopping thread 3 (making a foreign call)
+302857300: cap 0: running thread 3
+302880696: cap 0: stopping thread 3 (thread yielding)
+302883699: cap 0: running thread 3
+302908772: cap 0: stopping thread 3 (making a foreign call)
+302994464: cap 0: requesting parallel GC
+303001379: cap 0: starting GC
+303012553: cap 0: GC working
+303222280: cap 0: GC idle
+303223397: cap 0: GC done
+303228566: cap 0: GC idle
+303229473: cap 0: GC done
+303231010: cap 0: GC idle
+303231918: cap 0: GC done
+303252381: cap 0: allocated on heap capset 0: 75736 total bytes till now
+303255733: cap 0: finished GC
+303256990: cap 0: all caps stopped for GC
+303258247: cap 0: GC stats for heap capset 0: generation 1, 19984 bytes copied, 8728 bytes slop, 925696 bytes fragmentation, 1 par threads, 0 bytes max par copied, 19984 bytes total par copied
+303259784: cap 0: live data in heap capset 0: 19944 bytes
+303260831: cap 0: size of heap capset 0: 2097152 bytes
+303263066: cap 0: spark stats: 0 created, 0 converted, 0 remaining (0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+5006669294: cap 0: running thread 3
+5006682773: cap 0: waking up thread 4 on cap 0
+5006690874: cap 0: stopping thread 3 (making a foreign call)
+5006864425: cap 0: running thread 4
+5006866659: cap 0: stopping thread 4 (thread finished)
+5006868824: task 0x7ff358a2b740 deleted
+5006874831: task 0x7ff358a2b740 created on cap 0 with OS kernel thread 30086
+5006876926: cap 0: creating thread 5
+5006878183: cap 0: running thread 5
+5006909820: cap 0: stopping thread 5 (thread yielding)
+5006914430: cap 0: requesting parallel GC
+5006918131: cap 0: starting GC
+5006924975: cap 0: GC working
+5007150137: cap 0: GC idle
+5007151464: cap 0: GC done
+5007156841: cap 0: GC idle
+5007157819: cap 0: GC done
+5007159495: cap 0: GC idle
+5007160403: cap 0: GC done
+5007238414: start heap prof sample 0
+5007248191: heap prof sample 0, residency 48, cost centre stack 93
+5007251264: heap prof sample 0, residency 120, cost centre stack 18
+5007253429: heap prof sample 0, residency 640, cost centre stack 6
+5007255455: heap prof sample 0, residency 560, cost centre stack 60
+5007257340: heap prof sample 0, residency 128, cost centre stack 26
+5007259296: heap prof sample 0, residency 696, cost centre stack 16
+5007261531: heap prof sample 0, residency 9880, cost centre stack 
+5007334093: cap 0: allocated on heap capset 0: 81112 total bytes till now
+5007335979: cap 0: finished GC
+5007337306: cap 0: all caps stopped for GC
+5007338563: cap 0: GC stats for heap capset 0: generation 1, 21824 bytes copied, 7432 bytes slop, 954368 bytes fragmentation, 1 par threads, 0 bytes max par copied, 21824 bytes total par copied
+5007340100: cap 0: live data in heap capset 0: 21240 bytes
+5007341077: cap 0: size of heap capset 0: 2097152 bytes
+5007343592: cap 0: spark stats: 0 created, 0 converted, 0 remaining (0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+5007347014: cap 0: running thread 5
+5007392549: cap 0: stopping thread 5 (thread finished)
+5007395063: task 0x7ff358a2b740 deleted
+5007418529: cap 0: requesting sequential GC
+5007422161: cap 0: starting GC
+5007426561: cap 0: GC working
+5007532926: cap 0: GC idle
+5007533834: cap 0: GC done
+5007537535: cap 0: GC idle
+5007538373: cap 0: GC done
+5007539072: cap 0: GC idle
+5007540049: cap 0: GC done
+5007551643: cap 0: allocated on heap capset 0: 119504 total bytes till now
+5007553598: cap 0: finished GC
+5007554506: cap 0: all caps stopped for GC
+5007555414: cap 0: GC stats for heap capset 0: generation 1, 23152 bytes copied, 26368 bytes slop, 856064 bytes fragmentation, 1 par threads, 0 bytes max par copied, 23152 bytes total par copied
+5007556392: cap 0: live data in heap capset 0: 55552 bytes
+5007557230: cap 0: size of heap capset 0: 2097152 bytes
+5007558766: cap 0: spark stats: 0 created, 0 converted, 0 remaining (0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+5007641735: cap 0: running thread 2
+5007667366: cap 0: stopping thread 2 (thread finished)
+5007671627: task 0x7ff3566e4700 deleted
+5007703892: cap 0: running thread 3
+5007719816: cap 0: stopping thread 3 (thread finished)
+5007724355: task 0x7ff355ee3700 deleted
+5007730152: task 0x7ff3556e2700 deleted
+5007736298: cap 0: spark stats: 0 created, 0 converted, 0 remaining (0 overflowed, 0 dud, 0 GC'd, 0 fizzled)
+5008723894: cap 0: allocated on heap capset 0: 121184 total bytes till now
+5008727177: removed cap 0 from capset 0
+5008728015: removed cap 0 from capset 1
+5008728783: deleted cap 0
+5008729551: deleted capset 0
+5008730320: deleted capset 1
+

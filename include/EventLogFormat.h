@@ -113,8 +113,7 @@
 /* 13, 14 deprecated */
 #define EVENT_CREATE_SPARK_THREAD 15 /* (spark_thread)         */
 #define EVENT_LOG_MSG             16 /* (message ...)          */
-/* EVENT_STARTUP should be deprecated at some point */
-#define EVENT_STARTUP             17 /* (num_capabilities)     */
+/* 17 deprecated */
 #define EVENT_BLOCK_MARKER        18 /* (size, end_time, capability) */
 #define EVENT_USER_MSG            19 /* (message ...)          */
 #define EVENT_GC_IDLE             20 /* () */
@@ -164,8 +163,6 @@
 #define EVENT_USER_MARKER         58 /* (marker_name) */
 #define EVENT_HACK_BUG_T9003      59 /* Hack: see trac #9003 */
 
-/* Range 59 - 59 is available for new GHC and common events. */
-
 /* Range 60 - 80 is used by eden for parallel tracing
  * see http://www.mathematik.uni-marburg.de/~eden/
  */
@@ -191,12 +188,20 @@
 
 /* Range 140 - 159 is reserved for Perf events, see below. */
 
+/* Range 160 - 180 is reserved for cost-centre heap profiling events. */
+
+#define EVENT_HEAP_PROF_BEGIN              160
+#define EVENT_HEAP_PROF_COST_CENTRE        161
+#define EVENT_HEAP_PROF_SAMPLE_BEGIN       162
+#define EVENT_HEAP_PROF_SAMPLE_COST_CENTRE 163
+#define EVENT_HEAP_PROF_SAMPLE_STRING      164
+
 /*
  * The highest event code +1 that ghc itself emits. Note that some event
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_GHC_EVENT_TAGS        70
+#define NUM_GHC_EVENT_TAGS        165
 
 
 /* DEPRECATED EVENTS: */
@@ -212,6 +217,7 @@
 #define EVENT_CREATE_SPARK        13 /* (cap, thread) */
 #define EVENT_SPARK_TO_THREAD     14 /* (cap, thread, spark_thread) */
 #endif
+#define EVENT_STARTUP             17 /* (num_capabilities)     */
 
 
 /*
