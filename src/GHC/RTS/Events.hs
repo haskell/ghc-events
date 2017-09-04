@@ -504,6 +504,7 @@ showHeapProfBreakdown breakdown = case breakdown of
   HeapProfBreakdownTypeDescr -> "type description"
   HeapProfBreakdownRetainer -> "retainer"
   HeapProfBreakdownBiography -> "biography"
+  HeapProfBreakdownClosureType -> "closure type"
 
 ppEventLog :: EventLog -> String
 ppEventLog = TL.unpack . TB.toLazyText . buildEventLog
