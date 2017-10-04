@@ -1,8 +1,8 @@
 # Change Log
 
-## Unreleased
+## 0.7.0 - 2017-10-04
 
-* Add support for heap profiling events
+* Add support for heap profiling events ([#29](https://github.com/haskell/ghc-events/pull/29))
 
 ## 0.6.0 - 2017-05-31
 
