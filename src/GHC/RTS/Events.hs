@@ -15,6 +15,8 @@ module GHC.RTS.Events (
        EventInfo(..),
        ThreadStopStatus(..),
        CapsetType(..),
+       HeapProfBreakdown(..),
+       HeapProfFlags(..),
        Timestamp,
        ThreadId,
        TaskId,
@@ -24,6 +26,7 @@ module GHC.RTS.Events (
        EventTypeSize,
        BlockSize,
        Capset,
+       PID,
        StringId,
        -- some types for the parallel RTS
        ProcessId,
