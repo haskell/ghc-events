@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7.1 - 2018-02-17
+
+* Export HeapProfBreakdown, HeapProfFlags, and PID types ([#35](https://github.com/haskell/ghc-events/pull/35))
+
 ## 0.7.0 - 2017-10-04
 
 * Add support for heap profiling events ([#29](https://github.com/haskell/ghc-events/pull/29))
