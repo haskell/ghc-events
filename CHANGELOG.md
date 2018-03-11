@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.7.2 - 2018-03-10
+
+* Add Semigroup instance to build with ghc-8.4.
+
 ## 0.7.1 - 2018-02-17
 
 * Export HeapProfBreakdown, HeapProfFlags, and PID types ([#35](https://github.com/haskell/ghc-events/pull/35))

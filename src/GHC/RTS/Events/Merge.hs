@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module GHC.RTS.Events.Merge (mergeEventLogs) where
 
 import GHC.RTS.Events
@@ -47,6 +48,11 @@ data MaxVars = MaxVars { mcapset :: !Word32
                        , mcap :: !Int
                        , mthread :: !ThreadId }
 -- TODO introduce parallel RTS process and machine var.s
+
+#if MIN_VERSION_base(4,11,0)
+instance Semigroup MaxVars where
+    (<>) = mappend
+#endif
 
 instance Monoid MaxVars where
     mempty  = MaxVars 0 0 0
