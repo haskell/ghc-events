@@ -1,5 +1,5 @@
 name:             ghc-events
-version:          0.7.1
+version:          0.7.2
 synopsis:         Library and tool for parsing .eventlog files from GHC
 description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the ghc-events tool permitting, in particular,
@@ -20,8 +20,8 @@ author:           Donnie Jones <donnie@darthik.com>,
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      https://github.com/haskell/ghc-events/issues
 build-type:       Simple
-tested-with:      GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3, GHC == 7.10.1,
-                  GHC == 8.0.2, GHC == 8.2.1
+tested-with:      GHC == 7.8.2, GHC == 7.8.3, GHC == 7.10.1,
+                  GHC == 8.0.2, GHC == 8.2.1, GHC == 8.4.1
 cabal-version:    >= 1.8
 extra-source-files: include/EventLogFormat.h
                     test/queens-ghc-6.12.1.eventlog
@@ -58,7 +58,7 @@ source-repository head
   location: git@github.com:haskell/ghc-events.git
 
 library
-  build-depends:    base       == 4.*,
+  build-depends:    base       >= 4 && < 4.12,
                     containers >= 0.5 && < 0.6,
                     binary     >= 0.7 && < 0.10,
                     bytestring >= 0.10.4,
