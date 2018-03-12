@@ -20,8 +20,8 @@ author:           Donnie Jones <donnie@darthik.com>,
 maintainer:       Simon Marlow <marlowsd@gmail.com>
 bug-reports:      https://github.com/haskell/ghc-events/issues
 build-type:       Simple
-tested-with:      GHC == 7.6.1, GHC == 7.6.3, GHC == 7.8.2, GHC == 7.8.3,
-                  GHC == 7.10.1, GHC == 8.0.2, GHC == 8.2.1, GHC == 8.4.1
+tested-with:      GHC == 7.8.2, GHC == 7.8.3, GHC == 7.10.1,
+                  GHC == 8.0.2, GHC == 8.2.1, GHC == 8.4.1
 cabal-version:    >= 1.8
 extra-source-files: include/EventLogFormat.h
                     test/queens-ghc-6.12.1.eventlog
