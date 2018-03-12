@@ -1,8 +1,8 @@
 # Change Log
 
-## 0.7.2 - 2018-03-10
+## 0.7.2 - 2018-03-13
 
-* Add Semigroup instance to build with ghc-8.4.
+* Add Semigroup instance for MaxVars to build with ghc-8.4
 
 ## 0.7.1 - 2018-02-17
 
