@@ -42,7 +42,7 @@ data Decoder a
   | Done B.ByteString
   -- ^ The decoder has ended with leftover input.
   | Error B.ByteString String
-  -- ^ The decoder has encountered an error with lefover input and an error
+  -- ^ The decoder has encountered an error with leftover input and an error
   -- message.
 
 -- | Push an input chunk to the decoder
@@ -118,22 +118,21 @@ readHeader = go $ Left decodeHeader
         Error _ err -> fail err
       Right header -> Right (header, bytes)
 
+
 -- | Read events from a lazy bytestring. It returns an error message if it
--- encouters an error while decoding.
+-- encounters an error while decoding.
 --
 -- Note that it doesn't fail if it consumes all input in the middle of decoding
 -- of an event.
 readEvents :: Header -> BL.ByteString -> ([Event], Maybe String)
-readEvents header = f . go (decodeEvents header)
+readEvents header = f . break isLeft . go (decodeEvents header)
   where
-    f :: [Either e a] -> ([a], Maybe e)
-    f xs = (rights rs, listToMaybe (lefts ls))
-      where
-        (rs, ls) = break isLeft xs
+    f (rs, ls) = (rights rs, listToMaybe (lefts ls))
 #if !MIN_VERSION_base(4, 7, 0)
-        isLeft (Left _) = True
-        isLeft _ = False
+    isLeft (Left _) = True
+    isLeft _ = False
 #endif
+
     go :: Decoder Event -> BL.ByteString -> [Either String Event]
     go decoder bytes = case decoder of
       Produce event decoder' -> Right event : go decoder' bytes
@@ -144,7 +143,7 @@ readEvents header = f . go (decodeEvents header)
       Error _ err -> [Left err]
 
 -- | Read an entire eventlog from a lazy bytestring. It returns an error message if it
--- encouters an error while decoding.
+-- encounters an error while decoding.
 --
 -- Note that it doesn't fail if it consumes all input in the middle of decoding
 -- of an event.
