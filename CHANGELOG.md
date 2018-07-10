@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.7.3 - 2018-07-10
+
+* Fixed memory-leak in incremental readEvents ([#37](https://github.com/haskell/ghc-events/pull/37))
+* Relax upper version bound for containers ([#38](https://github.com/haskell/ghc-events/pull/38))
+
 ## 0.7.2 - 2018-03-13
 
 * Add Semigroup instance for MaxVars to build with ghc-8.4
