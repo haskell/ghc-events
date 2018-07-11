@@ -1,6 +1,9 @@
+*#
 *swp
 *~
-*#
 .cabal-sandbox/
+.ghc.environment.*
+cabal.project.local
 cabal.sandbox.config
+dist-newstyle/
 dist/
