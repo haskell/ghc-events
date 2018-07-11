@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.8.0 - 2018-07-11
+
+* Add HeapProfBreakdownClosureType ([#33](https://github.com/haskell/ghc-events/pull/33), [#39](https://github.com/haskell/ghc-events/pull/39))
+    * This is a breaking change
+* Test with newer GHCs ([#40](https://github.com/haskell/ghc-events/pull/40))
+
 ## 0.7.3 - 2018-07-10
 
 * Fixed memory-leak in incremental readEvents ([#37](https://github.com/haskell/ghc-events/pull/37))
