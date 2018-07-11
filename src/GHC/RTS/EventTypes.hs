@@ -562,6 +562,7 @@ data HeapProfBreakdown
   | HeapProfBreakdownTypeDescr
   | HeapProfBreakdownRetainer
   | HeapProfBreakdownBiography
+  | HeapProfBreakdownClosureType
   deriving Show
 
 instance Binary HeapProfBreakdown where
@@ -574,6 +575,7 @@ instance Binary HeapProfBreakdown where
       4 -> return HeapProfBreakdownTypeDescr
       5 -> return HeapProfBreakdownRetainer
       6 -> return HeapProfBreakdownBiography
+      7 -> return HeapProfBreakdownClosureType
       _ -> fail $ "Unknown HeapProfBreakdown: " ++ show n
   put breakdown = put $ case breakdown of
     HeapProfBreakdownCostCentre -> (1 :: Word32)
@@ -582,6 +584,7 @@ instance Binary HeapProfBreakdown where
     HeapProfBreakdownTypeDescr -> 4
     HeapProfBreakdownRetainer -> 5
     HeapProfBreakdownBiography -> 6
+    HeapProfBreakdownClosureType -> 7
 
 newtype HeapProfFlags = HeapProfFlags Word8
   deriving (Show, Binary)
