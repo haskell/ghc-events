@@ -12,6 +12,7 @@ files = map ("test/"++)
     , "sleep.hm.eventlog"
     , "sleep.hd.eventlog"
     , "sleep.hy.eventlog"
+    , "stop.hT.eventlog"
     ]
 
 
