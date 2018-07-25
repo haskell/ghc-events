@@ -5,6 +5,7 @@ import Data.Bits
 
 import Data.Binary
 import Data.Text (Text)
+import qualified Data.ByteString as B
 import qualified Data.Vector.Unboxed as VU
 
 -- EventType.
@@ -427,6 +428,9 @@ data EventInfo
                        }
   | ProfBegin
                        { profTickInterval :: !Word64
+                       }
+
+  | UserBinaryMessage  { payload :: !B.ByteString
                        }
   deriving Show
 

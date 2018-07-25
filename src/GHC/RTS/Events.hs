@@ -73,13 +73,16 @@ import Control.Applicative
 import Control.Concurrent hiding (ThreadId)
 import qualified Data.Binary.Put as P
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
+import Data.Char (isPrint)
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
 import Data.Function hiding (id)
 import Data.List
 import Data.String (IsString)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy.Builder.Int as TB
@@ -485,6 +488,20 @@ buildEventInfo spec' =
 
         ProfBegin {..} ->
           "start time profiling, tick interval " <> TB.decimal profTickInterval <> " (ns)"
+
+        UserBinaryMessage {..} ->
+          "binary message " <> TB.fromText (replaceUnprintableWith '.' payload)
+
+-- | Replace unprintable bytes in the message with the replacement character
+replaceUnprintableWith
+  :: Char -- ^ Replacement character
+  -> B.ByteString -- ^ Binary message which may contain unprintable bytes
+  -> T.Text
+replaceUnprintableWith replacement = TE.decodeUtf8 . B8.map replace
+  where
+    replace c
+      | isPrint c = c
+      | otherwise = replacement
 
 buildFilters :: [T.Text] -> Maybe TB.Builder
 buildFilters = foldr g Nothing
