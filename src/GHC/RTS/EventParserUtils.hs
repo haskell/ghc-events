@@ -1,5 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE DeriveFunctor #-}
+
 module GHC.RTS.EventParserUtils (
         EventParser(..),
         EventParsers(..),
@@ -7,7 +10,6 @@ module GHC.RTS.EventParserUtils (
         getString,
         mkEventTypeParsers,
         simpleEvent,
-        skip,
     ) where
 
 import Control.Monad
@@ -20,13 +22,14 @@ import Data.Char
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as M
 import Data.List
+import qualified Data.ByteString as B
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
 import GHC.RTS.EventTypes
 
-newtype EventParsers = EventParsers (Array Int (Get EventInfo))
+newtype EventParsers = EventParsers (Array Int (Get (EventInfo, B.ByteString)))
 
 nBytes :: Integral a => a -> Get [Word8]
 nBytes n = replicateM (fromIntegral n) get
@@ -35,9 +38,6 @@ getString :: Integral a => a -> Get String
 getString len = do
     bytes <- nBytes len
     return $ map (chr . fromIntegral) bytes
-
-skip :: Integral a => a -> Get ()
-skip n = G.skip (fromIntegral n)
 
 --
 -- Code to build the event parser table.
@@ -55,7 +55,7 @@ data EventParser a
     | VariableSizeParser {
         vsp_type        :: Int,
         vsp_parser      :: Get a
-    }
+    } deriving (Functor)
 
 getParser :: EventParser a -> Get a
 getParser (FixedSizeParser _ _ p) = p
@@ -101,7 +101,7 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 
 mkEventTypeParsers :: IntMap EventType
                    -> [EventParser EventInfo]
-                   -> Array Int (Get EventInfo)
+                   -> Array Int (Get (EventInfo, B.ByteString))
 mkEventTypeParsers etypes event_parsers
  = accumArray (flip const) undefined (0, max_event_num)
     [ (num, parser num) | num <- [0..max_event_num] ]
@@ -113,13 +113,19 @@ mkEventTypeParsers etypes event_parsers
             -- Get the event's size from the header,
             -- the first Maybe describes whether the event was declared in the header.
             -- the second Maybe selects between variable and fixed size events.
-        let mb_mb_et_size = do et <- M.lookup num etypes
-                               return $ size et
+        let mb_mb_et_size = size <$> M.lookup num etypes
             -- Find a parser for the event with the given size.
+            maybe_parser :: Maybe EventTypeSize -> Maybe (Get (EventInfo, B.ByteString))
             maybe_parser mb_et_size = do possible <- M.lookup num parser_map
                                          best_parser <- case mb_et_size of
-                                            Nothing -> getVariableParser possible
-                                            Just et_size -> getFixedParser et_size possible
+                                            Nothing -> do
+                                              p <- getVariableParser possible
+                                              -- Variable parsers don't generate
+                                              -- extra data as they parse the
+                                              -- whole thing always
+                                              return (fmap (, mempty) p)
+                                            Just et_size ->
+                                              getFixedParser et_size possible
                                          return $ getParser best_parser
             in case mb_mb_et_size of
                 -- This event is declared in the log file's header
@@ -141,7 +147,7 @@ getVariableParser (x:xs) = case x of
 -- Find the best fixed size parser, that is to say, the parser for the largest
 -- event that does not exceed the size of the event as declared in the log
 -- file's header.
-getFixedParser :: EventTypeSize -> [EventParser a] -> Maybe (EventParser a)
+getFixedParser :: EventTypeSize -> [EventParser a] -> Maybe (EventParser (a, B.ByteString))
 getFixedParser size parsers =
         do parser <- ((filter isFixedSize) `pipe`
                       (filter (\x -> (fsp_size x) <= size)) `pipe`
@@ -155,14 +161,14 @@ getFixedParser size parsers =
           maybe_head [] = Nothing
           maybe_head (x:_) = Just x
 
-padParser :: EventTypeSize -> (EventParser a) -> (EventParser a)
-padParser _    (VariableSizeParser t p) = VariableSizeParser t p
+padParser :: EventTypeSize -> (EventParser a) -> (EventParser (a, B.ByteString))
+padParser _    (VariableSizeParser t p) = VariableSizeParser t (fmap (, mempty) p)
 padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
     where p = if (size == orig_size)
-                then orig_p
+                then fmap (, mempty) orig_p
                 else do d <- orig_p
-                        skip (size - orig_size)
-                        return d
+                        e <- G.getByteString (fromIntegral (size - orig_size))
+                        return (d, e)
 
 makeParserMap :: [EventParser a] -> IntMap [EventParser a]
 makeParserMap = foldl buildParserMap M.empty
@@ -172,10 +178,10 @@ makeParserMap = foldl buildParserMap M.empty
           addParser p (Just ps) = Just (p:ps)
 
 noEventTypeParser :: Int -> Maybe EventTypeSize
-                  -> Get EventInfo
+                  -> Get (EventInfo, B.ByteString)
 noEventTypeParser num mb_size = do
   bytes <- case mb_size of
              Just n  -> return n
              Nothing -> get :: Get Word16
-  skip bytes
-  return UnknownEvent{ ref = fromIntegral num }
+  e <- G.getByteString (fromIntegral bytes)
+  return (UnknownEvent{ ref = fromIntegral num }, e)

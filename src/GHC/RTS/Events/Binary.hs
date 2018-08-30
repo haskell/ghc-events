@@ -101,7 +101,7 @@ getEvent (EventParsers parsers) = do
   if etRef == EVENT_DATA_END
      then return Nothing
      else do !evTime   <- get
-             evSpec <- parsers ! fromIntegral etRef
+             (evSpec, evExtras) <- parsers ! fromIntegral etRef
              return $ Just Event { evCap = undefined, .. }
 
 --
@@ -957,6 +957,7 @@ putEvent Event {..} = do
     putType (eventTypeNum evSpec)
     put evTime
     putEventSpec evSpec
+    putByteString evExtras
 
 putEventSpec :: EventInfo -> PutM ()
 putEventSpec (Startup caps) = do

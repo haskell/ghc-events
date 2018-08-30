@@ -171,7 +171,7 @@ capSplitEvents' evts imap =
 -- its capability. All events are expected to belong to the same cap.
 addBlockMarker :: Int -> [Event] -> [Event]
 addBlockMarker cap evts =
-  (Event startTime (EventBlock endTime cap sz) (mkCap cap)) : sortedEvts
+  (Event startTime (EventBlock endTime cap sz) (mkCap cap) mempty) : sortedEvts
   where
     sz = fromIntegral . BL.length $ P.runPut $ mapM_ putEvent evts
     startTime = case sortedEvts of

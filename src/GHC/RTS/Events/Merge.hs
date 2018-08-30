@@ -83,8 +83,8 @@ sh :: Num a => a -> a -> a
 sh x y = x + y
 
 updateSpec :: (EventInfo -> EventInfo) -> Event -> Event
-updateSpec f (Event {evTime = t, evSpec = s, evCap = cap}) =
-    Event {evTime = t, evSpec = f s, evCap = cap}
+updateSpec f (Event {evTime = t, evSpec = s, evCap = cap, evExtras = e}) =
+    Event {evTime = t, evSpec = f s, evCap = cap, evExtras = e}
 
 shift :: MaxVars -> [Event] -> [Event]
 shift (MaxVars mcs mc mt) = map (updateSpec shift')

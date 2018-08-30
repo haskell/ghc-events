@@ -6,6 +6,7 @@ import Data.Bits
 import Data.Binary
 import Data.Text (Text)
 import qualified Data.Vector.Unboxed as VU
+import Data.ByteString (ByteString)
 
 -- EventType.
 type EventTypeNum = Word16
@@ -126,9 +127,10 @@ data EventType =
 
 data Event =
   Event {
-    evTime  :: {-# UNPACK #-}!Timestamp,
-    evSpec  :: EventInfo,
-    evCap :: Maybe Int
+    evTime   :: {-# UNPACK #-}!Timestamp,
+    evSpec   :: EventInfo,
+    evCap    :: Maybe Int,
+    evExtras :: !ByteString
   } deriving Show
 
 {-# DEPRECATED time "The field is now called evTime" #-}
