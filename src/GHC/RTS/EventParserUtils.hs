@@ -113,7 +113,7 @@ mkEventTypeParsers etypes event_parsers
             -- Get the event's size from the header,
             -- the first Maybe describes whether the event was declared in the header.
             -- the second Maybe selects between variable and fixed size events.
-        let mb_mb_et_size = size <$> M.lookup num etypes
+        let mb_mb_et_size = fmap size (M.lookup num etypes)
             -- Find a parser for the event with the given size.
             maybe_parser :: Maybe EventTypeSize -> Maybe (Get (EventInfo, B.ByteString))
             maybe_parser mb_et_size = do possible <- M.lookup num parser_map
@@ -123,7 +123,7 @@ mkEventTypeParsers etypes event_parsers
                                               -- Variable parsers don't generate
                                               -- extra data as they parse the
                                               -- whole thing always
-                                              return (fmap (, mempty) p)
+                                              return (fmap (, B.empty) p)
                                             Just et_size ->
                                               getFixedParser et_size possible
                                          return $ getParser best_parser
@@ -162,10 +162,10 @@ getFixedParser size parsers =
           maybe_head (x:_) = Just x
 
 padParser :: EventTypeSize -> (EventParser a) -> (EventParser (a, B.ByteString))
-padParser _    (VariableSizeParser t p) = VariableSizeParser t (fmap (, mempty) p)
+padParser _    (VariableSizeParser t p) = VariableSizeParser t (fmap (, B.empty) p)
 padParser size (FixedSizeParser t orig_size orig_p) = FixedSizeParser t size p
     where p = if (size == orig_size)
-                then fmap (, mempty) orig_p
+                then fmap (, B.empty) orig_p
                 else do d <- orig_p
                         e <- G.getByteString (fromIntegral (size - orig_size))
                         return (d, e)
