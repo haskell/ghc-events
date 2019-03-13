@@ -492,6 +492,22 @@ buildEventInfo spec' =
         UserBinaryMessage {..} ->
           "binary message " <> TB.fromText (replaceUnprintableWith '.' payload)
 
+        ConcMarkBegin    ->
+          "concurrent mark began"
+        ConcMarkEnd {..} ->
+          "concurrent mark ended: "
+          <> "marked " <> TB.decimal concMarkedObjectCount <> " objects"
+        ConcSyncBegin ->
+          "post-mark synchronization began"
+        ConcSyncEnd ->
+          "post-mark synchronization ended"
+        ConcSweepBegin ->
+          "concurrent sweep began"
+        ConcSweepEnd ->
+          "concurrent sweep ended"
+        ConcUpdRemSetFlush {..}  ->
+          "update remembered set flushed by " <> TB.decimal cap
+
 -- | Replace unprintable bytes in the message with the replacement character
 replaceUnprintableWith
   :: Char -- ^ Replacement character
