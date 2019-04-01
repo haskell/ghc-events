@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.8.0.2 - 2019-04-02
+
+* Tighten lower version bound for base ([#46](https://github.com/haskell/ghc-events/pull/46))
+
 ## 0.8.0.1 - 2018-10-22
 
 * Relax upper version bound for base to support GHC 8.6
