@@ -441,6 +441,12 @@ data EventInfo
   | ConcSweepEnd
   | ConcUpdRemSetFlush { cap    :: {-# UNPACK #-}!Int
                        }
+  | NonmovingHeapCensus
+                       { nonmovingCensusBlkSize :: !Word8
+                       , nonmovingCensusActiveSegs :: !Word32
+                       , nonmovingCensusFilledSegs :: !Word32
+                       , nonmovingCensusLiveBlocks :: !Word32
+                       }
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]

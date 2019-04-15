@@ -507,6 +507,11 @@ buildEventInfo spec' =
           "concurrent sweep ended"
         ConcUpdRemSetFlush {..}  ->
           "update remembered set flushed by " <> TB.decimal cap
+        NonmovingHeapCensus {..}  ->
+          "nonmoving heap census " <> TB.decimal (2^nonmovingCensusBlkSize :: Int)
+          <> ": " <> TB.decimal nonmovingCensusActiveSegs <> " active segments"
+          <> ", " <> TB.decimal nonmovingCensusFilledSegs <> " filled segments"
+          <> ", " <> TB.decimal nonmovingCensusLiveBlocks <> " live blocks"
 
 -- | Replace unprintable bytes in the message with the replacement character
 replaceUnprintableWith

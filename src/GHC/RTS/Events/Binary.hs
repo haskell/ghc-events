@@ -331,6 +331,13 @@ standardParsers = [
  (FixedSizeParser EVENT_CONC_UPD_REM_SET_FLUSH sz_cap (do -- (cap)
       cap <- get :: Get CapNo
       return ConcUpdRemSetFlush{ cap = fromIntegral cap }
+    )),
+ (FixedSizeParser EVENT_NONMOVING_HEAP_CENSUS 13 (do -- (blk_size, active_segs, filled_segs, live_blks)
+      nonmovingCensusBlkSize <- get :: Get Word8
+      nonmovingCensusActiveSegs <- get :: Get Word32
+      nonmovingCensusFilledSegs <- get :: Get Word32
+      nonmovingCensusLiveBlocks <- get :: Get Word32
+      return NonmovingHeapCensus{..}
     ))
  ]
 
@@ -1023,6 +1030,7 @@ eventTypeNum e = case e of
     ConcSweepBegin {} -> EVENT_CONC_SWEEP_BEGIN
     ConcSweepEnd {} -> EVENT_CONC_SWEEP_END
     ConcUpdRemSetFlush {} -> EVENT_CONC_UPD_REM_SET_FLUSH
+    NonmovingHeapCensus {} -> EVENT_NONMOVING_HEAP_CENSUS
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1458,3 +1466,8 @@ putEventSpec ConcSweepBegin = return ()
 putEventSpec ConcSweepEnd = return ()
 putEventSpec ConcUpdRemSetFlush {..} = do
     putCap cap
+putEventSpec NonmovingHeapCensus {..} = do
+    putE nonmovingCensusBlkSize
+    putE nonmovingCensusActiveSegs
+    putE nonmovingCensusFilledSegs
+    putE nonmovingCensusLiveBlocks
