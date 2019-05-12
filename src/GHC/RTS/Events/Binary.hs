@@ -154,6 +154,22 @@ standardParsers = [
       parNThreads  <- get :: Get Word32
       parMaxCopied <- get :: Get Word64
       parTotCopied <- get :: Get Word64
+      parBalancedCopied <- return Nothing
+      return GCStatsGHC{ gen = fromIntegral gen
+                       , parNThreads = fromIntegral parNThreads
+                       , ..}
+ )),
+
+ (FixedSizeParser EVENT_GC_STATS_GHC (sz_capset + 2 + 5*8 + 4 + 8) (do  -- (heap_capset, generation, copied_bytes, slop_bytes, frag_bytes, par_n_threads, par_max_copied, par_tot_copied, par_balanced_copied)
+      heapCapset   <- get
+      gen          <- get :: Get Word16
+      copied       <- get :: Get Word64
+      slop         <- get :: Get Word64
+      frag         <- get :: Get Word64
+      parNThreads  <- get :: Get Word32
+      parMaxCopied <- get :: Get Word64
+      parTotCopied <- get :: Get Word64
+      parBalancedCopied <- Just <$> (get :: Get Word64)
       return GCStatsGHC{ gen = fromIntegral gen
                        , parNThreads = fromIntegral parNThreads
                        , ..}
@@ -1104,6 +1120,9 @@ putEventSpec GCStatsGHC{..} = do
     putE (fromIntegral parNThreads :: Word32)
     putE parMaxCopied
     putE parTotCopied
+    case parBalancedCopied of
+      Nothing -> return ()
+      Just v  -> putE v
 
 putEventSpec HeapAllocated{..} = do
     putE heapCapset

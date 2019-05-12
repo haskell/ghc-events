@@ -86,7 +86,7 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 -- For each event type, we may have multiple parsers for different
 -- versions of the event, indexed by size.  These are listed in the
 -- eventTypeParsers list below.  For the given log file we select the
--- parser for the most recent version (largest size less than the size
+-- parser for the most recent version (largest size doesn't exceed the size
 -- declared in the header).  If this is a newer version of the event
 -- than we understand, there may be extra bytes that we have to read
 -- and discard in the parser for this event type.

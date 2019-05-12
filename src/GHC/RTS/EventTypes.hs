@@ -213,10 +213,12 @@ data EventInfo
   | GCStatsGHC         { heapCapset   :: {-# UNPACK #-}!Capset
                        , gen          :: {-# UNPACK #-}!Int
                        , copied       :: {-# UNPACK #-}!Word64
-                       , slop, frag   :: {-# UNPACK #-}!Word64
+                       , slop         :: {-# UNPACK #-}!Word64
+                       , frag         :: {-# UNPACK #-}!Word64
                        , parNThreads  :: {-# UNPACK #-}!Int
                        , parMaxCopied :: {-# UNPACK #-}!Word64
                        , parTotCopied :: {-# UNPACK #-}!Word64
+                       , parBalancedCopied :: !(Maybe Word64)
                        }
 
   -- heap statistics
