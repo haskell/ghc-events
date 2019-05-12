@@ -169,7 +169,7 @@ standardParsers = [
       parNThreads  <- get :: Get Word32
       parMaxCopied <- get :: Get Word64
       parTotCopied <- get :: Get Word64
-      parBalancedCopied <- Just <$> (get :: Get Word64)
+      parBalancedCopied <- fmap Just (get :: Get Word64)
       return GCStatsGHC{ gen = fromIntegral gen
                        , parNThreads = fromIntegral parNThreads
                        , ..}
