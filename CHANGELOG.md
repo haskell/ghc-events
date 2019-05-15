@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.0 - 2019-05-15
+
+* Support the newly added par_balanced_copied field ([#47](https://github.com/haskell/ghc-events/pull/47))
+
 ## 0.8.0.2 - 2019-04-02
 
 * Tighten lower version bound for base ([#46](https://github.com/haskell/ghc-events/pull/46))
