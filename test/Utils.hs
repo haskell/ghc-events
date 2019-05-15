@@ -13,6 +13,7 @@ files = map ("test/"++)
     , "sleep.hd.eventlog"
     , "sleep.hy.eventlog"
     , "stop.hT.eventlog"
+    , "hello-ghc-8.2.2.eventlog", "hello-ghc-8.6.5.eventlog"
     ]
 
 

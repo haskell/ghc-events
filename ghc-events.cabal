@@ -54,6 +54,10 @@ extra-source-files: include/EventLogFormat.h
                     test/sleep.hy.eventlog.reference
                     test/stop.hT.eventlog
                     test/stop.hT.eventlog.reference
+                    test/hello-ghc-8.2.2.eventlog
+                    test/hello-ghc-8.2.2.eventlog.reference
+                    test/hello-ghc-8.6.5.eventlog
+                    test/hello-ghc-8.6.5.eventlog.reference
                     test/Utils.hs
                     test/stop.hs
                     README.md

@@ -1,0 +1,105 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap mem ever allocated (size 12)
+50: Current heap size (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+160: Start of heap profile (size variable)
+161: Cost center definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+
+Events:
+595100: created capset 0 of type CapsetOsProcess
+595200: created capset 1 of type CapsetClockDomain
+596200: created cap 0
+596200: assigned cap 0 to capset 0
+596300: assigned cap 0 to capset 1
+598100: capset 1: wall clock time 1557798534s 953000000ns (unix epoch)
+598200: capset 0: pid 15908
+599000: capset 0: RTS version "GHC-8.6.5 rts_l"
+599300: capset 0: args: ["hellofib.exe","+RTS","-l"]
+636500: capset 0: env: ["=::=::\\","=D:=D:\\Open\\ThreadScope","=ExitCode=00000000","ALLUSERSPROFILE=C:\\ProgramData","ANDROID_AVD_HOME=D:\\Program\\AndroidSDK\\.android\\avd","ANDROID_HOME=D:\\Program\\AndroidSDK","ANDROID_SDK_HOME=D:\\Program\\AndroidSDK","APPDATA=C:\\Users\\sighi\\AppData\\Roaming","APR_ICONV_PATH=D:\\Program\\Subversion\\iconv","asl.log=Destination=file","BAZEL_VC=D:\\Program\\Microsoft Visual Studio\\VC\\","BAZEL_VS=D:\\Program\\Microsoft Visual Studio\\","CARGO_HOME=D:\\Program\\Rust\\.cargo","CFLAGS=-std=gnu11 -Wall -pedantic -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES","CHERE_INVOKING=enabled_from_arguments","CL=/std:c++14 /utf-8 /W3 /Ot /D_CRT_SECURE_NO_WARNINGS","CLASSPATH=.;D:\\Program\\Java\\jdk1.8.0_152\\lib;D:\\Program\\Java\\jdk1.8.0_152\\jre\\lib;D:\\Program\\JRuby\\lib;D:\\Program\\JRuby\\lib\\jni\\x86_64-Windows;D:\\Program\\Java\\logstash-5.6.1\\logstash-core\\lib;D:\\Program\\Java\\elasticsearch-2.3.1\\lib;","CLCACHE_DIR=D:\\Program\\CLCache\\Cache","CommonProgramFiles=C:\\Program Files\\Common Files","CommonProgramFiles(x86)=C:\\Program Files (x86)\\Common Files","CommonProgramW6432=C:\\Program Files\\Common Files","COMPUTERNAME=HT-PC","ComSpec=C:\\WINDOWS\\system32\\cmd.exe","CONDA_BAT=D:\\Program\\Conda\\condabin\\conda.bat","CONDA_EXE=D:\\Program\\Conda\\Scripts\\conda.exe","CONDA_SHLVL=0","CPPFLAGS=-std=c++14 -Wall -pedantic -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES","CUDA_PATH=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.1","CUDA_PATH_V10_1=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.1","CUDA_PATH_V8_0=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v8.0","CUDA_PATH_V9_0=C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v9.0","DriverData=C:\\Windows\\System32\\Drivers\\DriverData","ELECTRON_MIRROR=https://npm.taobao.org/mirrors/electron/","FPS_BROWSER_APP_PROFILE_STRING=Internet Explorer","FPS_BROWSER_USER_PROFILE_STRING=Default","GOPATH=C:\\Users\\sighi\\go;","GOROOT=D:\\Program\\Go\\","GRADLE_HOME=D:\\Gradle","GRADLE_USER_HOME=D:\\Gradle\\.gradle","GUROBI_HOME=D:\\Program\\Gurobi\\win64","HADOOP_HOME=D:\\Program\\hadoop-2.8.3","HOMEDRIVE=C:","HOMEPATH=\\Users\\sighi","ICPP_COMPILER19=D:\\Program\\IntelSWTools\\compilers_and_libraries_2019.0.117\\windows\\","INTEL_DEV_REDIST=C:\\Program Files (x86)\\Common Files\\Intel\\Shared Libraries\\","INTEL_LICENSE_FILE=C:\\Program Files (x86)\\Common Files\\Intel\\Licenses","JAVA_HOME=D:\\Program\\Java\\jdk1.8.0_152","JDK_HOME=D:\\Program\\Java\\jdk1.8.0_152","JRE_HOME=D:\\Program\\Java\\jdk1.8.0_152\\jre","JUPYTER=D:\\Program\\Conda\\Scripts\\jupyter.exe","LOCALAPPDATA=C:\\Users\\sighi\\AppData\\Local","LOGONSERVER=\\\\HT-PC","M2_HOME=D:\\Maven","MACHINE_STORAGE_PATH=D:\\Machines\\MobyLinuxVM","MAVEN_HOME=D:\\Maven","MKLProductDir=D:\\Stack\\program\\x86_64-windows\\msys2-20161025\\MKL","MKL_NUM_THREADS=4","MOZ_PLUGIN_PATH=D:\\Program\\Foxit Reader\\plugins\\","msbuildemitsolution=1","MSMPI_BENCHMARKS=D:\\Program\\MS-MPI\\Benchmarks\\","MSMPI_BIN=D:\\Program\\MS-MPI\\Bin\\","MSMPI_INC=D:\\Program\\MS-MPI\\Include\\","MSMPI_LIB32=D:\\Program\\MS-MPI\\Lib\\x86\\","MSMPI_LIB64=D:\\Program\\MS-MPI\\Lib\\x64\\","MSYS2_PATH_TYPE=inherit","MVN_HOME=D:\\Maven","NUMBA_CPU_FEATURES=+sse4.2","NUMBA_CPU_NAME=skylake","NUMBER_OF_PROCESSORS=8","NVCUDASAMPLES10_1_ROOT=C:\\ProgramData\\NVIDIA Corporation\\CUDA Samples\\v10.1","NVCUDASAMPLES8_0_ROOT=C:\\ProgramData\\NVIDIA Corporation\\CUDA Samples\\v8.0","NVCUDASAMPLES9_0_ROOT=C:\\ProgramData\\NVIDIA Corporation\\CUDA Samples\\v9.0","NVCUDASAMPLES_ROOT=C:\\ProgramData\\NVIDIA Corporation\\CUDA Samples\\v10.1","NVMW_IOJS_ORG_MIRROR=http://npm.taobao.org/mirrors/iojs","NVMW_NODEJS_ORG_MIRROR=http://npm.taobao.org/mirrors/node","NVMW_NPM_MIRROR=http://npm.taobao.org/mirrors/npm","NVM_HOME=D:\\Program\\Node","NVM_IOJS_ORG_MIRROR=http://npm.taobao.org/mirrors/iojs","NVM_NODEJS_ORG_MIRROR=http://npm.taobao.org/mirrors/node","NVM_SYMLINK=D:\\Program\\Node\\nodejs","NVTOOLSEXT_PATH=C:\\Program Files\\NVIDIA Corporation\\NvToolsExt\\","OneDrive=C:\\Users\\sighi\\OneDrive","OneDriveConsumer=C:\\Users\\sighi\\OneDrive","OS=Windows_NT","Path=D:\\Program\\Conda\\condabin;D:\\Program\\MS-MPI\\Bin\\;C:\\Program Files (x86)\\Common Files\\Intel\\Shared Libraries\\redist\\intel64_win\\mpirt;C:\\Program Files (x86)\\Common Files\\Intel\\Shared Libraries\\redist\\intel64_win\\compiler;C:\\Windows;C:\\Windows\\system32;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;D:\\Program\\VulkanSDK\\Bin;D:\\Program\\Java;D:\\Program\\Java\\jdk1.8.0_152\\bin;D:\\Sbt\\bin;D:\\Maven\\bin;D:\\Gradle\\bin;D:\\Program\\Conda;D:\\Program\\Conda\\Scripts;D:\\Program\\Conda\\Library\\bin;D:\\Program\\Graphviz\\bin;D:\\Program\\You-Get\\bin;C:\\Program Files\\NVIDIA Corporation\\NVSMI;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.1\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.1\\libnvvp;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v10.1\\nvvm\\bin;D:\\Program\\TeXLive\\bin\\win32;D:\\Program\\TeXLive\\tlpkg\\tlgs\\bin;D:\\Program\\hadoop-2.8.3\\bin;D:\\Program\\spark-2.2.0-bin-hadoop2.7\\bin;D:\\Program\\Flink\\bin;D:\\Program\\CMake\\bin;D:\\Stack\\program;D:\\Stack\\program\\idris;D:\\Program\\Subversion\\bin;D:\\Program\\Microsoft Visual Studio\\VC\\Auxiliary\\Build;C:\\Program Files (x86)\\Windows Kits\\10\\Microsoft Application Virtualization\\Sequencer\\;C:\\Program Files (x86)\\GtkSharp\\2.12\\bin;D:\\Program\\Doxygen;D:\\Program\\MATLAB\\runtime\\win64;D:\\Program\\MATLAB\\bin;D:\\Stack\\program\\x86_64-windows\\msys2-20161025\\MKL\\Library\\bin;D:\\Program\\CLCache;D:\\Program\\Php;C:\\WINDOWS\\System32\\OpenSSH\\;D:\\Stack\\program\\x86_64-windows\\msys2-20161025\\usr\\bin;D:\\Stack\\program\\x86_64-windows\\msys2-20161025\\mingw64\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;D:\\Program\\Go\\bin;C:\\Users\\sighi\\.mujoco\\mjpro150\\bin;D:\\Program\\Gurobi\\win64\\bin;D:\\Program\\Git\\cmd;C:\\Program Files\\dotnet\\;D:\\Program\\MongoDB-4.1.6\\bin;D:\\Program\\Erlang\\bin;D:\\Program\\Node;D:\\Program\\Node\\nodejs;D:\\Program\\Mercurial\\;D:\\Program\\Microsoft VS Code\\bin;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2019.1\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\NVIDIA Corporation\\NVIDIA NvDLISR;D:\\Program\\Rust\\.cargo\\bin;D:\\Program\\JRuby\\bin;C:\\Users\\sighi\\AppData\\Local\\Microsoft\\WindowsApps;D:\\Open\\ghc\\inplace\\bin;C:\\Program Files\\Docker\\Docker\\Resources\\bin;D:\\Program\\Foundationdb\\bin;D:\\Program\\Java\\kafka_2.12-1.0.0\\bin\\windows;D:\\Stack\\program\\x86_64-windows\\ghc-8.4.3\\bin;D:\\Stack\\program\\x86_64-windows\\msys2-20161025;D:\\Local\\go\\bin;\"D;\\Program\\Julia\\bin\";D:\\Program\\MS-MPI\\Bin;","PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.RB;.RBW","PROCESSOR_ARCHITECTURE=AMD64","PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 94 Stepping 3, GenuineIntel","PROCESSOR_LEVEL=6","PROCESSOR_REVISION=5e03","ProgramData=C:\\ProgramData","ProgramFiles=C:\\Program Files","ProgramFiles(x86)=C:\\Program Files (x86)","ProgramW6432=C:\\Program Files","PROMPT=$P$G","PSModulePath=C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules;C:\\Program Files (x86)\\Windows Kits\\10\\Microsoft Application Virtualization\\Sequencer\\AppvPkgConverter;C:\\Program Files (x86)\\Windows Kits\\10\\Microsoft Application Virtualization\\Sequencer\\AppvSequencer;C:\\Program Files\\Intel\\Wired Networking\\","PUBLIC=C:\\Users\\Public","PYTHON_MIRROR=http://npm.taobao.org/mirrors/python","RUBYOPT=-Eutf-8","RUSTC_WRAPPER=sccache","RUSTUP_DIST_ROOT=https://mirrors.ustc.edu.cn/rust-static","RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static","RUSTUP_HOME=D:\\Program\\Rust\\.multirust","RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup","RUST_BACKTRACE=1","SASS_BINARY_SITE=http://npm.taobao.org/mirrors/node-sass","SBT_HOME=D:\\Sbt","SBT_OPTS=-Dsbt.override.build.repos=true","SCCACHE_DIR=D:\\Local\\sccache","SESSIONNAME=Console","SPARK_HOME=D:\\Program\\spark-2.2.0-bin-hadoop2.7","STACK_ROOT=D:\\Stack","SystemDrive=C:","SystemRoot=C:\\WINDOWS","TEMP=D:\\Local\\Temp","TMP=D:\\Local\\Temp","TMPDIR=C:\\Users\\Public\\Documents\\Wondershare\\CreatorTemp","USERDOMAIN=HT-PC","USERDOMAIN_ROAMINGPROFILE=HT-PC","USERNAME=sighi","USERPROFILE=C:\\Users\\sighi","VCINSTALLDIR=D:\\Program\\Microsoft Visual Studio\\","VCPKG_DEFAULT_TRIPLET=x64-windows","VK_SDK_PATH=D:\\Program\\VulkanSDK","VS2017INSTALLDIR=D:\\Program\\Microsoft Visual Studio","VSCMD_ARG_app_plat=Desktop","VSCMD_ARG_HOST_ARCH=x64","VSCMD_ARG_TGT_ARCH=x64","VSCMD_START_DIR=.","VSCMD_VER=15.4.2","VULKAN_SDK=D:\\Program\\VulkanSDK","windir=C:\\WINDOWS","WindowsLibPath=C:\\Program Files (x86)\\Windows Kits\\10\\UnionMetadata\\10.0.16299.0;C:\\Program Files (x86)\\Windows Kits\\10\\References\\10.0.16299.0"]
+820600: heap stats for heap capset 0: generations 2, 0 bytes max heap size, 1048576 bytes alloc area size, 1048576 bytes mblock size, 4096 bytes block size
+1119300: task 0x10630a0 created on cap 0 with OS kernel thread 16112
+1124800: cap 0: creating thread 1
+1130000: cap 0: running thread 1
+1660500: cap 0: stopping thread 1 (stack overflow)
+1667600: cap 0: running thread 1
+1718400: cap 0: stopping thread 1 (blocked on I/O write)
+2132500: cap 0: running thread 1
+2135600: cap 0: stopping thread 1 (thread finished)
+2163600: task 0x10630a0 deleted
+2172200: task 0x10630a0 created on cap 0 with OS kernel thread 16112
+2172400: cap 0: creating thread 2
+2172800: cap 0: running thread 2
+2205900: cap 0: stopping thread 2 (thread finished)
+2206100: task 0x10630a0 deleted
+2211300: cap 0: starting GC
+2211900: cap 0: GC working
+2980100: cap 0: GC idle
+2980100: cap 0: GC done
+2988500: cap 0: GC idle
+2988600: cap 0: GC done
+2988800: cap 0: GC idle
+2988800: cap 0: GC done
+2993900: cap 0: allocated on heap capset 0: 83088 total bytes till now
+2998500: cap 0: finished GC
+2998600: cap 0: all caps stopped for GC
+2998600: cap 0: GC stats for heap capset 0: generation 1, 3120 bytes copied, 25408 bytes slop, 937984 bytes fragmentation, 1 par threads, 0 bytes max par copied, 3120 bytes total par copied, 0 bytes balanced par copied
+2999100: cap 0: live data in heap capset 0: 44224 bytes
+2999200: cap 0: size of heap capset 0: 2097152 bytes
+3010700: cap 0: allocated on heap capset 0: 83088 total bytes till now
+3011600: removed cap 0 from capset 0
+3011700: removed cap 0 from capset 1
+3011800: deleted cap 0
+3011900: deleted capset 0
+3012000: deleted capset 1
+

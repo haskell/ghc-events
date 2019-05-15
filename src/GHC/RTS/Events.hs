@@ -78,7 +78,7 @@ import qualified Data.IntMap as IM
 import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
-import Data.Monoid ((<>))
+import Data.Monoid ((<>), mempty)
 import Data.String (IsString)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -283,6 +283,7 @@ buildEventInfo spec' =
           <> TB.decimal parNThreads <> " par threads, "
           <> TB.decimal parMaxCopied <> " bytes max par copied, "
           <> TB.decimal parTotCopied <> " bytes total par copied"
+          <> maybe mempty (\val -> ", " <> TB.decimal val <> " bytes balanced par copied") parBalancedCopied
         HeapAllocated{..} ->
           "allocated on heap capset " <> TB.decimal heapCapset
           <> ": " <> TB.decimal allocBytes <> " total bytes till now"
