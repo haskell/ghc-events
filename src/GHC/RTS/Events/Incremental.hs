@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
+
 module GHC.RTS.Events.Incremental
   ( -- * Incremental API
     Decoder(..)
@@ -110,12 +111,12 @@ readHeader = go $ Left decodeHeader
       Left decoder -> case decoder of
         Produce header decoder' -> case decoder' of
           Done leftover -> Right (header, BL.Chunk leftover bytes)
-          _ -> fail "readHeader: unexpected decoder"
+          _ -> Left "readHeader: unexpected decoder"
         Consume k -> case bytes of
-          BL.Empty -> fail "readHeader: not enough bytes"
+          BL.Empty -> Left "readHeader: not enough bytes"
           BL.Chunk chunk chunks -> go (Left $! k chunk) chunks
-        Done _ -> fail "readHeader: unexpected termination"
-        Error _ err -> fail err
+        Done _ -> Left "readHeader: unexpected termination"
+        Error _ err -> Left err
       Right header -> Right (header, bytes)
 
 
