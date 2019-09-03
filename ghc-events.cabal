@@ -69,7 +69,7 @@ source-repository head
   location: git@github.com:haskell/ghc-events.git
 
 library
-  build-depends:    base       >= 4.7 && < 4.13,
+  build-depends:    base       >= 4.7 && < 4.14,
                     containers >= 0.5 && < 0.7,
                     binary     >= 0.7 && < 0.11,
                     bytestring >= 0.10.4,

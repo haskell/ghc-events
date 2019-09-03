@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -fsimpl-tick-factor=150 #-}
@@ -75,10 +76,8 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
-import Data.Foldable (foldMap)
 import Data.Function hiding (id)
 import Data.List
-import Data.Monoid ((<>), mempty)
 import Data.String (IsString)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -93,6 +92,15 @@ import Prelude hiding (gcd, rem, id)
 import GHC.RTS.EventTypes
 import GHC.RTS.Events.Binary
 import GHC.RTS.Events.Incremental
+
+#if !MIN_VERSION_base(4, 8, 0)
+import Data.Foldable (foldMap)
+import Data.Monoid (mempty)
+#endif
+
+#if !MIN_VERSION_base(4, 11, 0)
+import Data.Monoid ((<>))
+#endif
 
 -- | Read an entire eventlog file. It returns an error message if it
 -- encouters an error while decoding.
