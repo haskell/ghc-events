@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.1 - 2019-09-03
+
+* Relax upper version bounds to support GHC 8.8.1 ([#49](https://github.com/haskell/ghc-events/pull/49) and [#51](https://github.com/haskell/ghc-events/pull/51))
+
 ## 0.9.0 - 2019-05-15
 
 * Support the newly added par_balanced_copied field ([#47](https://github.com/haskell/ghc-events/pull/47))
