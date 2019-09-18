@@ -3,16 +3,16 @@
  * (c) The GHC Team, 2008-2012
  *
  * Event log format
- * 
+ *
  * The log format is designed to be extensible: old tools should be
  * able to parse (but not necessarily understand all of) new versions
  * of the format, and new tools will be able to understand old log
  * files.
- * 
+ *
  * Each event has a specific format.  If you add new events, give them
  * new numbers: we never re-use old event numbers.
  *
- * - The format is endian-independent: all values are represented in 
+ * - The format is endian-independent: all values are represented in
  *    bigendian order.
  *
  * - The format is extensible:
@@ -51,7 +51,7 @@
  *       Word8*         -- extra info (for future extensions)
  *       EVENT_ET_END
  *
- * Event : 
+ * Event :
  *       Word16         -- event_type
  *       Word64         -- time (nanosecs)
  *       [Word16]       -- length of the rest (for variable-sized events only)
@@ -284,9 +284,9 @@
  * #define BlockedOnMsgThrowTo          16
  * NOTE: 16 because unused GUM states ignored in ghc-events lib
  *       Otherwise it would be 18, following would be 19, 20
- * TODO: verify the above is what GHC does (16/17 could be 18/19) 
+ * TODO: verify the above is what GHC does (16/17 could be 18/19)
  * #define ThreadMigrating              17
- * #define BlockedOnMsgGlobalise        18 
+ * #define BlockedOnMsgGlobalise        18
  * NOTE: not present in GHC. Mercury-Event?
  */
 #define THREAD_SUSPENDED_FOREIGN_CALL 6
