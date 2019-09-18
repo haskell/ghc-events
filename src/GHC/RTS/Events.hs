@@ -461,6 +461,13 @@ buildEventInfo spec' =
           <> if isCaf heapProfFlags then " CAF" else ""
         HeapProfSampleBegin {..} ->
           "start heap prof sample " <> TB.decimal heapProfSampleEra
+        HeapProfSampleEnd {..} ->
+          "end prof sample " <> TB.decimal heapProfSampleEra
+        HeapBioProfSampleBegin {..} ->
+          "start heap prof sample " <> TB.decimal heapProfSampleEra
+            <> " at time " <> TB.decimal heapProfSampleTime
+
+
         HeapProfSampleCostCentre {..} ->
           "heap prof sample " <> TB.decimal heapProfId
           <> ", residency " <> TB.decimal heapProfResidency

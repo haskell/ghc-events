@@ -399,6 +399,14 @@ data EventInfo
   | HeapProfSampleBegin
                        { heapProfSampleEra :: !Word64
                        }
+  | HeapProfSampleEnd
+                       { heapProfSampleEra :: !Word64
+                       }
+
+  | HeapBioProfSampleBegin
+                       { heapProfSampleEra :: !Word64
+                       , heapProfSampleTime :: !Word64
+                       }
   | HeapProfSampleCostCentre
                        { heapProfId :: !Word8
                        , heapProfResidency :: !Word64
