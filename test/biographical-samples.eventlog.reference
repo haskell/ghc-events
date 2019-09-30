@@ -1,0 +1,240 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap mem ever allocated (size 12)
+50: Current heap size (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+160: Start of heap profile (size variable)
+161: Cost center definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+165: End of heap profile sample (size 8)
+166: Start of heap profile (biographical) sample (size 16)
+181: User binary message (size variable)
+
+Events:
+169333: created capset 0 of type CapsetOsProcess
+169544: created capset 1 of type CapsetClockDomain
+170610: created cap 0
+170796: assigned cap 0 to capset 0
+170992: assigned cap 0 to capset 1
+171937: capset 1: wall clock time 1567931398s 509066000ns (unix epoch)
+173588: capset 0: pid 31969
+174939: capset 0: parent pid 10639
+177812: capset 0: RTS version "GHC-8.9.0.20190907 rts_p"
+178578: capset 0: args: ["./Test","+RTS","-hb","-l-au"]
+31392757: start heap profiling 0 at sampling period 100000000 broken down by biography
+31394184: cost centre 119 IDLE in IDLE at <built-in>
+31395244: cost centre 118 PINNED in SYSTEM at <built-in>
+31407386: cost centre 117 DONT_CARE in MAIN at <built-in>
+31407903: cost centre 116 OVERHEAD_of in PROFILING at <built-in>
+31408542: cost centre 115 GC in GC at <built-in>
+31409070: cost centre 114 SYSTEM in SYSTEM at <built-in>
+31409545: cost centre 113 MAIN in MAIN at <built-in>
+31418864: cost centre 112 CAF in GHC.Types at <entire-module> CAF
+31419667: cost centre 111 CAF in GHC.Tuple at <entire-module> CAF
+31420469: cost centre 110 CAF in GHC.PrimopWrappers at <entire-module> CAF
+31428485: cost centre 109 CAF in GHC.Classes at <entire-module> CAF
+31428997: cost centre 108 CAF in GHC.CString at <entire-module> CAF
+31429601: cost centre 107 CAF in GHC.Integer.Type at <entire-module> CAF
+31430128: cost centre 106 CAF in GHC.Integer.Logarithms.Internals at <entire-module> CAF
+31430691: cost centre 105 CAF in GHC.Integer.Logarithms at <entire-module> CAF
+31431318: cost centre 104 CAF in GHC.Event.Array at <entire-module> CAF
+31431622: cost centre 103 CAF in GHC.Event.Arr at <entire-module> CAF
+31432097: cost centre 102 CAF in System.Posix.Types at <entire-module> CAF
+31432661: cost centre 101 CAF in GHC.Event.Poll at <entire-module> CAF
+31433140: cost centre 100 CAF in GHC.Event.PSQ at <entire-module> CAF
+31433663: cost centre 99 CAF in GHC.Event.Manager at <entire-module> CAF
+31434201: cost centre 98 CAF in GHC.Event.Internal at <entire-module> CAF
+31434663: cost centre 97 CAF in GHC.Event.IntTable at <entire-module> CAF
+31435133: cost centre 96 CAF in GHC.Event.EPoll at <entire-module> CAF
+31435653: cost centre 95 CAF in GHC.Event.Control at <entire-module> CAF
+31443721: cost centre 94 CAF in GHC.Storable at <entire-module> CAF
+31444197: cost centre 93 CAF in GHC.IO.Unsafe at <entire-module> CAF
+31444906: cost centre 92 CAF in GHC.IO.IOMode at <entire-module> CAF
+31445411: cost centre 91 CAF in GHC.IO.Handle.Text at <entire-module> CAF
+31445869: cost centre 90 CAF in GHC.IO.FD at <entire-module> CAF
+31446390: cost centre 89 CAF in GHC.IO.Device at <entire-module> CAF
+31446934: cost centre 88 CAF in GHC.IO.BufferedIO at <entire-module> CAF
+31447494: cost centre 87 CAF in GHC.Float.RealFracMethods at <entire-module> CAF
+31447802: cost centre 86 CAF in GHC.Float.ConversionUtils at <entire-module> CAF
+31448323: cost centre 85 CAF in GHC.Float at <entire-module> CAF
+31448843: cost centre 84 CAF in GHC.Fingerprint.Type at <entire-module> CAF
+31449296: cost centre 83 CAF in GHC.Fingerprint at <entire-module> CAF
+31449625: cost centre 82 CAF in GHC.Char at <entire-module> CAF
+31450153: cost centre 81 CAF in Foreign.Storable at <entire-module> CAF
+31450756: cost centre 80 CAF in Foreign.Marshal.Array at <entire-module> CAF
+31451306: cost centre 79 CAF in Foreign.Marshal.Alloc at <entire-module> CAF
+31451871: cost centre 78 CAF in Foreign.C.Types at <entire-module> CAF
+31452378: cost centre 77 CAF in Foreign.C.String at <entire-module> CAF
+31452937: cost centre 76 CAF in Foreign.C.Error at <entire-module> CAF
+31453478: cost centre 75 CAF in Data.Type.Equality at <entire-module> CAF
+31453871: cost centre 74 CAF in Data.Tuple at <entire-module> CAF
+31454313: cost centre 73 CAF in Data.Proxy at <entire-module> CAF
+31454744: cost centre 72 CAF in Data.Maybe at <entire-module> CAF
+31455173: cost centre 71 CAF in Data.Dynamic at <entire-module> CAF
+31455677: cost centre 70 CAF in Data.Bits at <entire-module> CAF
+31456087: cost centre 69 CAF in Control.Monad.Fail at <entire-module> CAF
+31463389: cost centre 68 CAF in GHC.Event.Unique at <entire-module> CAF
+31463855: cost centre 67 CAF in GHC.Event.TimerManager at <entire-module> CAF
+31464340: cost centre 66 CAF in GHC.Event.Thread at <entire-module> CAF
+31465122: cost centre 65 CAF in Data.Typeable.Internal at <entire-module> CAF
+31465744: cost centre 64 CAF in Data.Semigroup.Internal at <entire-module> CAF
+31466240: cost centre 63 CAF in Data.OldList at <entire-module> CAF
+31466732: cost centre 62 CAF in Data.Functor.Utils at <entire-module> CAF
+31467208: cost centre 61 CAF in Text.Read.Lex at <entire-module> CAF
+31467721: cost centre 60 CAF in Text.ParserCombinators.ReadPrec at <entire-module> CAF
+31468212: cost centre 59 CAF in Text.ParserCombinators.ReadP at <entire-module> CAF
+31468673: cost centre 58 CAF in System.Posix.Internals at <entire-module> CAF
+31469160: cost centre 57 CAF in System.IO at <entire-module> CAF
+31469684: cost centre 56 CAF in Numeric at <entire-module> CAF
+31470694: cost centre 55 CAF in GHC.Word at <entire-module> CAF
+31471264: cost centre 54 CAF in GHC.Weak at <entire-module> CAF
+31471733: cost centre 53 CAF in GHC.Unicode at <entire-module> CAF
+31472232: cost centre 52 CAF in GHC.TypeNats at <entire-module> CAF
+31472794: cost centre 51 CAF in GHC.TypeLits at <entire-module> CAF
+31473276: cost centre 50 CAF in GHC.TopHandler at <entire-module> CAF
+31473659: cost centre 49 CAF in GHC.Stack.Types at <entire-module> CAF
+31474048: cost centre 48 CAF in GHC.Stack.CCS at <entire-module> CAF
+31474486: cost centre 47 CAF in GHC.Stable at <entire-module> CAF
+31482298: cost centre 46 CAF in GHC.Show at <entire-module> CAF
+31482887: cost centre 45 CAF in GHC.STRef at <entire-module> CAF
+31483377: cost centre 44 CAF in GHC.ST at <entire-module> CAF
+31490773: cost centre 43 CAF in GHC.Real at <entire-module> CAF
+31491247: cost centre 42 CAF in GHC.Read at <entire-module> CAF
+31491645: cost centre 41 CAF in GHC.Ptr at <entire-module> CAF
+31492243: cost centre 40 CAF in GHC.Pack at <entire-module> CAF
+31492760: cost centre 39 CAF in GHC.Num at <entire-module> CAF
+31493257: cost centre 38 CAF in GHC.Natural at <entire-module> CAF
+31493736: cost centre 37 CAF in GHC.MVar at <entire-module> CAF
+31494342: cost centre 36 CAF in GHC.Maybe at <entire-module> CAF
+31494857: cost centre 35 CAF in GHC.List at <entire-module> CAF
+31495381: cost centre 34 CAF in GHC.Int at <entire-module> CAF
+31496151: cost centre 33 CAF in GHC.IORef at <entire-module> CAF
+31496720: cost centre 32 CAF in GHC.IO.Handle.Types at <entire-module> CAF
+31497222: cost centre 31 CAF in GHC.IO.Handle.Internals at <entire-module> CAF
+31497685: cost centre 30 CAF in GHC.IO.Handle.FD at <entire-module> CAF
+31504927: cost centre 29 CAF in GHC.IO.Handle at <entire-module> CAF
+31505610: cost centre 28 CAF in GHC.IO.Exception at <entire-module> CAF
+31506077: cost centre 27 CAF in GHC.IO.Encoding.UTF8 at <entire-module> CAF
+31506496: cost centre 26 CAF in GHC.IO.Encoding.UTF32 at <entire-module> CAF
+31507003: cost centre 25 CAF in GHC.IO.Encoding.UTF16 at <entire-module> CAF
+31507583: cost centre 24 CAF in GHC.IO.Encoding.Types at <entire-module> CAF
+31508035: cost centre 23 CAF in GHC.IO.Encoding.Latin1 at <entire-module> CAF
+31508493: cost centre 22 CAF in GHC.IO.Encoding.Iconv at <entire-module> CAF
+31508910: cost centre 21 CAF in GHC.IO.Encoding.Failure at <entire-module> CAF
+31509429: cost centre 20 CAF in GHC.IO.Encoding at <entire-module> CAF
+31509888: cost centre 19 CAF in GHC.IO.Buffer at <entire-module> CAF
+31510384: cost centre 18 CAF in GHC.IO at <entire-module> CAF
+31516785: cost centre 17 CAF in GHC.Generics at <entire-module> CAF
+31517461: cost centre 16 CAF in GHC.ForeignPtr at <entire-module> CAF
+31517919: cost centre 15 CAF in GHC.Foreign at <entire-module> CAF
+31518406: cost centre 14 CAF in GHC.Exception.Type at <entire-module> CAF
+31518840: cost centre 13 CAF in GHC.Exception at <entire-module> CAF
+31519595: cost centre 12 CAF in GHC.Err at <entire-module> CAF
+31520090: cost centre 11 CAF in GHC.Enum at <entire-module> CAF
+31520663: cost centre 10 CAF in GHC.Conc.Sync at <entire-module> CAF
+31521144: cost centre 9 CAF in GHC.Conc.Signal at <entire-module> CAF
+31521606: cost centre 8 CAF in GHC.Conc.IO at <entire-module> CAF
+31522099: cost centre 7 CAF in GHC.Base at <entire-module> CAF
+31522596: cost centre 6 CAF in GHC.Arr at <entire-module> CAF
+31523134: cost centre 5 CAF in Data.Monoid at <entire-module> CAF
+31523621: cost centre 4 CAF in Data.Foldable at <entire-module> CAF
+31524050: cost centre 3 CAF in Data.Either at <entire-module> CAF
+31524535: cost centre 2 CAF in Control.Exception.Base at <entire-module> CAF
+31525043: cost centre 1 CAF in Main at <entire-module> CAF
+4710848398: removed cap 0 from capset 0
+4710848571: removed cap 0 from capset 1
+4710848777: deleted cap 0
+4710848928: deleted capset 0
+4710848972: deleted capset 1
+4710856797: start heap prof sample 7 at time 866544061
+4710858622: heap prof sample 0, residency 65379400, label VOID
+4710858814: heap prof sample 0, residency 163449936, label LAG
+4710858905: heap prof sample 0, residency 120, label USE
+4710858989: heap prof sample 0, residency 37656, label INHERENT_USE
+4710859120: heap prof sample 0, residency 0, label DRAG
+4710859224: end prof sample 7
+4710871439: start heap prof sample 7 at time 1892144224
+4710871873: heap prof sample 0, residency 132361288, label VOID
+4710871941: heap prof sample 0, residency 330904656, label LAG
+4710872002: heap prof sample 0, residency 120, label USE
+4710872059: heap prof sample 0, residency 37656, label INHERENT_USE
+4710872127: heap prof sample 0, residency 0, label DRAG
+4710872202: end prof sample 7
+4710873620: start heap prof sample 7 at time 2671749143
+4710873913: heap prof sample 0, residency 194095536, label VOID
+4710873959: heap prof sample 0, residency 314763008, label LAG
+4710874007: heap prof sample 0, residency 144, label USE
+4710874067: heap prof sample 0, residency 37656, label INHERENT_USE
+4710874115: heap prof sample 0, residency 0, label DRAG
+4710874161: end prof sample 7
+4710875374: start heap prof sample 7 at time 3372819397
+4710875663: heap prof sample 0, residency 260169216, label VOID
+4710875711: heap prof sample 0, residency 149578808, label LAG
+4710875761: heap prof sample 0, residency 144, label USE
+4710875807: heap prof sample 0, residency 37656, label INHERENT_USE
+4710875854: heap prof sample 0, residency 0, label DRAG
+4710875900: end prof sample 7
+4710877077: start heap prof sample 7 at time 4040839252
+4710877399: heap prof sample 0, residency 308465712, label VOID
+4710877444: heap prof sample 0, residency 1672, label LAG
+4710877490: heap prof sample 0, residency 120, label USE
+4710877536: heap prof sample 0, residency 37656, label INHERENT_USE
+4710877580: heap prof sample 0, residency 0, label DRAG
+4710877635: end prof sample 7
+4710878860: start heap prof sample 7 at time 4512086494
+4710879189: heap prof sample 0, residency 91410480, label VOID
+4710879235: heap prof sample 0, residency 1672, label LAG
+4710879280: heap prof sample 0, residency 120, label USE
+4710879338: heap prof sample 0, residency 37656, label INHERENT_USE
+4710879385: heap prof sample 0, residency 0, label DRAG
+4710879429: end prof sample 7
+

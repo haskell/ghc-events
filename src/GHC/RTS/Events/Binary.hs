@@ -792,6 +792,13 @@ heapProfParsers =
   , FixedSizeParser EVENT_HEAP_PROF_SAMPLE_BEGIN 8 $ do
     heapProfSampleEra <- get
     return $! HeapProfSampleBegin {..}
+  , FixedSizeParser EVENT_HEAP_PROF_SAMPLE_END 8 $ do
+    heapProfSampleEra <- get
+    return $! HeapProfSampleEnd {..}
+  , FixedSizeParser EVENT_HEAP_BIO_PROF_SAMPLE_BEGIN 16 $ do
+    heapProfSampleEra <- get
+    heapProfSampleTime <- get
+    return $! HeapBioProfSampleBegin {..}
   , VariableSizeParser EVENT_HEAP_PROF_SAMPLE_COST_CENTRE $ do
     payloadLen <- get :: Get Word16
     heapProfId <- get
@@ -961,6 +968,8 @@ eventTypeNum e = case e of
     HeapProfBegin {} -> EVENT_HEAP_PROF_BEGIN
     HeapProfCostCentre {} -> EVENT_HEAP_PROF_COST_CENTRE
     HeapProfSampleBegin {} -> EVENT_HEAP_PROF_SAMPLE_BEGIN
+    HeapProfSampleEnd {} -> EVENT_HEAP_PROF_SAMPLE_END
+    HeapBioProfSampleBegin {} -> EVENT_HEAP_BIO_PROF_SAMPLE_BEGIN
     HeapProfSampleCostCentre {} -> EVENT_HEAP_PROF_SAMPLE_COST_CENTRE
     HeapProfSampleString {} -> EVENT_HEAP_PROF_SAMPLE_STRING
 
@@ -1356,6 +1365,13 @@ putEventSpec HeapProfCostCentre {..} = do
 
 putEventSpec HeapProfSampleBegin {..} =
     putE heapProfSampleEra
+
+putEventSpec HeapProfSampleEnd {..} =
+    putE heapProfSampleEra
+
+putEventSpec HeapBioProfSampleBegin {..} = do
+    putE heapProfSampleEra
+    putE heapProfSampleTime
 
 putEventSpec HeapProfSampleCostCentre {..} = do
     putE heapProfId
