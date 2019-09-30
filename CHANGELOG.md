@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.10.0 - 2019-10-01
+
+* Add support for HeapProfSampleEnd and HeapBioProfSampleBegin ([#52](https://github.com/haskell/ghc-events/pull/52))
+
 ## 0.9.1 - 2019-09-03
 
 * Relax upper version bounds to support GHC 8.8.1 ([#49](https://github.com/haskell/ghc-events/pull/49) and [#51](https://github.com/haskell/ghc-events/pull/51))
