@@ -472,10 +472,19 @@ buildEventInfo spec' =
           "heap prof sample " <> TB.decimal heapProfId
           <> ", residency " <> TB.decimal heapProfResidency
           <> ", cost centre stack " <> buildCostCentreStack heapProfStack
+
         HeapProfSampleString {..} ->
           "heap prof sample " <> TB.decimal heapProfId
           <> ", residency " <> TB.decimal heapProfResidency
           <> ", label " <> TB.fromText heapProfLabel
+
+        ProfSampleCostCentre {..} ->
+          "cap no " <> TB.decimal profCapset
+          <> ", prof sample " <> TB.decimal profTicks
+          <> ", cost centre stack " <> buildCostCentreStack profCcsStack
+
+        ProfBegin {..} ->
+          "start time profiling, tick interval " <> TB.decimal profTickInterval <> " (ns)"
 
 buildFilters :: [T.Text] -> Maybe TB.Builder
 buildFilters = foldr g Nothing
