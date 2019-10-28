@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.11.0 - 2019-10-29
+
+* Add support for time profiling events (ProfSampleCostCetre and ProfBegin) ([#53](https://github.com/haskell/ghc-events/pull/53))
+
 ## 0.10.0 - 2019-10-01
 
 * Add support for HeapProfSampleEnd and HeapBioProfSampleBegin ([#52](https://github.com/haskell/ghc-events/pull/52))
