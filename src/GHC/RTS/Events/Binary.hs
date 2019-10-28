@@ -9,6 +9,7 @@ module GHC.RTS.Events.Binary
   , mercuryParsers
   , perfParsers
   , heapProfParsers
+  , timeProfParsers
   , pre77StopParsers
   , ghc782StopParser
   , post782StopParser
@@ -829,6 +830,27 @@ heapProfParsers =
     return $! HeapProfSampleString {..}
   ]
 
+timeProfParsers :: [EventParser EventInfo]
+timeProfParsers = [
+  FixedSizeParser EVENT_PROF_BEGIN 8 $ do
+    profTickInterval <- get
+    return $! ProfBegin{..}
+  , VariableSizeParser EVENT_PROF_SAMPLE_COST_CENTRE $ do
+    payloadLen <- get :: Get Word16
+    profCapset <- get
+    profTicks <- get
+    profStackDepth <- get
+    profCcsStack <- VU.replicateM (fromIntegral profStackDepth) get
+    assert
+      ((fromIntegral payloadLen :: Int) == sum
+        [ 4
+        , 8 -- ticks
+        , 1 -- stack depth
+        , fromIntegral profStackDepth * 4
+        ])
+      (return ())
+    return $! ProfSampleCostCentre {..} ]
+
 -- | String byte length in the eventlog format. It includes
 -- 1 byte for NUL.
 textByteLen :: T.Text -> Int
@@ -972,6 +994,9 @@ eventTypeNum e = case e of
     HeapBioProfSampleBegin {} -> EVENT_HEAP_BIO_PROF_SAMPLE_BEGIN
     HeapProfSampleCostCentre {} -> EVENT_HEAP_PROF_SAMPLE_COST_CENTRE
     HeapProfSampleString {} -> EVENT_HEAP_PROF_SAMPLE_STRING
+    ProfSampleCostCentre {} -> EVENT_PROF_SAMPLE_COST_CENTRE
+    ProfBegin {}            -> EVENT_PROF_BEGIN
+
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1373,6 +1398,7 @@ putEventSpec HeapBioProfSampleBegin {..} = do
     putE heapProfSampleEra
     putE heapProfSampleTime
 
+
 putEventSpec HeapProfSampleCostCentre {..} = do
     putE heapProfId
     putE heapProfResidency
@@ -1383,6 +1409,16 @@ putEventSpec HeapProfSampleString {..} = do
     putE heapProfId
     putE heapProfResidency
     putE $ T.unpack heapProfLabel
+
+putEventSpec ProfSampleCostCentre {..} = do
+    putE profCapset
+    putE profTicks
+    putE profStackDepth
+    VU.mapM_ putE profCcsStack
+
+putEventSpec ProfBegin {..} = do
+    putE profTickInterval
+
 
 -- [] == []
 -- [x] == x\0

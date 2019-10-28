@@ -1,0 +1,540 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap mem ever allocated (size 12)
+50: Current heap size (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+160: Start of heap profile (size variable)
+161: Cost center definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+165: End of heap profile sample (size 8)
+166: Start of heap profile (biographical) sample (size 16)
+167: Time profile cost-centre stack (size variable)
+168: Start of a time profile (size 8)
+181: User binary message (size variable)
+
+Events:
+60526: created capset 0 of type CapsetOsProcess
+60597: created capset 1 of type CapsetClockDomain
+61788: created cap 0
+61868: assigned cap 0 to capset 0
+61912: assigned cap 0 to capset 1
+62199: capset 1: wall clock time 1571218808s 124615000ns (unix epoch)
+62722: capset 0: pid 27400
+63036: capset 0: parent pid 10745
+63774: capset 0: RTS version "GHC-8.9.0.20191009 rts_p"
+63934: capset 0: args: ["./Fib","+RTS","-l-au","-p"]
+33037929: start time profiling, tick interval 1000000 (ns)
+33038499: cost centre 119 IDLE in IDLE at <built-in>
+33038877: cost centre 118 PINNED in SYSTEM at <built-in>
+33042090: cost centre 117 DONT_CARE in MAIN at <built-in>
+33042199: cost centre 116 OVERHEAD_of in PROFILING at <built-in>
+33042360: cost centre 115 GC in GC at <built-in>
+33042462: cost centre 114 SYSTEM in SYSTEM at <built-in>
+33042540: cost centre 113 MAIN in MAIN at <built-in>
+33045342: cost centre 112 CAF in GHC.Types at <entire-module> CAF
+33045495: cost centre 111 CAF in GHC.Tuple at <entire-module> CAF
+33045672: cost centre 110 CAF in GHC.PrimopWrappers at <entire-module> CAF
+33048108: cost centre 109 CAF in GHC.Classes at <entire-module> CAF
+33048289: cost centre 108 CAF in GHC.CString at <entire-module> CAF
+33048421: cost centre 107 CAF in GHC.Integer.Type at <entire-module> CAF
+33048547: cost centre 106 CAF in GHC.Integer.Logarithms.Internals at <entire-module> CAF
+33048836: cost centre 105 CAF in GHC.Integer.Logarithms at <entire-module> CAF
+33049053: cost centre 104 CAF in GHC.Event.Array at <entire-module> CAF
+33049229: cost centre 103 CAF in GHC.Event.Arr at <entire-module> CAF
+33049357: cost centre 102 CAF in System.Posix.Types at <entire-module> CAF
+33049513: cost centre 101 CAF in Data.Proxy at <entire-module> CAF
+33049710: cost centre 100 CAF in GHC.Event.Poll at <entire-module> CAF
+33049915: cost centre 99 CAF in GHC.Event.PSQ at <entire-module> CAF
+33050159: cost centre 98 CAF in GHC.Event.Manager at <entire-module> CAF
+33050389: cost centre 97 CAF in GHC.Event.Internal at <entire-module> CAF
+33050603: cost centre 96 CAF in GHC.Event.IntTable at <entire-module> CAF
+33050741: cost centre 95 CAF in GHC.Event.EPoll at <entire-module> CAF
+33051287: cost centre 94 CAF in GHC.Event.Control at <entire-module> CAF
+33051707: cost centre 93 CAF in GHC.TypeNats at <entire-module> CAF
+33053725: cost centre 92 CAF in GHC.TypeLits at <entire-module> CAF
+33053930: cost centre 91 CAF in GHC.Storable at <entire-module> CAF
+33054106: cost centre 90 CAF in GHC.IO.Unsafe at <entire-module> CAF
+33056229: cost centre 89 CAF in GHC.IO.IOMode at <entire-module> CAF
+33056387: cost centre 88 CAF in GHC.IO.Handle.Text at <entire-module> CAF
+33056556: cost centre 87 CAF in GHC.IO.FD at <entire-module> CAF
+33056776: cost centre 86 CAF in GHC.IO.Device at <entire-module> CAF
+33056864: cost centre 85 CAF in GHC.IO.BufferedIO at <entire-module> CAF
+33057042: cost centre 84 CAF in GHC.Generics at <entire-module> CAF
+33057203: cost centre 83 CAF in GHC.Float.RealFracMethods at <entire-module> CAF
+33057385: cost centre 82 CAF in GHC.Float.ConversionUtils at <entire-module> CAF
+33060146: cost centre 81 CAF in GHC.Float at <entire-module> CAF
+33060345: cost centre 80 CAF in GHC.Fingerprint.Type at <entire-module> CAF
+33060467: cost centre 79 CAF in GHC.Fingerprint at <entire-module> CAF
+33060638: cost centre 78 CAF in GHC.Enum at <entire-module> CAF
+33060819: cost centre 77 CAF in GHC.Char at <entire-module> CAF
+33060967: cost centre 76 CAF in GHC.Arr at <entire-module> CAF
+33061102: cost centre 75 CAF in Foreign.Storable at <entire-module> CAF
+33061225: cost centre 74 CAF in Foreign.Marshal.Array at <entire-module> CAF
+33061338: cost centre 73 CAF in Foreign.Marshal.Alloc at <entire-module> CAF
+33061469: cost centre 72 CAF in Foreign.C.Types at <entire-module> CAF
+33061581: cost centre 71 CAF in Foreign.C.String at <entire-module> CAF
+33061766: cost centre 70 CAF in Foreign.C.Error at <entire-module> CAF
+33061922: cost centre 69 CAF in Data.Type.Equality at <entire-module> CAF
+33062030: cost centre 68 CAF in Data.Tuple at <entire-module> CAF
+33062161: cost centre 67 CAF in Data.Maybe at <entire-module> CAF
+33062340: cost centre 66 CAF in Data.Dynamic at <entire-module> CAF
+33062531: cost centre 65 CAF in Data.Bits at <entire-module> CAF
+33062708: cost centre 64 CAF in Control.Monad.Fail at <entire-module> CAF
+33062829: cost centre 63 CAF in GHC.Event.Unique at <entire-module> CAF
+33062999: cost centre 62 CAF in GHC.Event.TimerManager at <entire-module> CAF
+33063133: cost centre 61 CAF in GHC.Event.Thread at <entire-module> CAF
+33063268: cost centre 60 CAF in Data.Typeable.Internal at <entire-module> CAF
+33063402: cost centre 59 CAF in Data.Semigroup.Internal at <entire-module> CAF
+33063576: cost centre 58 CAF in Data.OldList at <entire-module> CAF
+33063703: cost centre 57 CAF in Text.Read.Lex at <entire-module> CAF
+33063919: cost centre 56 CAF in Text.ParserCombinators.ReadPrec at <entire-module> CAF
+33064104: cost centre 55 CAF in Text.ParserCombinators.ReadP at <entire-module> CAF
+33064231: cost centre 54 CAF in System.Posix.Internals at <entire-module> CAF
+33064395: cost centre 53 CAF in System.IO at <entire-module> CAF
+33064635: cost centre 52 CAF in Numeric at <entire-module> CAF
+33064768: cost centre 51 CAF in GHC.Word at <entire-module> CAF
+33064869: cost centre 50 CAF in GHC.Weak at <entire-module> CAF
+33065092: cost centre 49 CAF in GHC.Unicode at <entire-module> CAF
+33065200: cost centre 48 CAF in GHC.TopHandler at <entire-module> CAF
+33065301: cost centre 47 CAF in GHC.Stack.Types at <entire-module> CAF
+33065405: cost centre 46 CAF in GHC.Stack.CCS at <entire-module> CAF
+33067255: cost centre 45 CAF in GHC.Stable at <entire-module> CAF
+33067636: cost centre 44 CAF in GHC.Show at <entire-module> CAF
+33067787: cost centre 43 CAF in GHC.STRef at <entire-module> CAF
+33067934: cost centre 42 CAF in GHC.ST at <entire-module> CAF
+33070263: cost centre 41 CAF in GHC.Real at <entire-module> CAF
+33070411: cost centre 40 CAF in GHC.Read at <entire-module> CAF
+33070540: cost centre 39 CAF in GHC.Ptr at <entire-module> CAF
+33070782: cost centre 38 CAF in GHC.Pack at <entire-module> CAF
+33070910: cost centre 37 CAF in GHC.Num at <entire-module> CAF
+33071170: cost centre 36 CAF in GHC.Natural at <entire-module> CAF
+33071302: cost centre 35 CAF in GHC.MVar at <entire-module> CAF
+33071444: cost centre 34 CAF in GHC.Maybe at <entire-module> CAF
+33071613: cost centre 33 CAF in GHC.List at <entire-module> CAF
+33071747: cost centre 32 CAF in GHC.Ix at <entire-module> CAF
+33071872: cost centre 31 CAF in GHC.Int at <entire-module> CAF
+33072097: cost centre 30 CAF in GHC.IORef at <entire-module> CAF
+33072228: cost centre 29 CAF in GHC.IO.Handle.Types at <entire-module> CAF
+33072379: cost centre 28 CAF in GHC.IO.Handle.Internals at <entire-module> CAF
+33073737: cost centre 27 CAF in GHC.IO.Handle.FD at <entire-module> CAF
+33073879: cost centre 26 CAF in GHC.IO.Handle at <entire-module> CAF
+33074068: cost centre 25 CAF in GHC.IO.Exception at <entire-module> CAF
+33074235: cost centre 24 CAF in GHC.IO.Encoding.UTF8 at <entire-module> CAF
+33074484: cost centre 23 CAF in GHC.IO.Encoding.UTF32 at <entire-module> CAF
+33074602: cost centre 22 CAF in GHC.IO.Encoding.UTF16 at <entire-module> CAF
+33074809: cost centre 21 CAF in GHC.IO.Encoding.Types at <entire-module> CAF
+33074976: cost centre 20 CAF in GHC.IO.Encoding.Latin1 at <entire-module> CAF
+33075097: cost centre 19 CAF in GHC.IO.Encoding.Iconv at <entire-module> CAF
+33075263: cost centre 18 CAF in GHC.IO.Encoding.Failure at <entire-module> CAF
+33075852: cost centre 17 CAF in GHC.IO.Encoding at <entire-module> CAF
+33075974: cost centre 16 CAF in GHC.IO.Buffer at <entire-module> CAF
+33076087: cost centre 15 CAF in GHC.IO at <entire-module> CAF
+33076264: cost centre 14 CAF in GHC.ForeignPtr at <entire-module> CAF
+33076381: cost centre 13 CAF in GHC.Foreign at <entire-module> CAF
+33076507: cost centre 12 CAF in GHC.Exception.Type at <entire-module> CAF
+33076629: cost centre 11 CAF in GHC.Exception at <entire-module> CAF
+33076733: cost centre 10 CAF in GHC.Err at <entire-module> CAF
+33076848: cost centre 9 CAF in GHC.Conc.Sync at <entire-module> CAF
+33077051: cost centre 8 CAF in GHC.Conc.Signal at <entire-module> CAF
+33077382: cost centre 7 CAF in GHC.Conc.IO at <entire-module> CAF
+33077550: cost centre 6 CAF in GHC.Base at <entire-module> CAF
+33077663: cost centre 5 CAF in Data.Either at <entire-module> CAF
+33077764: cost centre 4 CAF in Control.Exception.Base at <entire-module> CAF
+33077877: cost centre 3 CAF in Main at <entire-module> CAF
+33078074: cost centre 2 main in Main at Fib.hs:3:1-21
+33078145: cost centre 1 fib in Main at Fib.hs:4:1-50
+34087986: cap no 0, prof sample 1, cost centre stack 1, 2, 3
+35086315: cap no 0, prof sample 2, cost centre stack 1, 2, 3
+36085812: cap no 0, prof sample 3, cost centre stack 1, 2, 3
+37085756: cap no 0, prof sample 4, cost centre stack 1, 2, 3
+38085590: cap no 0, prof sample 5, cost centre stack 1, 2, 3
+39085614: cap no 0, prof sample 6, cost centre stack 1, 2, 3
+40085526: cap no 0, prof sample 7, cost centre stack 1, 2, 3
+41085602: cap no 0, prof sample 8, cost centre stack 1, 2, 3
+42085609: cap no 0, prof sample 9, cost centre stack 1, 2, 3
+43085670: cap no 0, prof sample 10, cost centre stack 1, 2, 3
+44086690: cap no 0, prof sample 11, cost centre stack 1, 2, 3
+45085667: cap no 0, prof sample 12, cost centre stack 1, 2, 3
+46085652: cap no 0, prof sample 13, cost centre stack 1, 2, 3
+47086171: cap no 0, prof sample 14, cost centre stack 1, 2, 3
+48085555: cap no 0, prof sample 15, cost centre stack 1, 2, 3
+49085572: cap no 0, prof sample 16, cost centre stack 1, 2, 3
+50085539: cap no 0, prof sample 17, cost centre stack 1, 2, 3
+51085564: cap no 0, prof sample 18, cost centre stack 1, 2, 3
+52085536: cap no 0, prof sample 19, cost centre stack 1, 2, 3
+53085604: cap no 0, prof sample 20, cost centre stack 1, 2, 3
+54085534: cap no 0, prof sample 21, cost centre stack 1, 2, 3
+55085541: cap no 0, prof sample 22, cost centre stack 1, 2, 3
+56085478: cap no 0, prof sample 23, cost centre stack 1, 2, 3
+57085482: cap no 0, prof sample 24, cost centre stack 1, 2, 3
+58085595: cap no 0, prof sample 25, cost centre stack 1, 2, 3
+59085563: cap no 0, prof sample 26, cost centre stack 1, 2, 3
+60086633: cap no 0, prof sample 27, cost centre stack 1, 2, 3
+61085564: cap no 0, prof sample 28, cost centre stack 1, 2, 3
+62085564: cap no 0, prof sample 29, cost centre stack 1, 2, 3
+63085525: cap no 0, prof sample 30, cost centre stack 1, 2, 3
+64085563: cap no 0, prof sample 31, cost centre stack 1, 2, 3
+65085526: cap no 0, prof sample 32, cost centre stack 1, 2, 3
+66085516: cap no 0, prof sample 33, cost centre stack 1, 2, 3
+67085547: cap no 0, prof sample 34, cost centre stack 1, 2, 3
+68086453: cap no 0, prof sample 35, cost centre stack 1, 2, 3
+69085503: cap no 0, prof sample 36, cost centre stack 1, 2, 3
+70085534: cap no 0, prof sample 37, cost centre stack 1, 2, 3
+71085563: cap no 0, prof sample 38, cost centre stack 1, 2, 3
+72085865: cap no 0, prof sample 39, cost centre stack 1, 2, 3
+73085532: cap no 0, prof sample 40, cost centre stack 1, 2, 3
+74085530: cap no 0, prof sample 41, cost centre stack 1, 2, 3
+75085572: cap no 0, prof sample 42, cost centre stack 1, 2, 3
+76085535: cap no 0, prof sample 43, cost centre stack 1, 2, 3
+77085524: cap no 0, prof sample 44, cost centre stack 1, 2, 3
+78085547: cap no 0, prof sample 45, cost centre stack 1, 2, 3
+79085462: cap no 0, prof sample 46, cost centre stack 1, 2, 3
+80085503: cap no 0, prof sample 47, cost centre stack 1, 2, 3
+81085498: cap no 0, prof sample 48, cost centre stack 1, 2, 3
+82085457: cap no 0, prof sample 49, cost centre stack 1, 2, 3
+83085539: cap no 0, prof sample 50, cost centre stack 1, 2, 3
+84085547: cap no 0, prof sample 51, cost centre stack 1, 2, 3
+85085555: cap no 0, prof sample 52, cost centre stack 1, 2, 3
+86086617: cap no 0, prof sample 53, cost centre stack 116
+87085807: cap no 0, prof sample 54, cost centre stack 1, 2, 3
+88085575: cap no 0, prof sample 55, cost centre stack 1, 2, 3
+89086452: cap no 0, prof sample 56, cost centre stack 1, 2, 3
+90085648: cap no 0, prof sample 57, cost centre stack 1, 2, 3
+91085572: cap no 0, prof sample 58, cost centre stack 1, 2, 3
+92085573: cap no 0, prof sample 59, cost centre stack 1, 2, 3
+93085589: cap no 0, prof sample 60, cost centre stack 1, 2, 3
+94085564: cap no 0, prof sample 61, cost centre stack 1, 2, 3
+95085548: cap no 0, prof sample 62, cost centre stack 1, 2, 3
+96085590: cap no 0, prof sample 63, cost centre stack 1, 2, 3
+97086633: cap no 0, prof sample 64, cost centre stack 1, 2, 3
+98086113: cap no 0, prof sample 65, cost centre stack 1, 2, 3
+99085972: cap no 0, prof sample 66, cost centre stack 1, 2, 3
+100085948: cap no 0, prof sample 67, cost centre stack 1, 2, 3
+101085954: cap no 0, prof sample 68, cost centre stack 1, 2, 3
+102085907: cap no 0, prof sample 69, cost centre stack 1, 2, 3
+103086485: cap no 0, prof sample 70, cost centre stack 1, 2, 3
+104085922: cap no 0, prof sample 71, cost centre stack 1, 2, 3
+105086031: cap no 0, prof sample 72, cost centre stack 1, 2, 3
+106085994: cap no 0, prof sample 73, cost centre stack 1, 2, 3
+107085979: cap no 0, prof sample 74, cost centre stack 1, 2, 3
+108086554: cap no 0, prof sample 75, cost centre stack 1, 2, 3
+109085635: cap no 0, prof sample 76, cost centre stack 1, 2, 3
+110086514: cap no 0, prof sample 77, cost centre stack 1, 2, 3
+111086517: cap no 0, prof sample 78, cost centre stack 1, 2, 3
+112086320: cap no 0, prof sample 79, cost centre stack 1, 2, 3
+113085588: cap no 0, prof sample 80, cost centre stack 1, 2, 3
+114085561: cap no 0, prof sample 81, cost centre stack 1, 2, 3
+115085541: cap no 0, prof sample 82, cost centre stack 1, 2, 3
+116085540: cap no 0, prof sample 83, cost centre stack 1, 2, 3
+117085509: cap no 0, prof sample 84, cost centre stack 1, 2, 3
+118085543: cap no 0, prof sample 85, cost centre stack 1, 2, 3
+119085552: cap no 0, prof sample 86, cost centre stack 1, 2, 3
+120085533: cap no 0, prof sample 87, cost centre stack 1, 2, 3
+121085525: cap no 0, prof sample 88, cost centre stack 1, 2, 3
+122085543: cap no 0, prof sample 89, cost centre stack 1, 2, 3
+123086446: cap no 0, prof sample 90, cost centre stack 1, 2, 3
+124085659: cap no 0, prof sample 91, cost centre stack 1, 2, 3
+125085645: cap no 0, prof sample 92, cost centre stack 1, 2, 3
+126085637: cap no 0, prof sample 93, cost centre stack 1, 2, 3
+127085586: cap no 0, prof sample 94, cost centre stack 1, 2, 3
+128085534: cap no 0, prof sample 95, cost centre stack 1, 2, 3
+129085513: cap no 0, prof sample 96, cost centre stack 1, 2, 3
+130085436: cap no 0, prof sample 97, cost centre stack 1, 2, 3
+131086778: cap no 0, prof sample 98, cost centre stack 1, 2, 3
+132086272: cap no 0, prof sample 99, cost centre stack 1, 2, 3
+133085622: cap no 0, prof sample 100, cost centre stack 1, 2, 3
+134086391: cap no 0, prof sample 101, cost centre stack 1, 2, 3
+135087417: cap no 0, prof sample 102, cost centre stack 1, 2, 3
+136086287: cap no 0, prof sample 103, cost centre stack 1, 2, 3
+137085604: cap no 0, prof sample 104, cost centre stack 1, 2, 3
+138085556: cap no 0, prof sample 105, cost centre stack 1, 2, 3
+139085571: cap no 0, prof sample 106, cost centre stack 1, 2, 3
+140085577: cap no 0, prof sample 107, cost centre stack 1, 2, 3
+141085547: cap no 0, prof sample 108, cost centre stack 1, 2, 3
+142085512: cap no 0, prof sample 109, cost centre stack 1, 2, 3
+143085621: cap no 0, prof sample 110, cost centre stack 1, 2, 3
+144085856: cap no 0, prof sample 111, cost centre stack 1, 2, 3
+145085607: cap no 0, prof sample 112, cost centre stack 1, 2, 3
+146085552: cap no 0, prof sample 113, cost centre stack 1, 2, 3
+147085581: cap no 0, prof sample 114, cost centre stack 1, 2, 3
+148085613: cap no 0, prof sample 115, cost centre stack 1, 2, 3
+149085657: cap no 0, prof sample 116, cost centre stack 1, 2, 3
+150085541: cap no 0, prof sample 117, cost centre stack 1, 2, 3
+151085564: cap no 0, prof sample 118, cost centre stack 1, 2, 3
+152085526: cap no 0, prof sample 119, cost centre stack 1, 2, 3
+153086257: cap no 0, prof sample 120, cost centre stack 1, 2, 3
+154085610: cap no 0, prof sample 121, cost centre stack 1, 2, 3
+155085624: cap no 0, prof sample 122, cost centre stack 1, 2, 3
+156085543: cap no 0, prof sample 123, cost centre stack 1, 2, 3
+157085563: cap no 0, prof sample 124, cost centre stack 1, 2, 3
+158085524: cap no 0, prof sample 125, cost centre stack 1, 2, 3
+159085547: cap no 0, prof sample 126, cost centre stack 1, 2, 3
+160085532: cap no 0, prof sample 127, cost centre stack 1, 2, 3
+161085525: cap no 0, prof sample 128, cost centre stack 1, 2, 3
+162085499: cap no 0, prof sample 129, cost centre stack 1, 2, 3
+163085536: cap no 0, prof sample 130, cost centre stack 1, 2, 3
+164085518: cap no 0, prof sample 131, cost centre stack 1, 2, 3
+165085537: cap no 0, prof sample 132, cost centre stack 1, 2, 3
+166085464: cap no 0, prof sample 133, cost centre stack 1, 2, 3
+167085590: cap no 0, prof sample 134, cost centre stack 1, 2, 3
+168085570: cap no 0, prof sample 135, cost centre stack 1, 2, 3
+169085541: cap no 0, prof sample 136, cost centre stack 1, 2, 3
+170085542: cap no 0, prof sample 137, cost centre stack 1, 2, 3
+171085579: cap no 0, prof sample 138, cost centre stack 1, 2, 3
+172085543: cap no 0, prof sample 139, cost centre stack 1, 2, 3
+173085529: cap no 0, prof sample 140, cost centre stack 1, 2, 3
+174086143: cap no 0, prof sample 141, cost centre stack 1, 2, 3
+175085741: cap no 0, prof sample 142, cost centre stack 1, 2, 3
+176085461: cap no 0, prof sample 143, cost centre stack 1, 2, 3
+177085556: cap no 0, prof sample 144, cost centre stack 1, 2, 3
+178085560: cap no 0, prof sample 145, cost centre stack 1, 2, 3
+179085540: cap no 0, prof sample 146, cost centre stack 1, 2, 3
+180085730: cap no 0, prof sample 147, cost centre stack 1, 2, 3
+181087731: cap no 0, prof sample 148, cost centre stack 1, 2, 3
+182086193: cap no 0, prof sample 149, cost centre stack 1, 2, 3
+183085651: cap no 0, prof sample 150, cost centre stack 1, 2, 3
+184085565: cap no 0, prof sample 151, cost centre stack 1, 2, 3
+185085781: cap no 0, prof sample 152, cost centre stack 1, 2, 3
+186085635: cap no 0, prof sample 153, cost centre stack 1, 2, 3
+187085611: cap no 0, prof sample 154, cost centre stack 1, 2, 3
+188085568: cap no 0, prof sample 155, cost centre stack 1, 2, 3
+189085729: cap no 0, prof sample 156, cost centre stack 1, 2, 3
+190085609: cap no 0, prof sample 157, cost centre stack 1, 2, 3
+191085650: cap no 0, prof sample 158, cost centre stack 1, 2, 3
+192085560: cap no 0, prof sample 159, cost centre stack 1, 2, 3
+193085531: cap no 0, prof sample 160, cost centre stack 1, 2, 3
+194085573: cap no 0, prof sample 161, cost centre stack 1, 2, 3
+195085553: cap no 0, prof sample 162, cost centre stack 1, 2, 3
+196086509: cap no 0, prof sample 163, cost centre stack 116
+197085646: cap no 0, prof sample 164, cost centre stack 1, 2, 3
+198085484: cap no 0, prof sample 165, cost centre stack 1, 2, 3
+199085529: cap no 0, prof sample 166, cost centre stack 1, 2, 3
+200085483: cap no 0, prof sample 167, cost centre stack 1, 2, 3
+201085465: cap no 0, prof sample 168, cost centre stack 1, 2, 3
+202085542: cap no 0, prof sample 169, cost centre stack 1, 2, 3
+203085558: cap no 0, prof sample 170, cost centre stack 1, 2, 3
+204085544: cap no 0, prof sample 171, cost centre stack 1, 2, 3
+205085529: cap no 0, prof sample 172, cost centre stack 1, 2, 3
+206085543: cap no 0, prof sample 173, cost centre stack 1, 2, 3
+207085621: cap no 0, prof sample 174, cost centre stack 1, 2, 3
+208085578: cap no 0, prof sample 175, cost centre stack 1, 2, 3
+209085561: cap no 0, prof sample 176, cost centre stack 1, 2, 3
+210085548: cap no 0, prof sample 177, cost centre stack 1, 2, 3
+211085516: cap no 0, prof sample 178, cost centre stack 1, 2, 3
+212085520: cap no 0, prof sample 179, cost centre stack 1, 2, 3
+213085482: cap no 0, prof sample 180, cost centre stack 1, 2, 3
+214085476: cap no 0, prof sample 181, cost centre stack 1, 2, 3
+215085409: cap no 0, prof sample 182, cost centre stack 1, 2, 3
+216085532: cap no 0, prof sample 183, cost centre stack 1, 2, 3
+217086632: cap no 0, prof sample 184, cost centre stack 1, 2, 3
+218085570: cap no 0, prof sample 185, cost centre stack 1, 2, 3
+219085539: cap no 0, prof sample 186, cost centre stack 1, 2, 3
+220085547: cap no 0, prof sample 187, cost centre stack 1, 2, 3
+221085516: cap no 0, prof sample 188, cost centre stack 1, 2, 3
+222085486: cap no 0, prof sample 189, cost centre stack 1, 2, 3
+223085506: cap no 0, prof sample 190, cost centre stack 1, 2, 3
+224085441: cap no 0, prof sample 191, cost centre stack 1, 2, 3
+225085591: cap no 0, prof sample 192, cost centre stack 1, 2, 3
+226085562: cap no 0, prof sample 193, cost centre stack 1, 2, 3
+227085546: cap no 0, prof sample 194, cost centre stack 1, 2, 3
+228085576: cap no 0, prof sample 195, cost centre stack 1, 2, 3
+229085558: cap no 0, prof sample 196, cost centre stack 1, 2, 3
+230085546: cap no 0, prof sample 197, cost centre stack 1, 2, 3
+231085526: cap no 0, prof sample 198, cost centre stack 1, 2, 3
+232085550: cap no 0, prof sample 199, cost centre stack 1, 2, 3
+233085605: cap no 0, prof sample 200, cost centre stack 1, 2, 3
+234085534: cap no 0, prof sample 201, cost centre stack 1, 2, 3
+235085503: cap no 0, prof sample 202, cost centre stack 1, 2, 3
+236085518: cap no 0, prof sample 203, cost centre stack 1, 2, 3
+237085492: cap no 0, prof sample 204, cost centre stack 115
+238086665: cap no 0, prof sample 205, cost centre stack 1, 2, 3
+239085560: cap no 0, prof sample 206, cost centre stack 1, 2, 3
+240085522: cap no 0, prof sample 207, cost centre stack 1, 2, 3
+241085549: cap no 0, prof sample 208, cost centre stack 1, 2, 3
+242085519: cap no 0, prof sample 209, cost centre stack 1, 2, 3
+243085517: cap no 0, prof sample 210, cost centre stack 1, 2, 3
+244085545: cap no 0, prof sample 211, cost centre stack 1, 2, 3
+245085498: cap no 0, prof sample 212, cost centre stack 1, 2, 3
+246085469: cap no 0, prof sample 213, cost centre stack 1, 2, 3
+247085450: cap no 0, prof sample 214, cost centre stack 1, 2, 3
+248085571: cap no 0, prof sample 215, cost centre stack 1, 2, 3
+249085574: cap no 0, prof sample 216, cost centre stack 1, 2, 3
+250085577: cap no 0, prof sample 217, cost centre stack 1, 2, 3
+251085564: cap no 0, prof sample 218, cost centre stack 1, 2, 3
+252085605: cap no 0, prof sample 219, cost centre stack 1, 2, 3
+253085550: cap no 0, prof sample 220, cost centre stack 1, 2, 3
+254085517: cap no 0, prof sample 221, cost centre stack 1, 2, 3
+255085541: cap no 0, prof sample 222, cost centre stack 1, 2, 3
+256085557: cap no 0, prof sample 223, cost centre stack 1, 2, 3
+257085538: cap no 0, prof sample 224, cost centre stack 1, 2, 3
+258085491: cap no 0, prof sample 225, cost centre stack 1, 2, 3
+259085824: cap no 0, prof sample 226, cost centre stack 1, 2, 3
+260086564: cap no 0, prof sample 227, cost centre stack 1, 2, 3
+261085685: cap no 0, prof sample 228, cost centre stack 1, 2, 3
+262085602: cap no 0, prof sample 229, cost centre stack 1, 2, 3
+263085533: cap no 0, prof sample 230, cost centre stack 1, 2, 3
+264085579: cap no 0, prof sample 231, cost centre stack 1, 2, 3
+265085571: cap no 0, prof sample 232, cost centre stack 1, 2, 3
+266085514: cap no 0, prof sample 233, cost centre stack 1, 2, 3
+267085494: cap no 0, prof sample 234, cost centre stack 1, 2, 3
+268085465: cap no 0, prof sample 235, cost centre stack 1, 2, 3
+269086532: cap no 0, prof sample 236, cost centre stack 1, 2, 3
+270085761: cap no 0, prof sample 237, cost centre stack 1, 2, 3
+271085553: cap no 0, prof sample 238, cost centre stack 1, 2, 3
+272085610: cap no 0, prof sample 239, cost centre stack 1, 2, 3
+273085672: cap no 0, prof sample 240, cost centre stack 116
+274085597: cap no 0, prof sample 241, cost centre stack 1, 2, 3
+275085822: cap no 0, prof sample 242, cost centre stack 1, 2, 3
+276085526: cap no 0, prof sample 243, cost centre stack 1, 2, 3
+277085471: cap no 0, prof sample 244, cost centre stack 1, 2, 3
+278085592: cap no 0, prof sample 245, cost centre stack 1, 2, 3
+279085587: cap no 0, prof sample 246, cost centre stack 1, 2, 3
+280085549: cap no 0, prof sample 247, cost centre stack 1, 2, 3
+281088155: cap no 0, prof sample 248, cost centre stack 1, 2, 3
+282085741: cap no 0, prof sample 249, cost centre stack 1, 2, 3
+283085611: cap no 0, prof sample 250, cost centre stack 1, 2, 3
+284085569: cap no 0, prof sample 251, cost centre stack 1, 2, 3
+285085500: cap no 0, prof sample 252, cost centre stack 1, 2, 3
+286085493: cap no 0, prof sample 253, cost centre stack 1, 2, 3
+287085414: cap no 0, prof sample 254, cost centre stack 1, 2, 3
+288085547: cap no 0, prof sample 255, cost centre stack 1, 2, 3
+289085602: cap no 0, prof sample 256, cost centre stack 1, 2, 3
+290085622: cap no 0, prof sample 257, cost centre stack 1, 2, 3
+291085547: cap no 0, prof sample 258, cost centre stack 1, 2, 3
+292085551: cap no 0, prof sample 259, cost centre stack 1, 2, 3
+293085551: cap no 0, prof sample 260, cost centre stack 1, 2, 3
+294085531: cap no 0, prof sample 261, cost centre stack 1, 2, 3
+295085560: cap no 0, prof sample 262, cost centre stack 1, 2, 3
+296085550: cap no 0, prof sample 263, cost centre stack 1, 2, 3
+297085572: cap no 0, prof sample 264, cost centre stack 1, 2, 3
+298085495: cap no 0, prof sample 265, cost centre stack 1, 2, 3
+299085494: cap no 0, prof sample 266, cost centre stack 1, 2, 3
+300085429: cap no 0, prof sample 267, cost centre stack 1, 2, 3
+301085553: cap no 0, prof sample 268, cost centre stack 1, 2, 3
+302086606: cap no 0, prof sample 269, cost centre stack 1, 2, 3
+303086206: cap no 0, prof sample 270, cost centre stack 1, 2, 3
+304085570: cap no 0, prof sample 271, cost centre stack 1, 2, 3
+305085598: cap no 0, prof sample 272, cost centre stack 1, 2, 3
+306085514: cap no 0, prof sample 273, cost centre stack 1, 2, 3
+307085645: cap no 0, prof sample 274, cost centre stack 1, 2, 3
+308085616: cap no 0, prof sample 275, cost centre stack 1, 2, 3
+309085633: cap no 0, prof sample 276, cost centre stack 1, 2, 3
+310085718: cap no 0, prof sample 277, cost centre stack 116
+311085666: cap no 0, prof sample 278, cost centre stack 1, 2, 3
+312085577: cap no 0, prof sample 279, cost centre stack 1, 2, 3
+313085574: cap no 0, prof sample 280, cost centre stack 1, 2, 3
+314085542: cap no 0, prof sample 281, cost centre stack 1, 2, 3
+315085662: cap no 0, prof sample 282, cost centre stack 1, 2, 3
+316085524: cap no 0, prof sample 283, cost centre stack 1, 2, 3
+317085499: cap no 0, prof sample 284, cost centre stack 1, 2, 3
+318085553: cap no 0, prof sample 285, cost centre stack 1, 2, 3
+319085528: cap no 0, prof sample 286, cost centre stack 1, 2, 3
+320085676: cap no 0, prof sample 287, cost centre stack 1, 2, 3
+321085627: cap no 0, prof sample 288, cost centre stack 1, 2, 3
+322085591: cap no 0, prof sample 289, cost centre stack 1, 2, 3
+323085920: cap no 0, prof sample 290, cost centre stack 1, 2, 3
+324086348: cap no 0, prof sample 291, cost centre stack 1, 2, 3
+325085597: cap no 0, prof sample 292, cost centre stack 1, 2, 3
+326085545: cap no 0, prof sample 293, cost centre stack 1, 2, 3
+327085429: cap no 0, prof sample 294, cost centre stack 1, 2, 3
+328085572: cap no 0, prof sample 295, cost centre stack 1, 2, 3
+329085897: cap no 0, prof sample 296, cost centre stack 1, 2, 3
+330085562: cap no 0, prof sample 297, cost centre stack 1, 2, 3
+331085599: cap no 0, prof sample 298, cost centre stack 1, 2, 3
+332085617: cap no 0, prof sample 299, cost centre stack 116
+333085573: cap no 0, prof sample 300, cost centre stack 1, 2, 3
+334085586: cap no 0, prof sample 301, cost centre stack 1, 2, 3
+335085546: cap no 0, prof sample 302, cost centre stack 1, 2, 3
+336085681: cap no 0, prof sample 303, cost centre stack 1, 2, 3
+337085496: cap no 0, prof sample 304, cost centre stack 1, 2, 3
+338086289: cap no 0, prof sample 305, cost centre stack 1, 2, 3
+339085599: cap no 0, prof sample 306, cost centre stack 1, 2, 3
+340086578: cap no 0, prof sample 307, cost centre stack 1, 2, 3
+341085578: cap no 0, prof sample 308, cost centre stack 1, 2, 3
+342085627: cap no 0, prof sample 309, cost centre stack 1, 2, 3
+343085550: cap no 0, prof sample 310, cost centre stack 1, 2, 3
+344085567: cap no 0, prof sample 311, cost centre stack 1, 2, 3
+345086704: cap no 0, prof sample 312, cost centre stack 1, 2, 3
+346086371: cap no 0, prof sample 313, cost centre stack 1, 2, 3
+347085726: cap no 0, prof sample 314, cost centre stack 1, 2, 3
+348085585: cap no 0, prof sample 315, cost centre stack 1, 2, 3
+349085503: cap no 0, prof sample 316, cost centre stack 1, 2, 3
+350086569: cap no 0, prof sample 317, cost centre stack 1, 2, 3
+351085720: cap no 0, prof sample 318, cost centre stack 1, 2, 3
+352086548: cap no 0, prof sample 319, cost centre stack 1, 2, 3
+353085623: cap no 0, prof sample 320, cost centre stack 1, 2, 3
+354085552: cap no 0, prof sample 321, cost centre stack 1, 2, 3
+355085557: cap no 0, prof sample 322, cost centre stack 1, 2, 3
+356085548: cap no 0, prof sample 323, cost centre stack 1, 2, 3
+357085529: cap no 0, prof sample 324, cost centre stack 1, 2, 3
+358085557: cap no 0, prof sample 325, cost centre stack 1, 2, 3
+359085617: cap no 0, prof sample 326, cost centre stack 1, 2, 3
+360085592: cap no 0, prof sample 327, cost centre stack 1, 2, 3
+361085588: cap no 0, prof sample 328, cost centre stack 1, 2, 3
+362085607: cap no 0, prof sample 329, cost centre stack 1, 2, 3
+363085565: cap no 0, prof sample 330, cost centre stack 1, 2, 3
+364085686: cap no 0, prof sample 331, cost centre stack 1, 2, 3
+365085577: cap no 0, prof sample 332, cost centre stack 1, 2, 3
+366085730: cap no 0, prof sample 333, cost centre stack 1, 2, 3
+367086149: cap no 0, prof sample 334, cost centre stack 115
+368085672: cap no 0, prof sample 335, cost centre stack 1, 2, 3
+369085642: cap no 0, prof sample 336, cost centre stack 1, 2, 3
+370085651: cap no 0, prof sample 337, cost centre stack 1, 2, 3
+371085636: cap no 0, prof sample 338, cost centre stack 1, 2, 3
+372085642: cap no 0, prof sample 339, cost centre stack 1, 2, 3
+373086098: cap no 0, prof sample 340, cost centre stack 115
+373114374: removed cap 0 from capset 0
+373114483: removed cap 0 from capset 1
+373114604: deleted cap 0
+373114685: deleted capset 0
+373114724: deleted capset 1
+

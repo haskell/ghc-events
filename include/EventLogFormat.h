@@ -197,13 +197,15 @@
 #define EVENT_HEAP_PROF_SAMPLE_STRING      164
 #define EVENT_HEAP_PROF_SAMPLE_END         165
 #define EVENT_HEAP_BIO_PROF_SAMPLE_BEGIN   166
+#define EVENT_PROF_SAMPLE_COST_CENTRE      167
+#define EVENT_PROF_BEGIN                   168
 
 /*
  * The highest event code +1 that ghc itself emits. Note that some event
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_GHC_EVENT_TAGS        167
+#define NUM_GHC_EVENT_TAGS        181
 
 
 /* DEPRECATED EVENTS: */

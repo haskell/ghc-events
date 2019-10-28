@@ -418,6 +418,16 @@ data EventInfo
                        , heapProfResidency :: !Word64
                        , heapProfLabel :: !Text
                        }
+
+  | ProfSampleCostCentre
+                       { profCapset :: !Capset
+                       , profTicks :: !Word64
+                       , profStackDepth :: !Word8
+                       , profCcsStack :: !(VU.Vector Word32)
+                       }
+  | ProfBegin
+                       { profTickInterval :: !Word64
+                       }
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]

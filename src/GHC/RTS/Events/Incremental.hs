@@ -202,5 +202,6 @@ mkEventDecoder header = G.runGetIncremental $ getEvent parsers
         , mercuryParsers
         , perfParsers
         , heapProfParsers
+        , timeProfParsers
         ]
     parsers = EventParsers $ mkEventTypeParsers imap event_parsers
