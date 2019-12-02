@@ -14,6 +14,7 @@ module GHC.RTS.Events.Binary
   , ghc782StopParser
   , post782StopParser
   , parRTSParsers
+  , binaryEventParsers
 
   -- * Writers
   , putEventLog
@@ -851,6 +852,14 @@ timeProfParsers = [
       (return ())
     return $! ProfSampleCostCentre {..} ]
 
+binaryEventParsers :: [EventParser EventInfo]
+binaryEventParsers =
+  [ VariableSizeParser EVENT_USER_BINARY_MSG $ do
+    payloadLen <- get :: Get Word16
+    payload <- G.getByteString $ fromIntegral payloadLen
+    return $! UserBinaryMessage { payload }
+  ]
+
 -- | String byte length in the eventlog format. It includes
 -- 1 byte for NUL.
 textByteLen :: T.Text -> Int
@@ -996,7 +1005,7 @@ eventTypeNum e = case e of
     HeapProfSampleString {} -> EVENT_HEAP_PROF_SAMPLE_STRING
     ProfSampleCostCentre {} -> EVENT_PROF_SAMPLE_COST_CENTRE
     ProfBegin {}            -> EVENT_PROF_BEGIN
-
+    UserBinaryMessage {} -> EVENT_USER_BINARY_MSG
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1419,6 +1428,9 @@ putEventSpec ProfSampleCostCentre {..} = do
 putEventSpec ProfBegin {..} = do
     putE profTickInterval
 
+putEventSpec UserBinaryMessage {..} = do
+    putE (fromIntegral (B.length payload) :: Word16)
+    putByteString payload
 
 -- [] == []
 -- [x] == x\0

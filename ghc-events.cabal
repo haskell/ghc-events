@@ -63,6 +63,8 @@ extra-source-files: include/EventLogFormat.h
                     test/biographical-samples.eventlog.reference
                     test/time-prof.eventlog
                     test/time-prof.eventlog.reference
+                    test/trace-binary-event.eventlog
+                    test/trace-binary-event.eventlog.reference
                     test/Utils.hs
                     test/stop.hs
                     README.md
