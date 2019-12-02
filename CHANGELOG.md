@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.12.0 - 2019-12-02
+
+* Add support for EVENT_USER_BINARY_MSG ([#54](https://github.com/haskell/ghc-events/pull/54))
+
 ## 0.11.0 - 2019-10-29
 
 * Add support for time profiling events (ProfSampleCostCetre and ProfBegin) ([#53](https://github.com/haskell/ghc-events/pull/53))
