@@ -17,6 +17,7 @@ files = map ("test/"++)
     , "biographical-samples.eventlog"
     , "time-prof.eventlog"
     , "trace-binary-event.eventlog"
+    , "unicode.eventlog"
     ]
 
 
