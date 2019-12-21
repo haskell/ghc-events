@@ -11,10 +11,9 @@ import qualified Data.Vector.Unboxed as VU
 -- EventType.
 type EventTypeNum = Word16
 type EventTypeDescLen = Word32
-type EventTypeDesc = String
+type EventTypeDesc = Text
 type EventTypeSize = Word16
 -- Event.
-type EventDescription = String
 type Timestamp = Word64
 type ThreadId = Word32
 type CapNo = Word16
@@ -173,7 +172,7 @@ data EventInfo
                          otherCap :: {-# UNPACK #-}!Int
                        }
   | ThreadLabel        { thread :: {-# UNPACK #-}!ThreadId,
-                         threadlabel :: String
+                         threadlabel :: !Text
                        }
 
   -- par sparks
@@ -265,13 +264,13 @@ data EventInfo
 
   -- program/process info
   | RtsIdentifier      { capset :: {-# UNPACK #-}!Capset
-                       , rtsident :: String
+                       , rtsident :: !Text
                        }
   | ProgramArgs        { capset :: {-# UNPACK #-}!Capset
-                       , args   :: [String]
+                       , args   :: [Text]
                        }
   | ProgramEnv         { capset :: {-# UNPACK #-}!Capset
-                       , env    :: [String]
+                       , env    :: [Text]
                        }
   | OsProcessPid       { capset :: {-# UNPACK #-}!Capset
                        , pid    :: {-# UNPACK #-}!PID
@@ -285,9 +284,9 @@ data EventInfo
                        }
 
   -- messages
-  | Message            { msg :: String }
-  | UserMessage        { msg :: String }
-  | UserMarker         { markername :: String }
+  | Message            { msg :: !Text }
+  | UserMessage        { msg :: !Text }
+  | UserMarker         { markername :: !Text }
 
   -- Events emitted by a parallel RTS
    -- Program /process info (tools might prefer newer variants above)
@@ -371,7 +370,7 @@ data EventInfo
 
   -- perf events
   | PerfName           { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
-                       , name    :: String
+                       , name    :: !Text
                        }
   | PerfCounter        { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
                        , tid     :: {-# UNPACK #-}!KernelThreadId
