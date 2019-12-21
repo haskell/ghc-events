@@ -268,7 +268,7 @@ buildEventInfo spec' =
           <> " on cap " <> TB.decimal otherCap
         ThreadLabel thread label ->
           "thread " <> TB.decimal thread
-          <> " has label \"" <> TB.fromString label <> "\""
+          <> " has label \"" <> TB.fromText label <> "\""
         RequestSeqGC ->
           "requesting sequential GC"
         RequestParGC ->
@@ -320,11 +320,11 @@ buildEventInfo spec' =
         CapEnable{cap} ->
           "enabled cap " <> TB.decimal cap
         Message msg ->
-          TB.fromString msg
+          TB.fromText msg
         UserMessage msg ->
-          TB.fromString msg
+          TB.fromText msg
         UserMarker markername ->
-          "marker: " <> TB.fromString markername
+          "marker: " <> TB.fromText markername
         CapsetCreate cs ct ->
           "created capset " <> TB.decimal cs
           <> " of type " <> TB.fromString (show ct)
@@ -344,7 +344,7 @@ buildEventInfo spec' =
           <> TB.decimal nsec <> "ns (unix epoch)"
         RtsIdentifier cs i ->
           "capset " <> TB.decimal cs
-          <> ": RTS version \"" <> TB.fromString i <> "\""
+          <> ": RTS version \"" <> TB.fromText i <> "\""
         ProgramArgs cs args ->
           "capset " <> TB.decimal cs
           <> ": args: " <> TB.fromString (show args)
@@ -434,7 +434,7 @@ buildEventInfo spec' =
           "About to call the program entry point"
         PerfName{perfNum, name} ->
           "perf event " <> TB.decimal perfNum
-          <> " named \"" <> TB.fromString name <> "\""
+          <> " named \"" <> TB.fromText name <> "\""
         PerfCounter{perfNum, tid, period} ->
           "perf event counter " <> TB.decimal perfNum
           <> " incremented by " <> TB.decimal (period + 1)
@@ -571,7 +571,7 @@ ppEventType = TL.unpack . TB.toLazyText . buildEventType
 buildEventType :: EventType -> TB.Builder
 buildEventType (EventType num dsc msz) =
   TB.decimal num <> ": "
-  <> TB.fromString dsc <> " (size "
+  <> TB.fromText dsc <> " (size "
   <> maybe "variable" TB.decimal msz <> ")"
 
 -- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
@@ -585,7 +585,7 @@ buildEvent imap Event {..} =
   <> maybe "" (\c -> "cap " <> TB.decimal c <> ": ") evCap
   <> case evSpec of
     UnknownEvent{ ref=ref } ->
-      maybe "" (TB.fromString . desc) $ IM.lookup (fromIntegral ref) imap
+      maybe "" (TB.fromText . desc) $ IM.lookup (fromIntegral ref) imap
     _ -> buildEventInfo evSpec
 
 buildEvent' :: Event -> TB.Builder

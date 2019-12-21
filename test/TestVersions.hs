@@ -17,9 +17,7 @@ Where queens.hs is http://darcs.haskell.org/nofib/parallel/queens/Main.hs
 import System.Exit (exitFailure)
 
 import GHC.RTS.Events
-import GHC.RTS.Events.Incremental
 import Utils (files, diffLines)
-
 
 testFile :: FilePath -> IO Bool
 testFile f = do
@@ -35,6 +33,7 @@ testFile f = do
                     else do putStrLn $ diffLines oldlog newlog
                             oops "pretty print output does not match"
 
+main :: IO ()
 main = do
     successes <- mapM testFile files
     if and successes

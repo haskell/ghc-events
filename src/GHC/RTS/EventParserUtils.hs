@@ -5,21 +5,26 @@ module GHC.RTS.EventParserUtils (
         EventParsers(..),
 
         getString,
+        getText,
+        getTextNul,
         mkEventTypeParsers,
         simpleEvent,
         skip,
     ) where
 
-import Control.Monad
 import Data.Array
 import Data.Binary
 import Data.Binary.Get ()
-import qualified Data.Binary.Get as G
 import Data.Binary.Put ()
-import Data.Char
 import Data.IntMap (IntMap)
-import qualified Data.IntMap as M
 import Data.List
+import Data.Text (Text)
+import qualified Data.Binary.Get as G
+import qualified Data.ByteString.Char8 as B8
+import qualified Data.IntMap as M
+import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TLE
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
@@ -28,13 +33,29 @@ import GHC.RTS.EventTypes
 
 newtype EventParsers = EventParsers (Array Int (Get EventInfo))
 
-nBytes :: Integral a => a -> Get [Word8]
-nBytes n = replicateM (fromIntegral n) get
-
 getString :: Integral a => a -> Get String
 getString len = do
-    bytes <- nBytes len
-    return $ map (chr . fromIntegral) bytes
+  bytes <- G.getByteString $ fromIntegral len
+  return $! B8.unpack bytes
+
+-- | Decode a given length of bytes as a 'Text'
+getText
+  :: Integral a
+  => a -- ^ Number of bytes to decode
+  -> Get Text
+getText len = do
+  bytes <- G.getByteString $ fromIntegral len
+  case TE.decodeUtf8' bytes of
+    Left err -> fail $ show err
+    Right text -> return text
+
+-- | Decode a null-terminated string as a 'Text'
+getTextNul :: Get Text
+getTextNul = do
+  chunks <- G.getLazyByteStringNul
+  case TLE.decodeUtf8' chunks of
+    Left err -> fail $ show err
+    Right text -> return $ TL.toStrict text
 
 skip :: Integral a => a -> Get ()
 skip n = G.skip (fromIntegral n)

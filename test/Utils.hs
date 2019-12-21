@@ -17,10 +17,12 @@ files = map ("test/"++)
     , "biographical-samples.eventlog"
     , "time-prof.eventlog"
     , "trace-binary-event.eventlog"
+    , "unicode.eventlog"
     ]
 
 
 -- Code to help print the differences between a working test and a failing test.
+diffLines :: String -> String -> String
 diffLines o n = diff 1 (lines o) (lines n)
 
 diff :: Int -> [String] -> [String] -> String

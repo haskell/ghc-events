@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 module GHC.RTS.Events.Binary
   ( -- * Readers
     getHeader
@@ -29,6 +30,7 @@ module GHC.RTS.Events.Binary
   ) where
 import Control.Exception (assert)
 import Control.Monad
+import Data.List (intersperse)
 import Data.Maybe
 import Prelude hiding (gcd, rem, id)
 
@@ -39,8 +41,6 @@ import qualified Data.Binary.Get as G
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.Vector.Unboxed as VU
 
 import GHC.RTS.EventTypes
@@ -56,16 +56,13 @@ getEventType = do
            let etSize = if size == 0xffff then Nothing else Just size
            -- 0xffff indicates variable-sized event
            etDescLen <- get :: Get EventTypeDescLen
-           etDesc <- getEtDesc (fromIntegral etDescLen)
+           etDesc <- getText etDescLen
            etExtraLen <- get :: Get Word32
            G.skip (fromIntegral etExtraLen)
            ete <- get :: Get Marker
            when (ete /= EVENT_ET_END) $
               fail "Event Type end marker not found."
            return (EventType etNum etDesc etSize)
-           where
-             getEtDesc :: Int -> Get [Char]
-             getEtDesc s = replicateM s (get :: Get Char)
 
 getHeader :: Get Header
 getHeader = do
@@ -270,37 +267,39 @@ standardParsers = [
 
  (VariableSizeParser EVENT_LOG_MSG (do -- (msg)
       num <- get :: Get Word16
-      string <- getString num
+      string <- getText num
       return Message{ msg = string }
    )),
  (VariableSizeParser EVENT_USER_MSG (do -- (msg)
       num <- get :: Get Word16
-      string <- getString num
+      string <- getText num
       return UserMessage{ msg = string }
    )),
     (VariableSizeParser EVENT_USER_MARKER (do -- (markername)
       num <- get :: Get Word16
-      string <- getString num
+      string <- getText num
       return UserMarker{ markername = string }
    )),
  (VariableSizeParser EVENT_PROGRAM_ARGS (do -- (capset, [arg])
       num <- get :: Get Word16
       cs <- get
-      string <- getString (num - sz_capset)
-      return ProgramArgs{ capset = cs
-                        , args = splitNull string }
+      string <- getText (num - sz_capset)
+      return ProgramArgs
+        { capset = cs
+        , args = T.splitOn "\0" $ T.dropWhileEnd (== '\0') string }
    )),
  (VariableSizeParser EVENT_PROGRAM_ENV (do -- (capset, [arg])
       num <- get :: Get Word16
       cs <- get
-      string <- getString (num - sz_capset)
-      return ProgramEnv{ capset = cs
-                       , env = splitNull string }
+      string <- getText (num - sz_capset)
+      return ProgramEnv
+        { capset = cs
+        , env = T.splitOn "\0" $ T.dropWhileEnd (== '\0') string }
    )),
  (VariableSizeParser EVENT_RTS_IDENTIFIER (do -- (capset, str)
       num <- get :: Get Word16
       cs <- get
-      string <- getString (num - sz_capset)
+      string <- getText (num - sz_capset)
       return RtsIdentifier{ capset = cs
                           , rtsident = string }
    )),
@@ -315,7 +314,7 @@ standardParsers = [
  (VariableSizeParser EVENT_THREAD_LABEL (do -- (thread, str)
       num <- get :: Get Word16
       tid <- get
-      str <- getString (num - sz_tid)
+      str <- getText (num - sz_tid)
       return ThreadLabel{ thread      = tid
                         , threadlabel = str }
     ))
@@ -727,7 +726,7 @@ perfParsers = [
  (VariableSizeParser EVENT_PERF_NAME (do -- (perf_num, name)
       num     <- get :: Get Word16
       perfNum <- get
-      name    <- getString (num - sz_perf_num)
+      name    <- getText (num - sz_perf_num)
       return PerfName{perfNum, name}
    )),
 
@@ -752,13 +751,13 @@ heapProfParsers =
     heapProfId <- get
     heapProfSamplingPeriod <- get
     heapProfBreakdown <- get
-    heapProfModuleFilter <- getText
-    heapProfClosureDescrFilter <- getText
-    heapProfTypeDescrFilter <- getText
-    heapProfCostCentreFilter <- getText
-    heapProfCostCentreStackFilter <- getText
-    heapProfRetainerFilter <- getText
-    heapProfBiographyFilter <- getText
+    heapProfModuleFilter <- getTextNul
+    heapProfClosureDescrFilter <- getTextNul
+    heapProfTypeDescrFilter <- getTextNul
+    heapProfCostCentreFilter <- getTextNul
+    heapProfCostCentreStackFilter <- getTextNul
+    heapProfRetainerFilter <- getTextNul
+    heapProfBiographyFilter <- getTextNul
     assert
       (fromIntegral payloadLen == sum
         [ 1 -- heapProfId
@@ -777,9 +776,9 @@ heapProfParsers =
   , VariableSizeParser EVENT_HEAP_PROF_COST_CENTRE $ do
     payloadLen <- get :: Get Word16
     heapProfCostCentreId <- get
-    heapProfLabel <- getText
-    heapProfModule <- getText
-    heapProfSrcLoc <- getText
+    heapProfLabel <- getTextNul
+    heapProfModule <- getTextNul
+    heapProfSrcLoc <- getTextNul
     heapProfFlags <- get
     assert
       (fromIntegral payloadLen == sum
@@ -820,7 +819,7 @@ heapProfParsers =
     payloadLen <- get :: Get Word16
     heapProfId <- get
     heapProfResidency <- get
-    heapProfLabel <- getText
+    heapProfLabel <- getTextNul
     assert
       (fromIntegral payloadLen == sum
         [ 1 -- heapProfId
@@ -879,9 +878,6 @@ putCap c = putE (fromIntegral c :: CapNo)
 putMarker :: Word32 -> PutM ()
 putMarker = putE
 
-putEStr :: String -> PutM ()
-putEStr = mapM_ putE
-
 putEventLog :: EventLog -> PutM ()
 putEventLog (EventLog hdr es) = do
     putHeader hdr
@@ -899,8 +895,8 @@ putHeader (Header ets) = do
         putMarker EVENT_ET_BEGIN
         putType n
         putE $ fromMaybe 0xffff msz
-        putE (fromIntegral $ length d :: EventTypeDescLen)
-        mapM_ put d
+        putE (fromIntegral $ T.length d :: EventTypeDescLen)
+        putE d
         -- the event type header allows for extra data, which we don't use:
         putE (0 :: Word32)
         putMarker EVENT_ET_END
@@ -1111,9 +1107,9 @@ putEventSpec (WakeupThread t c) = do
     putCap c
 
 putEventSpec (ThreadLabel t l) = do
-    putE (fromIntegral (length l) + sz_tid :: Word16)
+    putE (fromIntegral (T.length l) + sz_tid :: Word16)
     putE t
-    putEStr l
+    putE l
 
 putEventSpec Shutdown =
     return ()
@@ -1220,21 +1216,21 @@ putEventSpec (CapsetRemoveCap cs cp) = do
     putCap cp
 
 putEventSpec (RtsIdentifier cs rts) = do
-    putE (fromIntegral (length rts) + sz_capset :: Word16)
+    putE (fromIntegral (T.length rts) + sz_capset :: Word16)
     putE cs
-    putEStr rts
+    putE rts
 
 putEventSpec (ProgramArgs cs as) = do
-    let as' = unsep as
-    putE (fromIntegral (length as') + sz_capset :: Word16)
+    let sz_args = sum $ map ((+ 1) {- for \0 -} . T.length) as
+    putE (fromIntegral sz_args + sz_capset :: Word16)
     putE cs
-    mapM_ putE as'
+    mapM_ putE (intersperse "\0" as)
 
 putEventSpec (ProgramEnv cs es) = do
-    let es' = unsep es
-    putE (fromIntegral (length es') + sz_capset :: Word16)
+    let sz_env = sum $ map ((+ 1) {- for \0 -} . T.length) es
+    putE (fromIntegral sz_env + sz_capset :: Word16)
     putE cs
-    mapM_ putE es'
+    mapM_ putE $ intersperse "\0" es
 
 putEventSpec (OsProcessPid cs pid) = do
     putE cs
@@ -1250,16 +1246,16 @@ putEventSpec (WallClockTime cs sec nsec) = do
     putE nsec
 
 putEventSpec (Message s) = do
-    putE (fromIntegral (length s) :: Word16)
-    mapM_ putE s
+    putE (fromIntegral (T.length s) :: Word16)
+    putE s
 
 putEventSpec (UserMessage s) = do
-    putE (fromIntegral (length s) :: Word16)
-    mapM_ putE s
+    putE (fromIntegral (T.length s) :: Word16)
+    putE s
 
 putEventSpec (UserMarker s) = do
-    putE (fromIntegral (length s) :: Word16)
-    mapM_ putE s
+    putE (fromIntegral (T.length s) :: Word16)
+    putE s
 
 putEventSpec (UnknownEvent {}) = error "putEventSpec UnknownEvent"
 
@@ -1363,9 +1359,9 @@ putEventSpec MerCapSleeping = return ()
 putEventSpec MerCallingMain = return ()
 
 putEventSpec PerfName{..} = do
-    putE (fromIntegral (length name) + sz_perf_num :: Word16)
+    putE (fromIntegral (T.length name) + sz_perf_num :: Word16)
     putE perfNum
-    mapM_ putE name
+    putE name
 
 putEventSpec PerfCounter{..} = do
     putE perfNum
@@ -1431,21 +1427,3 @@ putEventSpec ProfBegin {..} = do
 putEventSpec UserBinaryMessage {..} = do
     putE (fromIntegral (B.length payload) :: Word16)
     putByteString payload
-
--- [] == []
--- [x] == x\0
--- [x, y, z] == x\0y\0
-unsep :: [String] -> String
-unsep = concatMap (++"\0") -- not the most efficient, but should be ok
-
-splitNull :: String -> [String]
-splitNull [] = []
-splitNull xs = case span (/= '\0') xs of
-                (x, xs') -> x : splitNull (drop 1 xs')
-
-getText :: Get T.Text
-getText = do
-  chunks <- G.getLazyByteStringNul
-  case TLE.decodeUtf8' chunks of
-    Left err -> fail $ show err
-    Right text -> return $ TL.toStrict text
