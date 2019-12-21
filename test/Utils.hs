@@ -22,6 +22,7 @@ files = map ("test/"++)
 
 
 -- Code to help print the differences between a working test and a failing test.
+diffLines :: String -> String -> String
 diffLines o n = diff 1 (lines o) (lines n)
 
 diff :: Int -> [String] -> [String] -> String
