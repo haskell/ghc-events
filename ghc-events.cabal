@@ -27,6 +27,7 @@ tested-with:      GHC == 7.8.4
                   GHC == 8.4.4
                   GHC == 8.6.5
                   GHC == 8.8.3
+                  GHC == 8.10.1
 cabal-version:    >= 1.8
 extra-source-files: include/EventLogFormat.h
                     test/queens-ghc-6.12.1.eventlog
@@ -77,7 +78,7 @@ source-repository head
   location: git@github.com:haskell/ghc-events.git
 
 library
-  build-depends:    base       >= 4.7 && < 4.14,
+  build-depends:    base       >= 4.7 && < 4.15,
                     containers >= 0.5 && < 0.7,
                     binary     >= 0.7 && < 0.11,
                     bytestring >= 0.10.4,
