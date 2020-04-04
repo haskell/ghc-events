@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.13.0 - 2020-04-04
+
+* Fix broken UTF-8 decoding ([#55](https://github.com/haskell/ghc-events/pull/55))
+  * This is a breaking change. Most of the String fields in EventInfo have been replaced with Texts.
+* Support GHC 8.10.1
+
 ## 0.12.0 - 2019-12-02
 
 * Add support for EVENT_USER_BINARY_MSG ([#54](https://github.com/haskell/ghc-events/pull/54))
