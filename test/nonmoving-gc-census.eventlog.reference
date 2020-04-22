@@ -1,0 +1,340 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap mem ever allocated (size 12)
+50: Current heap size (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+160: Start of heap profile (size variable)
+161: Cost center definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+165: End of heap profile sample (size 8)
+166: Start of heap profile (biographical) sample (size 16)
+167: Time profile cost-centre stack (size variable)
+168: Start of a time profile (size 8)
+181: User binary message (size variable)
+200: Begin concurrent mark phase (size 0)
+201: End concurrent mark phase (size 4)
+202: Begin concurrent GC synchronisation (size 0)
+203: End concurrent GC synchronisation (size 0)
+204: Begin concurrent sweep (size 0)
+205: End concurrent sweep (size 0)
+206: Update remembered set flushed (size 2)
+207: Nonmoving heap census (size 13)
+
+Events:
+227855: capset 1: wall clock time 1587597517s 544758000ns (unix epoch)
+229418: capset 0: pid 1158
+231368: capset 0: parent pid 25700
+233264: capset 0: RTS version "GHC-8.11.0.20200422 rts_thr_l"
+233773: capset 0: args: ["nofib/shootout/binary-trees/Main","15","11","+RTS","-xn","-l-an"]
+2789899: Starting nonmoving GC preparation
+2811955: Marking roots for nonmoving GC
+2813333: Finished marking roots for nonmoving GC
+2813512: Finished nonmoving GC preparation
+2872560: concurrent mark began
+3320668: concurrent mark ended: marked 2869 objects
+3337805: post-mark synchronization began
+3337996: post-mark synchronization began
+3682910: cap 0: update remembered set flushed by 0
+3683825: concurrent mark began
+3692251: concurrent mark ended: marked 1042 objects
+3692392: concurrent mark began
+3692462: concurrent mark ended: marked 1 objects
+3692552: concurrent mark began
+3692621: concurrent mark ended: marked 1 objects
+3716334: post-mark synchronization ended
+3716512: post-mark synchronization ended
+3720779: concurrent sweep began
+3721599: concurrent sweep ended
+3726029: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+3728053: nonmoving heap census 16: 0 active segments, 0 filled segments, 54 live blocks
+3729679: nonmoving heap census 32: 0 active segments, 0 filled segments, 128 live blocks
+3730314: nonmoving heap census 64: 0 active segments, 0 filled segments, 0 live blocks
+3730776: nonmoving heap census 128: 0 active segments, 0 filled segments, 0 live blocks
+3731036: nonmoving heap census 256: 0 active segments, 0 filled segments, 0 live blocks
+3731339: nonmoving heap census 512: 0 active segments, 0 filled segments, 0 live blocks
+3731574: nonmoving heap census 1024: 0 active segments, 0 filled segments, 0 live blocks
+3731786: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+3731990: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+3732268: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+3732469: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+32362284: Starting nonmoving GC preparation
+32371855: Marking roots for nonmoving GC
+32373519: Finished marking roots for nonmoving GC
+32373686: Finished nonmoving GC preparation
+32557821: concurrent mark began
+33910745: concurrent mark ended: marked 16928 objects
+33914172: concurrent mark began
+33916300: concurrent mark ended: marked 13 objects
+33924796: post-mark synchronization began
+33925033: post-mark synchronization began
+34219802: cap 0: update remembered set flushed by 0
+34221200: concurrent mark began
+34240845: concurrent mark ended: marked 1084 objects
+34241350: concurrent mark began
+34241419: concurrent mark ended: marked 1 objects
+34241632: concurrent mark began
+34241702: concurrent mark ended: marked 1 objects
+34271446: post-mark synchronization ended
+34271858: post-mark synchronization ended
+34283960: concurrent sweep began
+34559614: concurrent sweep ended
+34563964: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+34576318: nonmoving heap census 16: 3 active segments, 0 filled segments, 1259 live blocks
+34591543: nonmoving heap census 32: 6 active segments, 4 filled segments, 6385 live blocks
+34596442: nonmoving heap census 64: 4 active segments, 1 filled segments, 1031 live blocks
+34597260: nonmoving heap census 128: 0 active segments, 0 filled segments, 42 live blocks
+34597718: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+34598055: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+34598375: nonmoving heap census 1024: 0 active segments, 0 filled segments, 4 live blocks
+34598666: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+34598997: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+34599265: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+34599501: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+67279769: Starting nonmoving GC preparation
+67281581: Marking roots for nonmoving GC
+67282874: Finished marking roots for nonmoving GC
+67283133: Finished nonmoving GC preparation
+67370910: concurrent mark began
+68397276: concurrent mark ended: marked 16875 objects
+68398499: concurrent mark began
+68399339: concurrent mark ended: marked 13 objects
+68402178: post-mark synchronization began
+68402344: post-mark synchronization began
+68682534: cap 0: update remembered set flushed by 0
+68683459: concurrent mark began
+68688876: concurrent mark ended: marked 352 objects
+68689271: concurrent mark began
+68689388: concurrent mark ended: marked 1 objects
+68689515: concurrent mark began
+68689626: concurrent mark ended: marked 1 objects
+68704339: post-mark synchronization ended
+68704591: post-mark synchronization ended
+68710131: concurrent sweep began
+68830040: concurrent sweep ended
+68834054: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+68843935: nonmoving heap census 16: 3 active segments, 1 filled segments, 2855 live blocks
+68858424: nonmoving heap census 32: 6 active segments, 3 filled segments, 5846 live blocks
+68862979: nonmoving heap census 64: 4 active segments, 0 filled segments, 703 live blocks
+68863622: nonmoving heap census 128: 0 active segments, 0 filled segments, 43 live blocks
+68863967: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+68864313: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+68864669: nonmoving heap census 1024: 0 active segments, 0 filled segments, 5 live blocks
+68865004: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+68865354: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+68865670: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+68865931: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+119827283: Starting nonmoving GC preparation
+119830728: Marking roots for nonmoving GC
+119831795: Finished marking roots for nonmoving GC
+119831988: Finished nonmoving GC preparation
+119938842: concurrent mark began
+121053293: concurrent mark ended: marked 16438 objects
+121056540: concurrent mark began
+121057919: concurrent mark ended: marked 13 objects
+121066516: post-mark synchronization began
+121066859: post-mark synchronization began
+121154737: cap 0: update remembered set flushed by 0
+121161224: concurrent mark began
+121186040: concurrent mark ended: marked 1079 objects
+121186533: concurrent mark began
+121186646: concurrent mark ended: marked 1 objects
+121186774: concurrent mark began
+121186841: concurrent mark ended: marked 1 objects
+121231348: post-mark synchronization ended
+121231969: post-mark synchronization ended
+121242597: concurrent sweep began
+121385240: concurrent sweep ended
+121390264: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+121405730: nonmoving heap census 16: 3 active segments, 0 filled segments, 1568 live blocks
+121430287: nonmoving heap census 32: 7 active segments, 3 filled segments, 6270 live blocks
+121436146: nonmoving heap census 64: 4 active segments, 1 filled segments, 897 live blocks
+121437265: nonmoving heap census 128: 0 active segments, 0 filled segments, 43 live blocks
+121437840: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+121438948: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+121439371: nonmoving heap census 1024: 0 active segments, 0 filled segments, 5 live blocks
+121439723: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+121440083: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+121440368: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+121441292: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+148361407: Starting nonmoving GC preparation
+148365127: Marking roots for nonmoving GC
+148366468: Finished marking roots for nonmoving GC
+148366670: Finished nonmoving GC preparation
+148527085: concurrent mark began
+149775840: concurrent mark ended: marked 15225 objects
+149778324: concurrent mark began
+149779513: concurrent mark ended: marked 13 objects
+149810324: post-mark synchronization began
+149810665: post-mark synchronization began
+149850617: cap 0: update remembered set flushed by 0
+149851300: concurrent mark began
+149866270: concurrent mark ended: marked 1049 objects
+149866671: concurrent mark began
+149866848: concurrent mark ended: marked 1 objects
+149867039: concurrent mark began
+149867202: concurrent mark ended: marked 1 objects
+149874824: post-mark synchronization ended
+149875168: post-mark synchronization ended
+149901246: concurrent sweep began
+150026135: concurrent sweep ended
+150031083: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+150045140: nonmoving heap census 16: 3 active segments, 1 filled segments, 3342 live blocks
+150066310: nonmoving heap census 32: 8 active segments, 3 filled segments, 5613 live blocks
+150071204: nonmoving heap census 64: 4 active segments, 0 filled segments, 567 live blocks
+150071885: nonmoving heap census 128: 0 active segments, 0 filled segments, 44 live blocks
+150073125: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+150073558: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+150074077: nonmoving heap census 1024: 0 active segments, 0 filled segments, 6 live blocks
+150074414: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+150074832: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+150075820: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+150076102: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+176942302: Starting nonmoving GC preparation
+176945061: Marking roots for nonmoving GC
+176946066: Finished marking roots for nonmoving GC
+176946253: Finished nonmoving GC preparation
+177039035: concurrent mark began
+177741825: concurrent mark ended: marked 15542 objects
+177744446: concurrent mark began
+177745256: concurrent mark ended: marked 13 objects
+177750528: post-mark synchronization began
+177750635: post-mark synchronization began
+177896570: cap 0: update remembered set flushed by 0
+177896939: concurrent mark began
+177910616: concurrent mark ended: marked 1082 objects
+177911218: concurrent mark began
+177911307: concurrent mark ended: marked 1 objects
+177911422: concurrent mark began
+177911493: concurrent mark ended: marked 1 objects
+177919949: post-mark synchronization ended
+177920053: post-mark synchronization ended
+177925925: concurrent sweep began
+178017822: concurrent sweep ended
+178020408: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+178026736: nonmoving heap census 16: 1 active segments, 1 filled segments, 2963 live blocks
+178041784: nonmoving heap census 32: 7 active segments, 3 filled segments, 5977 live blocks
+178045269: nonmoving heap census 64: 4 active segments, 1 filled segments, 757 live blocks
+178045812: nonmoving heap census 128: 0 active segments, 0 filled segments, 44 live blocks
+178046142: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+178046413: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+178046632: nonmoving heap census 1024: 0 active segments, 0 filled segments, 6 live blocks
+178047048: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+178047379: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+178047876: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+178048246: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+202506857: Starting nonmoving GC preparation
+202508058: Marking roots for nonmoving GC
+202517509: Finished marking roots for nonmoving GC
+202517677: Finished nonmoving GC preparation
+202566458: concurrent mark began
+203074473: concurrent mark ended: marked 16604 objects
+203074950: concurrent mark began
+203075547: concurrent mark ended: marked 13 objects
+203078118: post-mark synchronization began
+203078232: post-mark synchronization began
+203131205: cap 0: update remembered set flushed by 0
+203131506: concurrent mark began
+203140444: concurrent mark ended: marked 1083 objects
+203140572: concurrent mark began
+203140635: concurrent mark ended: marked 1 objects
+203140714: concurrent mark began
+203140783: concurrent mark ended: marked 1 objects
+203149980: post-mark synchronization ended
+203150083: post-mark synchronization ended
+203153609: concurrent sweep began
+203241257: concurrent sweep ended
+203243717: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+203252554: nonmoving heap census 16: 3 active segments, 1 filled segments, 3188 live blocks
+203263495: nonmoving heap census 32: 7 active segments, 4 filled segments, 6373 live blocks
+203266345: nonmoving heap census 64: 4 active segments, 1 filled segments, 947 live blocks
+203266828: nonmoving heap census 128: 0 active segments, 0 filled segments, 45 live blocks
+203267099: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+203267302: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+203267563: nonmoving heap census 1024: 0 active segments, 0 filled segments, 7 live blocks
+203267805: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+203268121: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+203268260: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+203268439: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+224422635: Starting nonmoving GC preparation
+224424065: Marking roots for nonmoving GC
+224424970: Finished marking roots for nonmoving GC
+224425126: Finished nonmoving GC preparation
+224506119: concurrent mark began
+225279214: concurrent mark ended: marked 15033 objects
+225280063: concurrent mark began
+225280703: concurrent mark ended: marked 13 objects
+225283313: post-mark synchronization began
+225283479: post-mark synchronization began
+225341600: cap 0: update remembered set flushed by 0
+225342335: concurrent mark began
+225351353: concurrent mark ended: marked 1049 objects
+225351605: concurrent mark began
+225351675: concurrent mark ended: marked 1 objects
+225351773: concurrent mark began
+225351842: concurrent mark ended: marked 1 objects
+225383632: post-mark synchronization ended
+225383831: post-mark synchronization ended
+225388468: concurrent sweep began
+225553609: concurrent sweep ended
+225557870: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+225572051: nonmoving heap census 16: 3 active segments, 0 filled segments, 1860 live blocks
+225587504: nonmoving heap census 32: 6 active segments, 3 filled segments, 5705 live blocks
+225592583: nonmoving heap census 64: 4 active segments, 0 filled segments, 621 live blocks
+225593429: nonmoving heap census 128: 0 active segments, 0 filled segments, 46 live blocks
+225593797: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+225594147: nonmoving heap census 512: 0 active segments, 0 filled segments, 1 live blocks
+225594554: nonmoving heap census 1024: 0 active segments, 0 filled segments, 8 live blocks
+225594804: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+225595452: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+225596376: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+225597481: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+

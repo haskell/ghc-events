@@ -38,6 +38,8 @@ extra-source-files: include/EventLogFormat.h
                     test/mandelbrot-mmc-2011-06-14.eventlog.reference
                     test/nonmoving-gc.eventlog
                     test/nonmoving-gc.eventlog.reference
+                    test/nonmoving-gc-census.eventlog
+                    test/nonmoving-gc-census.eventlog.reference
                     test/parallelTest.eventlog
                     test/parallelTest.eventlog.reference
                     test/pre77stop.eventlog
