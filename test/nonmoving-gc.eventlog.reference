@@ -1,0 +1,95 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap mem ever allocated (size 12)
+50: Current heap size (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+160: Start of heap profile (size variable)
+161: Cost center definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+165: End of heap profile sample (size 8)
+166: Start of heap profile (biographical) sample (size 16)
+167: Time profile cost-centre stack (size variable)
+168: Start of a time profile (size 8)
+181: User binary message (size variable)
+200: Begin concurrent mark phase (size 0)
+201: End concurrent mark phase (size 4)
+202: Begin concurrent GC synchronisation (size 0)
+203: End concurrent GC synchronisation (size 0)
+204: Begin concurrent sweep (size 0)
+205: End concurrent sweep (size 0)
+206: Update remembered set flushed (size 2)
+207: Nonmoving heap census (size 13)
+
+Events:
+620636: capset 1: wall clock time 1587578331s 829795000ns (unix epoch)
+627395: capset 0: pid 20807
+636419: capset 0: parent pid 18766
+644544: capset 0: RTS version "GHC-8.10.1 rts_thr_debug"
+649853: capset 0: args: ["./Main","10","+RTS","-l-an","-xn"]
+20282519: Starting nonmoving GC preparation
+20305849: Marking roots for nonmoving GC
+20331402: Finished marking roots for nonmoving GC
+20333822: Finished nonmoving GC preparation
+20810540: concurrent mark began
+30089152: concurrent mark ended: marked 6677 objects
+30210049: post-mark synchronization began
+32582336: cap 0: update remembered set flushed by 0
+32608578: concurrent mark began
+35122177: concurrent mark ended: marked 7758 objects
+35126012: concurrent mark began
+35127755: concurrent mark ended: marked 1 objects
+35129046: concurrent mark began
+35129935: concurrent mark ended: marked 1 objects
+35203888: post-mark synchronization ended
+35258771: concurrent sweep began
+35263947: concurrent sweep ended
+
