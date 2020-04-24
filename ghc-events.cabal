@@ -36,6 +36,10 @@ extra-source-files: include/EventLogFormat.h
                     test/queens-ghc-7.0.2.eventlog.reference
                     test/mandelbrot-mmc-2011-06-14.eventlog
                     test/mandelbrot-mmc-2011-06-14.eventlog.reference
+                    test/nonmoving-gc.eventlog
+                    test/nonmoving-gc.eventlog.reference
+                    test/nonmoving-gc-census.eventlog
+                    test/nonmoving-gc-census.eventlog.reference
                     test/parallelTest.eventlog
                     test/parallelTest.eventlog.reference
                     test/pre77stop.eventlog

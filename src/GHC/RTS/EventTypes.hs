@@ -431,6 +431,22 @@ data EventInfo
 
   | UserBinaryMessage  { payload :: !B.ByteString
                        }
+
+  | ConcMarkBegin
+  | ConcMarkEnd        { concMarkedObjectCount :: !Word32
+                       }
+  | ConcSyncBegin
+  | ConcSyncEnd
+  | ConcSweepBegin
+  | ConcSweepEnd
+  | ConcUpdRemSetFlush { cap    :: {-# UNPACK #-}!Int
+                       }
+  | NonmovingHeapCensus
+                       { nonmovingCensusBlkSize :: !Word8
+                       , nonmovingCensusActiveSegs :: !Word32
+                       , nonmovingCensusFilledSegs :: !Word32
+                       , nonmovingCensusLiveBlocks :: !Word32
+                       }
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]

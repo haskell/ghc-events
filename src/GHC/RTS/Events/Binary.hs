@@ -317,6 +317,27 @@ standardParsers = [
       str <- getText (num - sz_tid)
       return ThreadLabel{ thread      = tid
                         , threadlabel = str }
+    )),
+
+ (simpleEvent EVENT_CONC_MARK_BEGIN ConcMarkBegin),
+ (FixedSizeParser EVENT_CONC_MARK_END 4 (do -- (marked_object_count)
+      num <- get :: Get Word32
+      return ConcMarkEnd{ concMarkedObjectCount = num }
+    )),
+ (simpleEvent EVENT_CONC_SYNC_BEGIN ConcSyncBegin),
+ (simpleEvent EVENT_CONC_SYNC_END ConcSyncEnd),
+ (simpleEvent EVENT_CONC_SWEEP_BEGIN ConcSweepBegin),
+ (simpleEvent EVENT_CONC_SWEEP_END ConcSweepEnd),
+ (FixedSizeParser EVENT_CONC_UPD_REM_SET_FLUSH sz_cap (do -- (cap)
+      cap <- get :: Get CapNo
+      return ConcUpdRemSetFlush{ cap = fromIntegral cap }
+    )),
+ (FixedSizeParser EVENT_NONMOVING_HEAP_CENSUS 13 (do -- (blk_size, active_segs, filled_segs, live_blks)
+      nonmovingCensusBlkSize <- get :: Get Word8
+      nonmovingCensusActiveSegs <- get :: Get Word32
+      nonmovingCensusFilledSegs <- get :: Get Word32
+      nonmovingCensusLiveBlocks <- get :: Get Word32
+      return NonmovingHeapCensus{..}
     ))
  ]
 
@@ -1002,6 +1023,14 @@ eventTypeNum e = case e of
     ProfSampleCostCentre {} -> EVENT_PROF_SAMPLE_COST_CENTRE
     ProfBegin {}            -> EVENT_PROF_BEGIN
     UserBinaryMessage {} -> EVENT_USER_BINARY_MSG
+    ConcMarkBegin {} -> EVENT_CONC_MARK_BEGIN
+    ConcMarkEnd {} -> EVENT_CONC_MARK_END
+    ConcSyncBegin {} -> EVENT_CONC_SYNC_BEGIN
+    ConcSyncEnd {} -> EVENT_CONC_SYNC_END
+    ConcSweepBegin {} -> EVENT_CONC_SWEEP_BEGIN
+    ConcSweepEnd {} -> EVENT_CONC_SWEEP_END
+    ConcUpdRemSetFlush {} -> EVENT_CONC_UPD_REM_SET_FLUSH
+    NonmovingHeapCensus {} -> EVENT_NONMOVING_HEAP_CENSUS
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1427,3 +1456,18 @@ putEventSpec ProfBegin {..} = do
 putEventSpec UserBinaryMessage {..} = do
     putE (fromIntegral (B.length payload) :: Word16)
     putByteString payload
+
+putEventSpec ConcMarkBegin = return ()
+putEventSpec ConcMarkEnd {..} = do
+    putE concMarkedObjectCount
+putEventSpec ConcSyncBegin = return ()
+putEventSpec ConcSyncEnd = return ()
+putEventSpec ConcSweepBegin = return ()
+putEventSpec ConcSweepEnd = return ()
+putEventSpec ConcUpdRemSetFlush {..} = do
+    putCap cap
+putEventSpec NonmovingHeapCensus {..} = do
+    putE nonmovingCensusBlkSize
+    putE nonmovingCensusActiveSegs
+    putE nonmovingCensusFilledSegs
+    putE nonmovingCensusLiveBlocks
