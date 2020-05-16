@@ -295,12 +295,19 @@ buildEventInfo spec' =
           <> TB.decimal parMaxCopied <> " bytes max par copied, "
           <> TB.decimal parTotCopied <> " bytes total par copied"
           <> maybe mempty (\val -> ", " <> TB.decimal val <> " bytes balanced par copied") parBalancedCopied
+        MemReturn{..} ->
+          "memory returned (mblocks): current(" <> TB.decimal current  <>
+                                   ") needed(" <> TB.decimal needed  <>
+                                   ") returned(" <> TB.decimal returned <> ")"
         HeapAllocated{..} ->
           "allocated on heap capset " <> TB.decimal heapCapset
           <> ": " <> TB.decimal allocBytes <> " total bytes till now"
         HeapSize{..} ->
           "size of heap capset " <> TB.decimal heapCapset
           <> ": " <> TB.decimal sizeBytes <> " bytes"
+        BlocksSize{..} ->
+          "blocks size of heap capset " <> TB.decimal heapCapset
+          <> ": " <> TB.decimal blocksSize <> " bytes"
         HeapLive{..} ->
           "live data in heap capset " <> TB.decimal heapCapset
           <> ": " <> TB.decimal liveBytes <> " bytes"
@@ -462,6 +469,11 @@ buildEventInfo spec' =
           <> " in " <> TB.fromText heapProfModule
           <> " at " <> TB.fromText heapProfSrcLoc
           <> if isCaf heapProfFlags then " CAF" else ""
+        InfoTableProv{..} ->
+         "Info Table: " <> TB.hexadecimal itInfo <> ":"
+                        <> TB.decimal itClosureDesc <> ":"
+                        <> TB.fromText itTableName
+                        <> " - " <> TB.fromText itSrcLoc
         HeapProfSampleBegin {..} ->
           "start heap prof sample " <> TB.decimal heapProfSampleEra
         HeapProfSampleEnd {..} ->
@@ -581,6 +593,7 @@ showHeapProfBreakdown breakdown = case breakdown of
   HeapProfBreakdownRetainer -> "retainer"
   HeapProfBreakdownBiography -> "biography"
   HeapProfBreakdownClosureType -> "closure type"
+  HeapProfBreakdownInfoTable -> "info table"
 
 ppEventLog :: EventLog -> String
 ppEventLog = TL.unpack . TB.toLazyText . buildEventLog

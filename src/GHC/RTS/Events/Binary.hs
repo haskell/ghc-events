@@ -42,6 +42,7 @@ import Data.Binary.Put
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString as B
 import qualified Data.Text as T
+import qualified Data.Text.Read as TR
 import qualified Data.Text.Encoding as TE
 import qualified Data.Vector.Unboxed as VU
 
@@ -177,6 +178,17 @@ standardParsers = [
                        , ..}
  )),
 
+ (FixedSizeParser EVENT_MEM_RETURN (sz_capset + 3*4) (do
+      heapCapset   <- get
+      current      <- get :: Get Word32
+      needed       <- get :: Get Word32
+      returned     <- get :: Get Word32
+      return $! MemReturn{ current = current
+                       , needed = needed
+                       , returned = returned
+                       , ..}
+ )),
+
  (FixedSizeParser EVENT_HEAP_ALLOCATED (sz_capset + 8) (do  -- (heap_capset, alloc_bytes)
       heapCapset <- get
       allocBytes <- get
@@ -187,6 +199,11 @@ standardParsers = [
       heapCapset <- get
       sizeBytes  <- get
       return HeapSize{..}
+ )),
+ (FixedSizeParser EVENT_BLOCKS_SIZE (sz_capset + 8) (do  -- (heap_capset, blocks_size)
+      heapCapset <- get
+      blocksSize  <- get
+      return $! BlocksSize{..}
  )),
 
  (FixedSizeParser EVENT_HEAP_LIVE (sz_capset + 8) (do  -- (heap_capset, live_bytes)
@@ -813,6 +830,28 @@ heapProfParsers =
         ])
       (return ())
     return $! HeapProfCostCentre {..}
+  , VariableSizeParser EVENT_IPE $ do
+    payloadLen <- get :: Get Word16
+    itInfo <- get
+    itTableName <- getTextNul
+    itClosureDescText <- getTextNul
+    itClosureDesc <- either fail (return . fst) (TR.decimal itClosureDescText)
+    itTyDesc <- getTextNul
+    itLabel <- getTextNul
+    itModule <- getTextNul
+    itSrcLoc <- getTextNul
+    assert
+      (fromIntegral payloadLen == sum
+        [ 8 -- itInfo
+        , textByteLen itTableName
+        , textByteLen itClosureDescText
+        , textByteLen itTyDesc
+        , textByteLen itLabel
+        , textByteLen itModule
+        , textByteLen itSrcLoc
+        ])
+      (return ())
+    return $! InfoTableProv {..}
   , FixedSizeParser EVENT_HEAP_PROF_SAMPLE_BEGIN 8 $ do
     heapProfSampleEra <- get
     return $! HeapProfSampleBegin {..}
@@ -993,6 +1032,7 @@ eventTypeNum e = case e of
     GCStatsGHC{} -> EVENT_GC_STATS_GHC
     HeapAllocated{} -> EVENT_HEAP_ALLOCATED
     HeapSize{} -> EVENT_HEAP_SIZE
+    BlocksSize{} -> EVENT_BLOCKS_SIZE
     HeapLive{} -> EVENT_HEAP_LIVE
     HeapInfoGHC{} -> EVENT_HEAP_INFO_GHC
     CapCreate{} -> EVENT_CAP_CREATE
@@ -1060,6 +1100,8 @@ eventTypeNum e = case e of
     NonmovingHeapCensus {} -> EVENT_NONMOVING_HEAP_CENSUS
     TickyCounterDef {} -> EVENT_TICKY_COUNTER_DEF
     TickyCounterSample {} -> EVENT_TICKY_COUNTER_SAMPLE
+    InfoTableProv {} -> EVENT_IPE
+    MemReturn {} -> EVENT_MEM_RETURN
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1222,6 +1264,12 @@ putEventSpec GCStatsGHC{..} = do
       Nothing -> return ()
       Just v  -> putE v
 
+putEventSpec MemReturn{..} = do
+    putE heapCapset
+    putE current
+    putE needed
+    putE returned
+
 putEventSpec HeapAllocated{..} = do
     putE heapCapset
     putE allocBytes
@@ -1229,6 +1277,10 @@ putEventSpec HeapAllocated{..} = do
 putEventSpec HeapSize{..} = do
     putE heapCapset
     putE sizeBytes
+
+putEventSpec BlocksSize{..} = do
+    putE heapCapset
+    putE blocksSize
 
 putEventSpec HeapLive{..} = do
     putE heapCapset
@@ -1510,3 +1562,13 @@ putEventSpec TickyCounterSample {..} = do
     putE tickyCtrSampleEntryCount
     putE tickyCtrSampleAllocs
     putE tickyCtrSampleAllocd
+putEventSpec InfoTableProv{..} = do
+    putE itInfo
+    mapM_ (putE . T.unpack)
+      [ itTableName
+      , T.pack (show itClosureDesc)
+      , itTyDesc
+      , itLabel
+      , itModule
+      , itSrcLoc
+      ]

@@ -183,6 +183,8 @@
 #define EVENT_RECEIVE_MESSAGE            68 /* (tag, receiver_process, receiver_inport, sender_machine, sender_process, sender_outport, message_size) */
 #define EVENT_SEND_RECEIVE_LOCAL_MESSAGE 69 /* (tag, sender_process, sender_thread, receiver_process, receiver_inport) */
 
+#define EVENT_MEM_RETURN                 90 /* (cap, current_mblocks, needed_mblocks, returned_mblocks) */
+#define EVENT_BLOCKS_SIZE                91 /* (heapcapset, size_bytes) */
 
 /* Range 100 - 139 is reserved for Mercury, see below. */
 
@@ -199,6 +201,7 @@
 #define EVENT_HEAP_BIO_PROF_SAMPLE_BEGIN   166
 #define EVENT_PROF_SAMPLE_COST_CENTRE      167
 #define EVENT_PROF_BEGIN                   168
+#define EVENT_IPE                          169
 
 #define EVENT_USER_BINARY_MSG              181
 

@@ -220,6 +220,11 @@ data EventInfo
                        , parTotCopied :: {-# UNPACK #-}!Word64
                        , parBalancedCopied :: !(Maybe Word64)
                        }
+  | MemReturn          { heapCapset :: !Capset
+                       , current :: !Word32
+                       , needed :: !Word32
+                       , returned :: !Word32
+                       }
 
   -- heap statistics
   | HeapAllocated      { heapCapset  :: {-# UNPACK #-}!Capset
@@ -227,6 +232,9 @@ data EventInfo
                        }
   | HeapSize           { heapCapset  :: {-# UNPACK #-}!Capset
                        , sizeBytes   :: {-# UNPACK #-}!Word64
+                       }
+  | BlocksSize         { heapCapset  :: {-# UNPACK #-}!Capset
+                       , blocksSize  :: {-# UNPACK #-}!Word64
                        }
   | HeapLive           { heapCapset  :: {-# UNPACK #-}!Capset
                        , liveBytes   :: {-# UNPACK #-}!Word64
@@ -396,6 +404,13 @@ data EventInfo
                        , heapProfSrcLoc :: !Text
                        , heapProfFlags :: !HeapProfFlags
                        }
+  | InfoTableProv      { itInfo :: !Word64
+                       , itTableName :: !Text
+                       , itClosureDesc :: !Int
+                       , itTyDesc :: !Text
+                       , itLabel :: !Text
+                       , itModule :: !Text
+                       , itSrcLoc :: !Text }
   | HeapProfSampleBegin
                        { heapProfSampleEra :: !Word64
                        }
@@ -614,6 +629,7 @@ data HeapProfBreakdown
   | HeapProfBreakdownRetainer
   | HeapProfBreakdownBiography
   | HeapProfBreakdownClosureType
+  | HeapProfBreakdownInfoTable
   deriving Show
 
 instance Binary HeapProfBreakdown where
@@ -627,6 +643,7 @@ instance Binary HeapProfBreakdown where
       5 -> return HeapProfBreakdownRetainer
       6 -> return HeapProfBreakdownBiography
       7 -> return HeapProfBreakdownClosureType
+      8 -> return HeapProfBreakdownInfoTable
       _ -> fail $ "Unknown HeapProfBreakdown: " ++ show n
   put breakdown = put $ case breakdown of
     HeapProfBreakdownCostCentre -> (1 :: Word32)
@@ -636,6 +653,7 @@ instance Binary HeapProfBreakdown where
     HeapProfBreakdownRetainer -> 5
     HeapProfBreakdownBiography -> 6
     HeapProfBreakdownClosureType -> 7
+    HeapProfBreakdownInfoTable -> 8
 
 newtype HeapProfFlags = HeapProfFlags Word8
   deriving (Show, Binary)
