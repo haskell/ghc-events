@@ -3,7 +3,10 @@
 -- This module provides a routine for sorting events in constant-space via
 -- on-disk merge sort.
 module GHC.RTS.Events.Sort
-  ( GHC.RTS.Events.Sort.sortEvents
+  ( sortEvents
+  , sortEvents'
+  , SortParams(..)
+  , defaultSortParams
   ) where
 
 import Data.Traversable
@@ -20,23 +23,10 @@ import Data.Binary.Put as P
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Sequence as S
 
-import GHC.RTS.Events
+import GHC.RTS.Events hiding (sortEvents)
 import GHC.RTS.Events.Binary (putEventLog)
 
 type SortedChunk = FilePath
-
--- | The chunk size which the input eventlog is broken into (in events). This
--- determines the upper-bound on memory usage during the sorting process.
---
--- This value is a reasonable trade-off between memory and computation,
--- requiring approximately 100MBytes while sorting a "typical" eventlog.
-cHUNK_SIZE :: Int
-cHUNK_SIZE = 500*1000
-
--- | Maximum number of chunks to merge at once. Determined by the largest
--- number of file descriptors we can safely open at once.
-fAN_IN :: Int
-fAN_IN = 256
 
 newtype OnTime = OnTime Event
 
@@ -46,39 +36,75 @@ instance Ord OnTime where
 instance Eq OnTime where
   (==) = coerce ((==) `on` evTime)
 
+-- | Parameters which determine the behavior of the merge sort.
+data SortParams = SortParams
+  { -- | The chunk size which the input eventlog is broken into (in events). This
+    -- determines the upper-bound on memory usage during the sorting process.
+    --
+    -- This value is a reasonable trade-off between memory and computation,
+    -- requiring approximately 100MBytes while sorting a "typical" eventlog.
+    chunkSize :: !Int
+
+    -- | Maximum number of chunks to merge at once. Determined by the largest
+    -- number of file descriptors we can safely open at once.
+  , maxFanIn  :: !Int
+  }
+
+-- | A reasonable set of sorting parameters.
+defaultSortParams :: SortParams
+defaultSortParams =
+  SortParams { chunkSize = 500*1000
+             , maxFanIn  = 256
+             }
+
 -- | @sortEvents tmpDir outPath eventlog@ sorts @eventlog@ via on-disk merge
 -- sort, using @tmpDir@ for intermediate data. The sorted eventlog is written
 -- to @eventlog@.
-sortEvents :: FilePath  -- ^ temporary directory
-           -> FilePath  -- ^ output eventlog file path
-           -> EventLog  -- ^ eventlog to sort
-           -> IO ()
-sortEvents _tmpDir _outPath (EventLog _ (Data [])) = fail "sortEvents: no events"
-sortEvents tmpDir outPath (EventLog hdr (Data events0)) = do
+sortEvents
+  :: FilePath  -- ^ temporary directory
+  -> FilePath  -- ^ output eventlog file path
+  -> EventLog  -- ^ eventlog to sort
+  -> IO ()
+sortEvents = sortEvents' defaultSortParams
+
+-- | @sortEvents' params tmpDir outPath eventlog@ sorts
+-- @eventlog@ via on-disk merge sort, using @tmpDir@ for
+-- intermediate data. The sorted eventlog is written to
+-- @eventlog@.
+sortEvents'
+  :: SortParams
+  -> FilePath  -- ^ temporary directory
+  -> FilePath  -- ^ output eventlog file path
+  -> EventLog  -- ^ eventlog to sort
+  -> IO ()
+sortEvents' _params _tmpDir _outPath (EventLog _ (Data [])) = fail "sortEvents: no events"
+sortEvents' params tmpDir outPath (EventLog hdr (Data events0)) = do
     chunks <- toSortedChunks events0
     hdl <- openBinaryFile outPath WriteMode
     mergeChunks' hdl chunks
     hClose hdl
     return ()
   where
+    SortParams chunkSize fanIn = params
+
     toSortedChunks :: [Event] -> IO (S.Seq SortedChunk)
     toSortedChunks =
       fmap S.fromList
       . mapM (writeTempChunk . sortEventsInMem)
-      . chunksOf cHUNK_SIZE
+      . chunksOf chunkSize
 
     mergeChunks' :: Handle -> S.Seq SortedChunk -> IO ()
     mergeChunks' destFile chunks
       | S.null chunks =
         fail "sortEvents: this can't happen"
-      | S.length chunks <= fAN_IN = do
+      | S.length chunks <= fanIn = do
         events <- mapM readChunk chunks
         let sorted = mergeSort $ toList (coerce events :: S.Seq [OnTime])
         writeChunk destFile (coerce sorted)
         mapM_ removeFile chunks
         hClose destFile
       | otherwise = do
-        chunksss <- flip mapM (nChunks fAN_IN chunks) $ \fps -> do
+        chunksss <- flip mapM (nChunks fanIn chunks) $ \fps -> do
           (fp, hdl) <- createTempChunk
           mergeChunks' hdl fps
           return fp
