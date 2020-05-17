@@ -126,3 +126,11 @@ test-suite write-merge
   build-depends:    ghc-events, base, bytestring
   extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   buildable:        False
+
+test-suite roundtrip
+  type:             exitcode-stdio-1.0
+  main-is:          Roundtrip.hs
+  other-modules:    Utils
+  hs-source-dirs:   ., test
+  build-depends:    ghc-events, base
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
