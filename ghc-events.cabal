@@ -101,14 +101,14 @@ library
                     GHC.RTS.Events.Binary
   hs-source-dirs:   src
   include-dirs:     include
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   other-extensions: FlexibleContexts, CPP
   ghc-options:      -Wall
 
 executable ghc-events
   main-is:          GhcEvents.hs
   build-depends:    ghc-events, base, containers
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
@@ -116,7 +116,7 @@ test-suite test-versions
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite write-merge
   type:             exitcode-stdio-1.0
@@ -124,5 +124,5 @@ test-suite write-merge
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base, bytestring
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   buildable:        False
