@@ -13,6 +13,9 @@ module GHC.RTS.Events.Incremental
   , readHeader
   , readEvents
   , readEventLog
+
+  -- * Low-level API
+  , mkEventDecoder
   ) where
 import Control.Monad
 import Data.Either

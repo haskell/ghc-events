@@ -88,8 +88,11 @@ library
                     bytestring >= 0.10.4,
                     array      >= 0.2 && < 0.6,
                     text       >= 0.11.2.3 && < 1.3,
-                    vector     >= 0.7 && < 0.13
+                    vector     >= 0.7 && < 0.13,
+                    temporary,
+                    directory
   exposed-modules:  GHC.RTS.Events,
+                    GHC.RTS.Events.Sort
                     GHC.RTS.Events.Incremental
                     GHC.RTS.Events.Merge
                     GHC.RTS.Events.Analysis
@@ -101,14 +104,14 @@ library
                     GHC.RTS.Events.Binary
   hs-source-dirs:   src
   include-dirs:     include
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   other-extensions: FlexibleContexts, CPP
   ghc-options:      -Wall
 
 executable ghc-events
   main-is:          GhcEvents.hs
   build-depends:    ghc-events, base, containers
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
   type:             exitcode-stdio-1.0
@@ -116,7 +119,7 @@ test-suite test-versions
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite write-merge
   type:             exitcode-stdio-1.0
@@ -124,5 +127,21 @@ test-suite write-merge
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base, bytestring
-  extensions:	    RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   buildable:        False
+
+test-suite roundtrip
+  type:             exitcode-stdio-1.0
+  main-is:          Roundtrip.hs
+  other-modules:    Utils
+  hs-source-dirs:   ., test
+  build-depends:    ghc-events, base
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+
+test-suite merge-sort
+  type:             exitcode-stdio-1.0
+  main-is:          Sort.hs
+  other-modules:    Utils
+  hs-source-dirs:   ., test
+  build-depends:    ghc-events, base, bytestring, filepath, temporary
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
