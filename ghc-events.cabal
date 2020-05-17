@@ -137,3 +137,11 @@ test-suite roundtrip
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base
   extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+
+test-suite merge-sort
+  type:             exitcode-stdio-1.0
+  main-is:          Sort.hs
+  other-modules:    Utils
+  hs-source-dirs:   ., test
+  build-depends:    ghc-events, base, bytestring, filepath, temporary
+  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
