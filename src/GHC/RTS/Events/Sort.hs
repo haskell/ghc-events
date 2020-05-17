@@ -16,6 +16,7 @@ import Data.List (sortBy, minimumBy)
 import Data.Maybe
 import Data.Foldable (toList)
 import System.IO
+import System.IO.Temp
 import System.Directory
 import Prelude
 
@@ -57,20 +58,23 @@ defaultSortParams =
              , maxFanIn  = 256
              }
 
--- | @sortEvents tmpDir outPath eventlog@ sorts @eventlog@ via on-disk merge
--- sort, using @tmpDir@ for intermediate data. The sorted eventlog is written
--- to @eventlog@.
+-- | @sortEvents outPath eventlog@ sorts @eventlog@ via on-disk merge
+-- sort. The sorted eventlog is written to @eventlog@. The system's temporary
+-- directory is used for temporary data. See 'sortEvents\'' for more control.
 sortEvents
-  :: FilePath  -- ^ temporary directory
-  -> FilePath  -- ^ output eventlog file path
+  :: FilePath  -- ^ output eventlog file path
   -> EventLog  -- ^ eventlog to sort
   -> IO ()
-sortEvents = sortEvents' defaultSortParams
+sortEvents outPath eventLog =
+  withSystemTempDirectory "sort-events" $ \tmpDir ->
+    sortEvents' defaultSortParams tmpDir outPath eventLog
 
 -- | @sortEvents' params tmpDir outPath eventlog@ sorts
 -- @eventlog@ via on-disk merge sort, using @tmpDir@ for
--- intermediate data. The sorted eventlog is written to
--- @eventlog@.
+-- intermediate data. The caller is responsible for deleting @tmpDir@ upon
+-- return.
+--
+-- The sorted eventlog is written to @eventlog@.
 sortEvents'
   :: SortParams
   -> FilePath  -- ^ temporary directory
