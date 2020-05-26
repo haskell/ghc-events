@@ -944,6 +944,7 @@ tickyParsers =
     tickyCtrSampleAllocs     <- get
     tickyCtrSampleAllocd     <- get
     return $! TickyCounterSample{..}
+  , simpleEvent EVENT_TICKY_BEGIN_SAMPLE TickyBeginSample
   ]
 
 -- | String byte length in the eventlog format. It includes
@@ -1102,6 +1103,7 @@ eventTypeNum e = case e of
     TickyCounterSample {} -> EVENT_TICKY_COUNTER_SAMPLE
     InfoTableProv {} -> EVENT_IPE
     MemReturn {} -> EVENT_MEM_RETURN
+    TickyBeginSample {} -> EVENT_TICKY_BEGIN_SAMPLE
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1572,3 +1574,4 @@ putEventSpec InfoTableProv{..} = do
       , itModule
       , itSrcLoc
       ]
+putEventSpec TickyBeginSample = return ()
