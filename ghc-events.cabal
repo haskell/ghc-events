@@ -125,6 +125,7 @@ test-suite write-merge
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base, bytestring
   extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  -- disabled until #14 is fixed
   buildable:        False
 
 test-suite roundtrip
@@ -134,3 +135,5 @@ test-suite roundtrip
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base
   extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
+  -- disabled until #14 is fixed
+  buildable:        False
