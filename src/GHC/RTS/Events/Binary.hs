@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 module GHC.RTS.Events.Binary
   ( -- * Readers
     getHeader
@@ -912,12 +913,12 @@ putHeader (Header ets) = do
     putMarker EVENT_HET_END
     putMarker EVENT_HEADER_END
  where
-    putEventType (EventType n d msz) = do
+    putEventType (EventType n (TE.encodeUtf8 -> d) msz) = do
         putMarker EVENT_ET_BEGIN
         putType n
         putE $ fromMaybe 0xffff msz
-        putE (fromIntegral $ T.length d :: EventTypeDescLen)
-        putE d
+        putE (fromIntegral $ B.length d :: EventTypeDescLen)
+        putByteString d
         -- the event type header allows for extra data, which we don't use:
         putE (0 :: Word32)
         putMarker EVENT_ET_END
@@ -1135,10 +1136,10 @@ putEventSpec (WakeupThread t c) = do
     putE t
     putCap c
 
-putEventSpec (ThreadLabel t l) = do
-    putE (fromIntegral (T.length l) + sz_tid :: Word16)
+putEventSpec (ThreadLabel t (TE.encodeUtf8 -> l)) = do
+    putE (fromIntegral (B.length l) + sz_tid :: Word16)
     putE t
-    putE l
+    putByteString l
 
 putEventSpec Shutdown =
     return ()
@@ -1244,22 +1245,22 @@ putEventSpec (CapsetRemoveCap cs cp) = do
     putE cs
     putCap cp
 
-putEventSpec (RtsIdentifier cs rts) = do
-    putE (fromIntegral (T.length rts) + sz_capset :: Word16)
+putEventSpec (RtsIdentifier cs (TE.encodeUtf8 -> rts)) = do
+    putE (fromIntegral (B.length rts) + sz_capset :: Word16)
     putE cs
-    putE rts
+    putByteString rts
 
-putEventSpec (ProgramArgs cs as) = do
-    let sz_args = sum $ map ((+ 1) {- for \0 -} . T.length) as
+putEventSpec (ProgramArgs cs (map TE.encodeUtf8 -> as)) = do
+    let sz_args = sum (map ((+ 1) {- for \0 -} . B.length) as) - 1
     putE (fromIntegral sz_args + sz_capset :: Word16)
     putE cs
-    mapM_ putE (intersperse "\0" as)
+    mapM_ putByteString (intersperse "\0" as)
 
-putEventSpec (ProgramEnv cs es) = do
-    let sz_env = sum $ map ((+ 1) {- for \0 -} . T.length) es
+putEventSpec (ProgramEnv cs (map TE.encodeUtf8 -> es)) = do
+    let sz_env = sum (map ((+ 1) {- for \0 -} . B.length) es) - 1
     putE (fromIntegral sz_env + sz_capset :: Word16)
     putE cs
-    mapM_ putE $ intersperse "\0" es
+    mapM_ putByteString $ intersperse "\0" es
 
 putEventSpec (OsProcessPid cs pid) = do
     putE cs
@@ -1274,17 +1275,17 @@ putEventSpec (WallClockTime cs sec nsec) = do
     putE sec
     putE nsec
 
-putEventSpec (Message s) = do
-    putE (fromIntegral (T.length s) :: Word16)
-    putE s
+putEventSpec (Message (TE.encodeUtf8 -> s)) = do
+    putE (fromIntegral (B.length s) :: Word16)
+    putByteString s
 
-putEventSpec (UserMessage s) = do
-    putE (fromIntegral (T.length s) :: Word16)
-    putE s
+putEventSpec (UserMessage (TE.encodeUtf8 -> s)) = do
+    putE (fromIntegral (B.length s) :: Word16)
+    putByteString s
 
-putEventSpec (UserMarker s) = do
-    putE (fromIntegral (T.length s) :: Word16)
-    putE s
+putEventSpec (UserMarker (TE.encodeUtf8 -> s)) = do
+    putE (fromIntegral (B.length s) :: Word16)
+    putByteString s
 
 putEventSpec (UnknownEvent {}) = error "putEventSpec UnknownEvent"
 
@@ -1387,10 +1388,10 @@ putEventSpec (MerReleaseThread thread_id) =
 putEventSpec MerCapSleeping = return ()
 putEventSpec MerCallingMain = return ()
 
-putEventSpec PerfName{..} = do
-    putE (fromIntegral (T.length name) + sz_perf_num :: Word16)
+putEventSpec PerfName{name = (TE.encodeUtf8 -> name), ..} = do
+    putE (fromIntegral (B.length name) + sz_perf_num :: Word16)
     putE perfNum
-    putE name
+    putByteString name
 
 putEventSpec PerfCounter{..} = do
     putE perfNum
