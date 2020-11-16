@@ -180,7 +180,7 @@ data EventInfo
                        }
   | SparkCounters      { sparksCreated, sparksDud, sparksOverflowed,
                          sparksConverted, sparksFizzled, sparksGCd,
-                         sparksRemaining :: {-# UNPACK #-}! Word64
+                         sparksRemaining :: {-# UNPACK #-} !Word64
                        }
   | SparkCreate        { }
   | SparkDud           { }
