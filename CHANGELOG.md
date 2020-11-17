@@ -5,7 +5,7 @@
 * Add support for non-moving GC events [#60](https://github.com/haskell/ghc-events/pull/60)
 * Fix the parser error under GHC 9.0 [#64](https://github.com/haskell/ghc-events/pull/64)
 * Fix string encodings [#62](https://github.com/haskell/ghc-events/pull/62)
-* Switch to GitHub Actions [#65], dropping GHC 7.8.4 from the support range
+* Switch to GitHub Actions [#65](https://github.com/haskell/ghc-events/pull/65), dropping GHC 7.8.4 from the support range
 
 ## 0.13.0 - 2020-04-04
 
