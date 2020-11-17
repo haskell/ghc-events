@@ -1,3 +1,4 @@
+cabal-version:    2.2
 name:             ghc-events
 version:          0.14.0
 synopsis:         Library and tool for parsing .eventlog files from GHC
@@ -5,7 +6,7 @@ description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the ghc-events tool permitting, in particular,
                   to dump an event log file as text.
 category:         Development, GHC, Debug, Profiling, Trace
-license:          BSD3
+license:          BSD-3-Clause
 license-file:     LICENSE
 author:           Donnie Jones <donnie@darthik.com>,
                   Simon Marlow <marlowsd@gmail.com>,
@@ -27,7 +28,6 @@ tested-with:      GHC == 7.10.3
                   GHC == 8.6.5
                   GHC == 8.8.3
                   GHC == 8.10.2
-cabal-version:    >= 1.8
 extra-source-files: include/EventLogFormat.h
                     test/queens-ghc-6.12.1.eventlog
                     test/queens-ghc-6.12.1.eventlog.reference
@@ -80,7 +80,16 @@ source-repository head
   type: git
   location: git@github.com:haskell/ghc-events.git
 
+common default
+  default-extensions:
+    BangPatterns
+    NamedFieldPuns
+    PatternGuards
+    RecordWildCards
+  default-language: Haskell2010
+
 library
+  import:           default
   build-depends:    base       >= 4.7 && < 4.16,
                     containers >= 0.5 && < 0.7,
                     binary     >= 0.7 && < 0.11,
@@ -100,39 +109,38 @@ library
                     GHC.RTS.Events.Binary
   hs-source-dirs:   src
   include-dirs:     include
-  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   other-extensions: FlexibleContexts, CPP
   ghc-options:      -Wall
 
 executable ghc-events
+  import:           default
   main-is:          GhcEvents.hs
   build-depends:    ghc-events, base, containers
-  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite test-versions
+  import:           default
   type:             exitcode-stdio-1.0
   main-is:          TestVersions.hs
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base
-  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
 
 test-suite write-merge
+  import:           default
   type:             exitcode-stdio-1.0
   main-is:          WriteMerge.hs
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base, bytestring
-  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   -- disabled until #14 is fixed
   buildable:        False
 
 test-suite roundtrip
+  import:           default
   type:             exitcode-stdio-1.0
   main-is:          Roundtrip.hs
   other-modules:    Utils
   hs-source-dirs:   ., test
   build-depends:    ghc-events, base
-  extensions:	      RecordWildCards, NamedFieldPuns, BangPatterns, PatternGuards
   -- disabled until #14 is fixed
   buildable:        False
