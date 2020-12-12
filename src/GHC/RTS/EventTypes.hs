@@ -447,6 +447,18 @@ data EventInfo
                        , nonmovingCensusFilledSegs :: !Word32
                        , nonmovingCensusLiveBlocks :: !Word32
                        }
+  | TickyCounterDef
+                       { tickyCtrDefId      :: !Word64
+                       , tickyCtrDefArity   :: !Word16
+                       , tickyCtrDefKinds   :: !Text
+                       , tickyCtrDefName    :: !Text
+                       }
+  | TickyCounterSample
+                       { tickyCtrSampleId         :: !Word64
+                       , tickyCtrSampleEntryCount :: !Word64
+                       , tickyCtrSampleAllocs     :: !Word64
+                       , tickyCtrSampleAllocd     :: !Word64
+                       }
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]
