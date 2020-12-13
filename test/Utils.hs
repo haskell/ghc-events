@@ -20,6 +20,7 @@ files = map ("test/"++)
     , "time-prof.eventlog"
     , "trace-binary-event.eventlog"
     , "unicode.eventlog"
+    , "ticky-ticky.eventlog"
     ]
 
 
