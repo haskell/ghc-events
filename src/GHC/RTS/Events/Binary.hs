@@ -17,6 +17,7 @@ module GHC.RTS.Events.Binary
   , post782StopParser
   , parRTSParsers
   , binaryEventParsers
+  , tickyParsers
 
   -- * Writers
   , putEventLog
@@ -881,6 +882,31 @@ binaryEventParsers =
     return $! UserBinaryMessage { payload }
   ]
 
+tickyParsers :: [EventParser EventInfo]
+tickyParsers =
+  [ VariableSizeParser EVENT_TICKY_COUNTER_DEF $ do
+    payloadLen         <- get :: Get Word16
+    tickyCtrDefId      <- get
+    tickyCtrDefArity   <- get
+    tickyCtrDefKinds   <- getTextNul
+    tickyCtrDefName    <- getTextNul
+    assert
+      (fromIntegral payloadLen == sum
+        [ 8 -- tickyCtrDefId
+        , 2 -- tickyCtrDefArity
+        , textByteLen tickyCtrDefKinds
+        , textByteLen tickyCtrDefName
+        ])
+      (return ())
+    return $! TickyCounterDef{..}
+  , FixedSizeParser EVENT_TICKY_COUNTER_SAMPLE (8*4) $ do
+    tickyCtrSampleId         <- get
+    tickyCtrSampleEntryCount <- get
+    tickyCtrSampleAllocs     <- get
+    tickyCtrSampleAllocd     <- get
+    return $! TickyCounterSample{..}
+  ]
+
 -- | String byte length in the eventlog format. It includes
 -- 1 byte for NUL.
 textByteLen :: T.Text -> Int
@@ -1032,6 +1058,8 @@ eventTypeNum e = case e of
     ConcSweepEnd {} -> EVENT_CONC_SWEEP_END
     ConcUpdRemSetFlush {} -> EVENT_CONC_UPD_REM_SET_FLUSH
     NonmovingHeapCensus {} -> EVENT_NONMOVING_HEAP_CENSUS
+    TickyCounterDef {} -> EVENT_TICKY_COUNTER_DEF
+    TickyCounterSample {} -> EVENT_TICKY_COUNTER_SAMPLE
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1472,3 +1500,13 @@ putEventSpec NonmovingHeapCensus {..} = do
     putE nonmovingCensusActiveSegs
     putE nonmovingCensusFilledSegs
     putE nonmovingCensusLiveBlocks
+putEventSpec TickyCounterDef {..} = do
+    putE tickyCtrDefId
+    putE tickyCtrDefArity
+    putE (T.unpack tickyCtrDefKinds)
+    putE (T.unpack tickyCtrDefName)
+putEventSpec TickyCounterSample {..} = do
+    putE tickyCtrSampleId
+    putE tickyCtrSampleEntryCount
+    putE tickyCtrSampleAllocs
+    putE tickyCtrSampleAllocd
