@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.15.0 - 2020-12-16
+
+* Add support for ticky-ticky counts [#67](https://github.com/haskell/ghc-events/pull/67)
+
 ## 0.14.0 - 2020-11-17
 
 * Add support for non-moving GC events [#60](https://github.com/haskell/ghc-events/pull/60)
