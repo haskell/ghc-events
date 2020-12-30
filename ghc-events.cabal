@@ -1,4 +1,4 @@
-cabal-version:    2.2
+cabal-version:    2.4
 name:             ghc-events
 version:          0.15.0
 synopsis:         Library and tool for parsing .eventlog files from GHC
@@ -26,51 +26,11 @@ tested-with:      GHC == 7.10.3
                   GHC == 8.2.2
                   GHC == 8.4.4
                   GHC == 8.6.5
-                  GHC == 8.8.3
-                  GHC == 8.10.2
+                  GHC == 8.8.4
+                  GHC == 8.10.3
 extra-source-files: include/EventLogFormat.h
-                    test/queens-ghc-6.12.1.eventlog
-                    test/queens-ghc-6.12.1.eventlog.reference
-                    test/queens-ghc-7.0.2.eventlog
-                    test/queens-ghc-7.0.2.eventlog.reference
-                    test/mandelbrot-mmc-2011-06-14.eventlog
-                    test/mandelbrot-mmc-2011-06-14.eventlog.reference
-                    test/nonmoving-gc.eventlog
-                    test/nonmoving-gc.eventlog.reference
-                    test/nonmoving-gc-census.eventlog
-                    test/nonmoving-gc-census.eventlog.reference
-                    test/parallelTest.eventlog
-                    test/parallelTest.eventlog.reference
-                    test/pre77stop.eventlog
-                    test/pre77stop.eventlog.reference
-                    test/782stop.eventlog
-                    test/782stop.eventlog.reference
-                    test/783stop.eventlog
-                    test/783stop.eventlog.reference
-                    test/sleep.h.eventlog
-                    test/sleep.h.eventlog.reference
-                    test/sleep.hC.eventlog
-                    test/sleep.hC.eventlog.reference
-                    test/sleep.hd.eventlog
-                    test/sleep.hd.eventlog.reference
-                    test/sleep.hm.eventlog
-                    test/sleep.hm.eventlog.reference
-                    test/sleep.hy.eventlog
-                    test/sleep.hy.eventlog.reference
-                    test/stop.hT.eventlog
-                    test/stop.hT.eventlog.reference
-                    test/hello-ghc-8.2.2.eventlog
-                    test/hello-ghc-8.2.2.eventlog.reference
-                    test/hello-ghc-8.6.5.eventlog
-                    test/hello-ghc-8.6.5.eventlog.reference
-                    test/biographical-samples.eventlog
-                    test/biographical-samples.eventlog.reference
-                    test/time-prof.eventlog
-                    test/time-prof.eventlog.reference
-                    test/trace-binary-event.eventlog
-                    test/trace-binary-event.eventlog.reference
-                    test/unicode.eventlog
-                    test/unicode.eventlog.reference
+                    test/*.eventlog
+                    test/*.reference
                     test/Utils.hs
                     test/stop.hs
                     README.md
