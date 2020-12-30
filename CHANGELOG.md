@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.15.1 - 2020-12-30
+
+* Add missing extra-source-files [#71](https://github.com/haskell/ghc-events/pull/71)
+
 ## 0.15.0 - 2020-12-16
 
 * Add support for ticky-ticky counts [#67](https://github.com/haskell/ghc-events/pull/67)
