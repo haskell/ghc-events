@@ -1,6 +1,6 @@
 cabal-version:    2.4
 name:             ghc-events
-version:          0.15.0
+version:          0.15.1
 synopsis:         Library and tool for parsing .eventlog files from GHC
 description:      Parses .eventlog files emitted by GHC 6.12.1 and later.
                   Includes the ghc-events tool permitting, in particular,
