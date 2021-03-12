@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.16.0 - 2021-03-12
+
+* Add support for new 9.2 events [#74](https://github.com/haskell/ghc-events/pull/74)
+
 ## 0.15.1 - 2020-12-30
 
 * Add missing extra-source-files [#71](https://github.com/haskell/ghc-events/pull/71)
