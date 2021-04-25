@@ -21,6 +21,7 @@ files = map ("test/"++)
     , "trace-binary-event.eventlog"
     , "unicode.eventlog"
     , "ticky-ticky.eventlog"
+    , "ticky-begin-sample.eventlog"
     ]
 
 
