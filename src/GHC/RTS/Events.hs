@@ -534,6 +534,8 @@ buildEventInfo spec' =
           <> ": " <> "entry count: " <> TB.decimal tickyCtrSampleEntryCount
           <> ", " <> TB.decimal tickyCtrSampleAllocs <> " allocs"
           <> ", " <> TB.decimal tickyCtrSampleAllocd <> " allocd"
+        TickyBeginSample ->
+          "ticky begin counter sample"
 
 -- | Replace unprintable bytes in the message with the replacement character
 replaceUnprintableWith

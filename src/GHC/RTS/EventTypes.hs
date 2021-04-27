@@ -474,6 +474,7 @@ data EventInfo
                        , tickyCtrSampleAllocs     :: !Word64
                        , tickyCtrSampleAllocd     :: !Word64
                        }
+  | TickyBeginSample
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]
