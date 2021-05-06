@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.17.0 - 2021-03-12
+## 0.17.0 - 2021-05-06
 
 * Introduce EVENT_TICKY_BEGIN_SAMPLE [#76](https://github.com/haskell/ghc-events/pull/76)
 
