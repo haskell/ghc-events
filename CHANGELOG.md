@@ -1,27 +1,31 @@
 # Change Log
 
+## 0.17.0.1 - 2021-11-22
+
+* Relax base bound to support GHC-9.2.1 ([#78](https://github.com/haskell/ghc-events/pull/78))
+
 ## 0.17.0 - 2021-05-06
 
-* Introduce EVENT_TICKY_BEGIN_SAMPLE [#76](https://github.com/haskell/ghc-events/pull/76)
+* Introduce EVENT_TICKY_BEGIN_SAMPLE ([#76](https://github.com/haskell/ghc-events/pull/76))
 
 ## 0.16.0 - 2021-03-12
 
-* Add support for new 9.2 events [#74](https://github.com/haskell/ghc-events/pull/74)
+* Add support for new 9.2 events ([#74](https://github.com/haskell/ghc-events/pull/74))
 
 ## 0.15.1 - 2020-12-30
 
-* Add missing extra-source-files [#71](https://github.com/haskell/ghc-events/pull/71)
+* Add missing extra-source-files ([#71](https://github.com/haskell/ghc-events/pull/71))
 
 ## 0.15.0 - 2020-12-16
 
-* Add support for ticky-ticky counts [#67](https://github.com/haskell/ghc-events/pull/67)
+* Add support for ticky-ticky counts ([#67](https://github.com/haskell/ghc-events/pull/67))
 
 ## 0.14.0 - 2020-11-17
 
-* Add support for non-moving GC events [#60](https://github.com/haskell/ghc-events/pull/60)
-* Fix the parser error under GHC 9.0 [#64](https://github.com/haskell/ghc-events/pull/64)
-* Fix string encodings [#62](https://github.com/haskell/ghc-events/pull/62)
-* Switch to GitHub Actions [#65](https://github.com/haskell/ghc-events/pull/65), dropping GHC 7.8.4 from the support range
+* Add support for non-moving GC events ([#60](https://github.com/haskell/ghc-events/pull/60))
+* Fix the parser error under GHC 9.0 ([#64](https://github.com/haskell/ghc-events/pull/64))
+* Fix string encodings ([#62](https://github.com/haskell/ghc-events/pull/62))
+* Switch to GitHub Actions ([#65](https://github.com/haskell/ghc-events/pull/65)), dropping GHC 7.8.4 from the support range
 
 ## 0.13.0 - 2020-04-04
 
