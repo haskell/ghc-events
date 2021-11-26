@@ -117,7 +117,7 @@ Events:
 11030000: cap 0: live data in heap capset 0: 44328 bytes
 11030000: cap 0: size of heap capset 0: 5242880 bytes
 11031000: cap 0: blocks size of heap capset 0: 4268032 bytes
-21006000: ticky counter definition 4399605088, arity: 1, def kinds: M, name: go{v s1bK} (Main) (fun)
+21006000: ticky counter definition 4399605088, arity: 1, def kinds: M, name: go{v s1bK} (Main) (fun), itbl: 0
 21043000: cap 0: allocated on heap capset 0: 3244520 total bytes till now
 21088000: removed cap 0 from capset 0
 21089000: removed cap 0 from capset 1

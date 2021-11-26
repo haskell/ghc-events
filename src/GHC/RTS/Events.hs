@@ -528,6 +528,7 @@ buildEventInfo spec' =
           <> ", " <>  "arity: " <> TB.decimal tickyCtrDefArity
           <> ", " <> "def kinds: " <> TB.fromText tickyCtrDefKinds
           <> ", " <> "name: " <> TB.fromText tickyCtrDefName
+          <> ", " <> "itbl: " <> TB.hexadecimal tickyCtrInfoTbl
         TickyCounterSample {..}  ->
           "ticky counter sample " <> TB.decimal tickyCtrSampleId
           <> ": " <> "entry count: " <> TB.decimal tickyCtrSampleEntryCount
