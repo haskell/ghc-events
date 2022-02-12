@@ -621,7 +621,10 @@ buildEventType (EventType num dsc msz) =
   <> maybe "variable" TB.decimal msz <> ")"
 
 -- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
-ppEvent :: IntMap EventType -> Event -> String
+ppEvent 
+  :: IntMap EventType -- ^ Look up @'UnknownEvent'.'ref'@ to find a suitable description.
+  -> Event
+  -> String
 ppEvent imap = TL.unpack . TB.toLazyText . buildEvent imap
 
 buildEvent :: IntMap EventType -> Event -> TB.Builder
