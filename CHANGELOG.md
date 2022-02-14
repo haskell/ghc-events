@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.17.0.2 - 2022-02-14
+
+* Clarify usage of IntMap EventType in ppEvent ([#80](https://github.com/haskell/ghc-events/pull/80))
+* Relax upper version bound for text
+
 ## 0.17.0.1 - 2021-11-22
 
 * Relax base bound to support GHC-9.2.1 ([#78](https://github.com/haskell/ghc-events/pull/78))
