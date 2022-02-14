@@ -621,7 +621,7 @@ buildEventType (EventType num dsc msz) =
   <> maybe "variable" TB.decimal msz <> ")"
 
 -- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
-ppEvent 
+ppEvent
   :: IntMap EventType -- ^ Look up @'UnknownEvent'.'ref'@ to find a suitable description.
   -> Event
   -> String
