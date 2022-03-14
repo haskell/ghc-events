@@ -65,7 +65,7 @@ skip n = G.skip (fromIntegral n)
 --
 
 --
--- | Event parser data. Parsers are either fixed or vairable size.
+-- | Event parser data. Parsers are either fixed or variable size.
 --
 data EventParser a
     = FixedSizeParser {
@@ -114,7 +114,7 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 --
 -- Summary:
 --   if size is smaller that we expect:
---     parse the earier version, or ignore the event
+--     parse the earlier version, or ignore the event
 --   if size is just right:
 --     parse it
 --   if size is too big:

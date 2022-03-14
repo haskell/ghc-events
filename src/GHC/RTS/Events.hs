@@ -178,7 +178,7 @@ capSplitEvents' evts imap =
   (x:xs) -> capSplitEvents' xs (IM.insertWith (++) (getIntCap x) [x] imap)
   []     -> imap
 
--- Adds a block marker to the beginnng of a list of events, annotated with
+-- Adds a block marker to the beginning of a list of events, annotated with
 -- its capability. All events are expected to belong to the same cap.
 addBlockMarker :: Int -> [Event] -> [Event]
 addBlockMarker cap evts =
