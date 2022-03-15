@@ -66,7 +66,7 @@ validates m = scanl (>>=) (Right (initial m)) . map (flip (step m))
 
 --------------------------------------------------------------------------------
 -- A Process is a list of successful values, followed by an error if one
--- occured. This captures the idea that a computation may produce a list of
+-- occurred. This captures the idea that a computation may produce a list of
 -- elements before possibly failing. This gives us an incremental interface
 -- to data processed from machine transitions.
 data Process e a
