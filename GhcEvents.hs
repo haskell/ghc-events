@@ -214,11 +214,11 @@ usage = unlines $ map pad strings
 
 showValidate :: (s -> String) -> (i -> String) -> Either (s, i) s -> String
 showValidate showState showInput (Left (state, input)) =
-  "Invalid eventlog:"
+  "Invalid event log:"
   ++ "\nState:\n" ++ showState state
   ++ "\nInput:\n" ++ showInput input
 showValidate showState _ (Right state) =
-  "Valid eventlog: " ++ showState state
+  "Valid event log: " ++ showState state
 
 showProcess :: (Show e, Show a) => Process e a -> String
 showProcess process =

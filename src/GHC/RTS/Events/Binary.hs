@@ -947,7 +947,7 @@ tickyParsers =
   , simpleEvent EVENT_TICKY_BEGIN_SAMPLE TickyBeginSample
   ]
 
--- | String byte length in the eventlog format. It includes
+-- | String byte length in the event log format. It includes
 -- 1 byte for NUL.
 textByteLen :: T.Text -> Int
 textByteLen = (+1) . B.length . TE.encodeUtf8
@@ -1133,7 +1133,7 @@ putEventSpec (RunThread t) =
 
 -- here we assume that ThreadStopStatus fromEnum matches the definitions in
 -- EventLogFormat.h
--- The standard encoding is used here, which is wrong for eventlogs
+-- The standard encoding is used here, which is wrong for event logs
 -- produced by GHC-7.8.2 ([Stop status in GHC-7.8.2] in EventTypes.hs
 putEventSpec (StopThread t s) = do
     putE t

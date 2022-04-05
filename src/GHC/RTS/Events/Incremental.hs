@@ -143,7 +143,7 @@ readEvents header = f . break isLeft . go (decodeEvents header)
       Done {} -> []
       Error _ err -> [Left err]
 
--- | Read an entire eventlog from a lazy bytestring. It returns an error message if it
+-- | Read an entire event log from a lazy bytestring. It returns an error message if it
 -- encounters an error while decoding.
 --
 -- Note that it doesn't fail if it consumes all input in the middle of decoding
