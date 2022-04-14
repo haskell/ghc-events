@@ -9,9 +9,9 @@ import Data.Word (Word32)
 import Prelude
 
 -- TODO: add a merge mode where the events are synchronized using
--- the wall clock time event at the start of both eventlogs (for newer GHCs).
+-- the wall clock time event at the start of both event logs (for newer GHCs).
 -- Such merge is not associative so we either need to take many arguments
--- or cope with eventlogs with many wall clock time events (assume they
+-- or cope with event logs with many wall clock time events (assume they
 -- are products of previous merges). To decide.
 
 {-
@@ -31,7 +31,7 @@ mergeEventLogs (EventLog h1 (Data xs)) (EventLog h2 (Data ys)) =
       m1 = headerMap $ eventTypes h1
       m2 = headerMap $ eventTypes h2
       combine et1 et2 | et1 == et2 = et1
-      combine _ _ = error "can't merge eventlogs with inconsistent headers"
+      combine _ _ = error "can't merge event logs with inconsistent headers"
       m = M.unionWith combine m1 m2
       h = Header $ M.elems m
   in h == h `seq`  -- Detect inconsistency ASAP.

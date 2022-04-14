@@ -335,7 +335,7 @@ data EventInfo
                               receiverInport :: {-# UNPACK #-} !PortId
                             }
 
-  -- These events have been added for Mercury's benifit but are generally
+  -- These events have been added for Mercury's benefit but are generally
   -- useful.
   | InternString       { str :: String, sId :: {-# UNPACK #-}!StringId }
 
@@ -488,7 +488,7 @@ See GHC bug #9003 for a discussion.
 
 The parsers in Events.hs have to be adapted accordingly, providing
 special ghc-7.8.2 parsers for the thread-stop event if GHC-7.8.2
-produced the eventlog.
+produced the event log.
 The EVENT_USER_MARKER was not present in GHC-7.6.3, and a new event
 EVENT_HACK_BUG_T9003 was added in GHC-7.8.3, so we take presence of
 USER_MARKER and absence of HACK_BUG_T9003 as an indication that
@@ -542,7 +542,7 @@ mkStopStatus n = case n of
  16 ->  BlockedOnMsgThrowTo
  17 ->  ThreadMigrating
  18 ->  BlockedOnMsgGlobalise
- 19 ->  NoStatus -- yeuch... this one does not actually exist in GHC eventlogs
+ 19 ->  NoStatus -- yeuch... this one does not actually exist in GHC event logs
  20 ->  BlockedOnMVarRead -- since GHC-7.8.3
  _  ->  error "mkStat"
 

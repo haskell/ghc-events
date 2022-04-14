@@ -5,7 +5,7 @@ import GHC.RTS.Events
 import GHC.RTS.Events.Incremental
 import Utils (files)
 
--- | Check that an eventlog round-trips through encoding/decoding.
+-- | Check that an event log round-trips through encoding/decoding.
 checkRoundtrip :: FilePath -> IO Bool
 checkRoundtrip logFile = do
   putStrLn logFile

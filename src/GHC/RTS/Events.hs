@@ -105,15 +105,15 @@ import Data.Monoid (mempty)
 import Data.Monoid ((<>))
 #endif
 
--- | Read an entire eventlog file. It returns an error message if it
--- encouters an error while decoding.
+-- | Read an entire event log file. It returns an error message if it
+-- encounters an error while decoding.
 --
 -- Note that it doesn't fail if it consumes all input in the middle of decoding
 -- of an event.
 readEventLogFromFile :: FilePath -> IO (Either String EventLog)
 readEventLogFromFile path = fmap fst . readEventLog <$> BL.readFile path
 
--- | Read an eventlog file and pretty print it to stdout
+-- | Read an event log file and pretty print it to stdout
 printEventsIncremental
   :: Bool -- ^ Follow the file or not
   -> FilePath
@@ -121,7 +121,7 @@ printEventsIncremental
 printEventsIncremental follow path =
   withFile path ReadMode (hPrintEventsIncremental follow)
 
--- | Read an eventlog from the Handle and pretty print it to stdout
+-- | Read an event log from the Handle and pretty print it to stdout
 hPrintEventsIncremental
   :: Bool -- ^ Follow the handle or not
   -> Handle
