@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.17.0.3 - 2022-04-18
+
+* Fix typos and terminology ([#81](https://github.com/haskell/ghc-events/pull/81), [#82](https://github.com/haskell/ghc-events/pull/82))
+
 ## 0.17.0.2 - 2022-02-14
 
 * Clarify usage of IntMap EventType in ppEvent ([#80](https://github.com/haskell/ghc-events/pull/80))
