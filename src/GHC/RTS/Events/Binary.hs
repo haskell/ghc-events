@@ -764,6 +764,8 @@ binaryEventParsers =
     return $! UserBinaryMessage { payload }
   ]
 
+-- | Reads the `a` object, and if that didn't consume the complete
+-- event skip over the leftover data.
 skipExtra :: Word16 -> Get a -> Get a
 skipExtra expected_size get_body = do
   bytes_read <- G.bytesRead
@@ -793,10 +795,11 @@ optionalGet :: (Binary b)
             -> Int64  -- ^ Starting byte offset
             -> b      -- ^ Default value
             -> Get b
-optionalGet expected_size bytes_read def = do
+            -> Get b
+optionalGet expected_size bytes_read def get_this = do
   bytes_read_end <- G.bytesRead
   let total_size = bytes_read_end - bytes_read
-  if fromIntegral expected_size == total_size then return def else get
+  if fromIntegral expected_size == total_size then return def else get_this
 
 tickyParsers :: [EventParser EventInfo]
 tickyParsers =
@@ -805,7 +808,8 @@ tickyParsers =
     tickyCtrDefArity   <- get
     tickyCtrDefKinds   <- getTextNul
     tickyCtrDefName    <- getTextNul
-    tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64)
+    tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64) get
+    tickyCtrJsonDesc   <- optionalGet payloadLen start_bytes Nothing (Just <$> getTextNul)
     assert (fromIntegral payloadLen ==
       (sum
         [ 8 -- tickyCtrDefId
@@ -813,6 +817,7 @@ tickyParsers =
         , textByteLen tickyCtrDefKinds
         , textByteLen tickyCtrDefName
         , 8 -- tickyCtrInfoTbl
+        , maybe 0 textByteLen tickyCtrJsonDesc
         ]))
         (return ())
     return $! TickyCounterDef{..}
@@ -1437,6 +1442,10 @@ putEventSpec TickyCounterDef {..} = do
     putE tickyCtrDefArity
     putE (T.unpack tickyCtrDefKinds)
     putE (T.unpack tickyCtrDefName)
+    when (tickyCtrInfoTbl /= 0) $ do
+      putE tickyCtrInfoTbl
+      -- The json description without the info table field is not supported.
+      when (isJust tickyCtrJsonDesc) $ putE (fromJust tickyCtrJsonDesc)
 putEventSpec TickyCounterSample {..} = do
     putE tickyCtrSampleId
     putE tickyCtrSampleEntryCount

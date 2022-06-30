@@ -57,6 +57,7 @@ getTextNul = do
     Left err -> fail $ show err
     Right text -> return $ TL.toStrict text
 
+-- | Skip over n bytes of input
 skip :: Integral a => a -> Get ()
 skip n = G.skip (fromIntegral n)
 

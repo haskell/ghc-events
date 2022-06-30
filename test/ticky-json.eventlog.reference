@@ -1,0 +1,126 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+42: Intern string (size variable)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap memory ever allocated (size 12)
+50: Current heap size (number of allocated mblocks) (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+90: The RTS attempted to return heap memory to the OS (size 16)
+91: Report the size of the heap in blocks (size 12)
+160: Start of heap profile (size variable)
+161: Cost-centre definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+165: End of heap profile sample (size 8)
+166: Start of heap profile (biographical) sample (size 16)
+167: Time profile cost-centre stack (size variable)
+168: Start of a time profile (size 8)
+169: An IPE entry (size variable)
+181: User binary message (size variable)
+200: Begin concurrent mark phase (size 0)
+201: End concurrent mark phase (size 4)
+202: Begin concurrent GC synchronisation (size 0)
+203: End concurrent mark synchronisation (size 0)
+204: Begin concurrent sweep phase (size 0)
+205: End concurrent sweep phase (size 0)
+206: Update remembered set flushed (size 2)
+207: Nonmoving heap census (size 13)
+210: Ticky-ticky entry counter definition (size variable)
+211: Ticky-ticky entry counter sample (size 32)
+212: Ticky-ticky entry counter begin sample (size 0)
+
+Events:
+585533: created capset 0 of type CapsetOsProcess
+586678: created capset 1 of type CapsetClockDomain
+589432: created cap 0
+590057: assigned cap 0 to capset 0
+590954: assigned cap 0 to capset 1
+595840: capset 1: wall clock time 1656609214s 321943000ns (unix epoch)
+598830: capset 0: pid 31880
+602782: capset 0: parent pid 9371
+607308: capset 0: RTS version "GHC-9.5.20220630 rts_debug"
+610371: capset 0: args: ["./Hello","+RTS","-lT"]
+968293: heap stats for heap capset 0: generations 2, 0 bytes max heap size, 4194304 bytes alloc area size, 1048576 bytes mblock size, 4096 bytes block size
+1056712: task 0x1053b90 created on cap 0 with OS kernel thread 31880
+1071542: cap 0: creating thread 1
+1077277: cap 0: running thread 1
+1420012: cap 0: stopping thread 1 (thread finished)
+1426364: task 0x1053b90 deleted
+1433418: task 0x1053b90 created on cap 0 with OS kernel thread 31880
+1435703: cap 0: creating thread 2
+1438679: cap 0: running thread 2
+1467338: cap 0: stopping thread 2 (thread finished)
+1469370: task 0x1053b90 deleted
+1482087: cap 0: starting GC
+1527577: cap 0: GC working
+2512669: cap 0: GC idle
+2513189: cap 0: GC done
+2531327: cap 0: GC idle
+2531835: cap 0: GC done
+2534859: cap 0: GC idle
+2535333: cap 0: GC done
+2623092: cap 0: memory returned (mblocks): current(5) needed(8) returned(0)
+2650140: cap 0: allocated on heap capset 0: 50712 total bytes till now
+2653583: cap 0: finished GC
+2654338: cap 0: all caps stopped for GC
+2655011: cap 0: GC stats for heap capset 0: generation 1, 24 bytes copied, 25272 bytes slop, 892928 bytes fragmentation, 1 par threads, 0 bytes max par copied, 24 bytes total par copied, 0 bytes balanced par copied
+2658546: cap 0: live data in heap capset 0: 44360 bytes
+2659723: cap 0: size of heap capset 0: 5242880 bytes
+2660827: cap 0: blocks size of heap capset 0: 4268032 bytes
+10647726: ticky counter definition 11048952, arity: 0, def kinds: , name: Main.main1{v r1zC} (fun), itbl: 4050e0
+10671542: ticky counter definition 11049168, arity: 0, def kinds: , name: Main.main4{v r1zF} (fun), itbl: 4051e0
+10684344: ticky counter definition 11049280, arity: 0, def kinds: , name: :Main.main{v 01D} (fun), itbl: 405260
+10708312: cap 0: allocated on heap capset 0: 50712 total bytes till now
+10781116: removed cap 0 from capset 0
+10781943: removed cap 0 from capset 1
+10783125: deleted cap 0
+10783953: deleted capset 0
+10784693: deleted capset 1
+

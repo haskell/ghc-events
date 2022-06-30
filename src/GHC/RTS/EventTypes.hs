@@ -468,6 +468,7 @@ data EventInfo
                        , tickyCtrDefKinds   :: !Text
                        , tickyCtrDefName    :: !Text
                        , tickyCtrInfoTbl    :: !Word64
+                       , tickyCtrJsonDesc   :: Maybe Text
                        }
   | TickyCounterSample
                        { tickyCtrSampleId         :: !Word64
