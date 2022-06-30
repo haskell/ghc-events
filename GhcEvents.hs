@@ -10,6 +10,8 @@ import GHC.RTS.Events.Analysis.SparkThread
 import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
+import qualified Data.ByteString.Lazy as BL
+
 import System.Environment (getArgs)
 import Data.Either (rights)
 import qualified Data.Map as M
@@ -175,10 +177,10 @@ command _ = putStr usage >> die "Unrecognized command"
 
 readLogOrDie :: FilePath -> IO EventLog
 readLogOrDie file = do
-    e <- readEventLogFromFile file
-    case e of
-        Left s    -> die ("Failed to parse " ++ file ++ ": " ++ s)
-        Right evtLog -> return evtLog
+    res <- readEventLogOrFail <$> BL.readFile file
+    case res of
+      Left err -> die $ "Failed to parse " ++ file ++ ": " ++ err
+      Right eventlog -> return eventlog
 
 usage :: String
 usage = unlines $ map pad strings

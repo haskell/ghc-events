@@ -77,7 +77,7 @@ library
 executable ghc-events
   import:           default
   main-is:          GhcEvents.hs
-  build-depends:    ghc-events, base, containers
+  build-depends:    ghc-events, base, containers, bytestring
 
 test-suite test-versions
   import:           default
