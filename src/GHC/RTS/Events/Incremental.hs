@@ -12,7 +12,9 @@ module GHC.RTS.Events.Incremental
   -- * Lazy API
   , readHeader
   , readEvents
+  , readEvents'
   , readEventLog
+  , readEventLogOrFail
   ) where
 import Control.Monad
 import Data.Either
@@ -121,12 +123,12 @@ readHeader = go $ Left decodeHeader
 
 
 -- | Read events from a lazy bytestring. It returns an error message if it
--- encounters an error while decoding.
+-- encounters an error while decoding the header.
 --
 -- Note that it doesn't fail if it consumes all input in the middle of decoding
 -- of an event.
 readEvents :: Header -> BL.ByteString -> ([Event], Maybe String)
-readEvents header = f . break isLeft . go (decodeEvents header)
+readEvents header = f . break isLeft . readEvents' header
   where
     f (rs, ls) = (rights rs, listToMaybe (lefts ls))
 #if !MIN_VERSION_base(4, 7, 0)
@@ -134,6 +136,14 @@ readEvents header = f . break isLeft . go (decodeEvents header)
     isLeft _ = False
 #endif
 
+-- | Read events from a lazy bytestring. It returns an error message if it
+-- encounters an error while decoding the header.
+--
+-- Note that it doesn't fail if it consumes all input in the middle of decoding
+-- of an event.
+readEvents' :: Header -> BL.ByteString -> [Either String Event]
+readEvents' header = go (decodeEvents header)
+  where
     go :: Decoder Event -> BL.ByteString -> [Either String Event]
     go decoder bytes = case decoder of
       Produce event decoder' -> Right event : go decoder' bytes
@@ -153,6 +163,20 @@ readEventLog bytes = do
   (header, bytes') <- readHeader bytes
   case readEvents header bytes' of
     (events, err) -> return (EventLog header (Data events), err)
+
+-- | Read an entire event log from a lazy bytestring. It returns an error message if it
+-- encounters an error while decoding.
+--
+-- This will raise an error if a malformed event is encountered during decoding.
+readEventLogOrFail :: BL.ByteString -> Either String EventLog
+readEventLogOrFail bytes = do
+    (header, bs') <- readHeader bytes
+    let events = zipWith idOrThrowErr [1..] (readEvents' header bs')
+    return $ EventLog header (Data events)
+  where
+    idOrThrowErr :: Int -> Either String Event -> Event
+    idOrThrowErr i (Left err) = error $ "readEventLogOrFail: error deserialising event " ++ show i ++ ": " ++ err
+    idOrThrowErr _ (Right ev) = ev
 
 -- | Makes a decoder with all the required parsers when given a Header
 mkEventDecoder :: Header -> G.Decoder (Maybe Event)
