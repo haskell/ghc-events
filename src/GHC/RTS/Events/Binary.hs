@@ -11,8 +11,6 @@ module GHC.RTS.Events.Binary
   , perfParsers
   , heapProfParsers
   , timeProfParsers
-  , pre77StopParsers
-  , ghc782StopParser
   , post782StopParser
   , parRTSParsers
   , binaryEventParsers
@@ -439,59 +437,6 @@ ghc7Parsers = [
       return WakeupThread{thread=t,otherCap=fromIntegral oc}
    ))
  ]
-
--- special thread stop event parsers for GHC version 7.8.2
--- see [Stop status in GHC-7.8.2] in EventTypes.hs
-ghc782StopParser :: EventParser EventInfo
-ghc782StopParser =
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) (do
-      -- (thread, status, info)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      i <- get :: Get ThreadId
-      return StopThread{thread = t,
-                        status = case () of
-                                  _ | s > maxThreadStopStatus782
-                                    -> NoStatus
-                                    | s == 9 {- XXX yeuch -}
-                                      -- GHC-7.8.2: 9 == BlockedOnBlackHole
-                                    -> BlockedOnBlackHoleOwnedBy i
-                                    | otherwise
-                                    -> mkStopStatus782 s}
-   ))
-
--- parsers for GHC < 7.8.2. Older versions do not use block info
--- (different length).  See [Stop status in GHC-7.8.2] in
--- EventTypes.hs
-pre77StopParsers :: [EventParser EventInfo]
-pre77StopParsers = [
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status) (do
-      -- (thread, status)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      return StopThread{thread=t, status = if s > maxThreadStopStatusPre77
-                                              then NoStatus
-                                              else mkStopStatus s}
-                        -- older version of the event, no block info
-   )),
-
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
-    (do
-      -- (thread, status, info)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      i <- get :: Get ThreadId
-      return StopThread{thread = t,
-                        status = case () of
-                                  _ | s > maxThreadStopStatusPre77
-                                    -> NoStatus
-                                    | s == 8 {- XXX yeuch -}
-                                      -- pre-7.7: 8==BlockedOnBlackhole
-                                    -> BlockedOnBlackHoleOwnedBy i
-                                    | otherwise
-                                    -> mkStopStatus s}
-    ))
-  ]
 
 -- parsers for GHC >= 7.8.3, always using block info field parser.
 -- See [Stop status in GHC-7.8.2] in EventTypes.hs

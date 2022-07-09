@@ -5,7 +5,6 @@ files = map ("test/"++)
     [ "nonmoving-gc.eventlog"
     , "nonmoving-gc-census.eventlog"
     , "parallelTest.eventlog"
-    , "pre77stop.eventlog", "782stop.eventlog", "783stop.eventlog"
     , "sleep.h.eventlog"
     , "sleep.hC.eventlog"
     , "sleep.hm.eventlog"

@@ -183,29 +183,11 @@ mkEventDecoder :: Header -> G.Decoder (Maybe Event)
 mkEventDecoder header = G.runGetIncremental $ getEvent parsers
   where
     imap = IM.fromList [(fromIntegral (num t), t) | t <- eventTypes header]
-    -- GHC-7.8.2 uses a different thread block status encoding,
-    -- and therefore requires a different parser for the stop
-    -- event. Later, in GHC-7.8.3, the old encoding was restored.
-    -- GHC-7.8.2 can be recognised by presence and absence of
-    -- events in the header:
-    --   * User markers were added in GHC-7.8
-    --   * an empty event HACK_BUG_T9003 was added in GHC-7.8.3
-    -- This fix breaks software which uses ghc-events and combines
-    -- user markers with the older stop status encoding. We don't
-    -- know of any such software, though.
-    is_pre77 = IM.notMember EVENT_USER_MARKER imap
-    is_ghc782 = IM.member EVENT_USER_MARKER imap
-      && IM.notMember EVENT_HACK_BUG_T9003 imap
-
-    stopParsers
-      | is_pre77 = pre77StopParsers
-      | is_ghc782 = [ghc782StopParser]
-      | otherwise = [post782StopParser]
 
     event_parsers = concat
         [ standardParsers
         , ghc7Parsers
-        , stopParsers
+        , [post782StopParser]
         , parRTSParsers sz_tid
         , mercuryParsers
         , perfParsers
