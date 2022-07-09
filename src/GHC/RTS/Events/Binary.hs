@@ -122,10 +122,6 @@ standardParsers = [
                         }
    )),
 
- -- EVENT_SHUTDOWN is replaced by EVENT_CAP_DELETE and GHC 7.6+
- -- no longer generate the event; should be removed at some point
- (simpleEvent EVENT_SHUTDOWN Shutdown),
-
  (simpleEvent EVENT_REQUEST_SEQ_GC RequestSeqGC),
 
  (simpleEvent EVENT_REQUEST_PAR_GC RequestParGC),
