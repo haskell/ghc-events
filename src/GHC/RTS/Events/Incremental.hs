@@ -186,8 +186,6 @@ mkEventDecoder header = G.runGetIncremental $ getEvent parsers
 
     event_parsers = concat
         [ standardParsers
-        , ghc7Parsers
-        , [post782StopParser]
         , parRTSParsers sz_tid
         , mercuryParsers
         , perfParsers

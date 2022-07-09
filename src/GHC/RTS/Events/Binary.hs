@@ -6,12 +6,10 @@ module GHC.RTS.Events.Binary
     getHeader
   , getEvent
   , standardParsers
-  , ghc7Parsers
   , mercuryParsers
   , perfParsers
   , heapProfParsers
   , timeProfParsers
-  , post782StopParser
   , parRTSParsers
   , binaryEventParsers
   , tickyParsers
@@ -354,12 +352,8 @@ standardParsers = [
       nonmovingCensusFilledSegs <- get :: Get Word32
       nonmovingCensusLiveBlocks <- get :: Get Word32
       return NonmovingHeapCensus{..}
-    ))
- ]
+    )),
 
--- Parsers valid for GHC7 but not GHC6.
-ghc7Parsers :: [EventParser EventInfo]
-ghc7Parsers = [
  (FixedSizeParser EVENT_CREATE_THREAD sz_tid (do  -- (thread)
       t <- get
       return CreateThread{thread=t}
@@ -435,13 +429,8 @@ ghc7Parsers = [
       t <- get
       oc <- get :: Get CapNo
       return WakeupThread{thread=t,otherCap=fromIntegral oc}
-   ))
- ]
+   )),
 
--- parsers for GHC >= 7.8.3, always using block info field parser.
--- See [Stop status in GHC-7.8.2] in EventTypes.hs
-post782StopParser :: EventParser EventInfo
-post782StopParser =
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
     (do
       -- (thread, status, info)
@@ -458,6 +447,7 @@ post782StopParser =
                                     | otherwise
                                     -> mkStopStatus s}
     ))
+ ]
 
 
 -- Parsers for parallel events. Parameter is the thread_id size, to create
