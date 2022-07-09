@@ -183,16 +183,6 @@ mkEventDecoder :: Header -> G.Decoder (Maybe Event)
 mkEventDecoder header = G.runGetIncremental $ getEvent parsers
   where
     imap = IM.fromList [(fromIntegral (num t), t) | t <- eventTypes header]
-    -- This test is complete, no-one has extended this event yet and all future
-    -- extensions will use newly allocated event IDs.
-    is_ghc_6 = Just sz_old_tid == do
-      create_et <- IM.lookup EVENT_CREATE_THREAD imap
-      size create_et
-    -- GHC6 writes an invalid header, we handle it here by using a
-    -- different set of event parsers.  Note that the ghc7 event parsers
-    -- are standard events, and can be used by other runtime systems that
-    -- make use of threadscope.
-
     -- GHC-7.8.2 uses a different thread block status encoding,
     -- and therefore requires a different parser for the stop
     -- event. Later, in GHC-7.8.3, the old encoding was restored.
@@ -212,13 +202,7 @@ mkEventDecoder header = G.runGetIncremental $ getEvent parsers
       | is_ghc782 = [ghc782StopParser]
       | otherwise = [post782StopParser]
 
-    event_parsers
-      | is_ghc_6 = concat
-        [ standardParsers
-        , ghc6Parsers
-        , parRTSParsers sz_old_tid
-        ]
-      | otherwise = concat
+    event_parsers = concat
         [ standardParsers
         , ghc7Parsers
         , stopParsers
