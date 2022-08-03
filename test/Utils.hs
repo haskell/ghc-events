@@ -19,6 +19,7 @@ files = map ("test/"++)
     , "biographical-samples.eventlog"
     , "time-prof.eventlog"
     , "trace-binary-event.eventlog"
+    , "trace-binary-nonutf.eventlog"
     , "unicode.eventlog"
     , "ticky-ticky.eventlog"
     , "ticky-begin-sample.eventlog"
