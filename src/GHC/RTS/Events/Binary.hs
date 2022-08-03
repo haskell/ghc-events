@@ -6,15 +6,10 @@ module GHC.RTS.Events.Binary
     getHeader
   , getEvent
   , standardParsers
-  , ghc6Parsers
-  , ghc7Parsers
   , mercuryParsers
   , perfParsers
   , heapProfParsers
   , timeProfParsers
-  , pre77StopParsers
-  , ghc782StopParser
-  , post782StopParser
   , parRTSParsers
   , binaryEventParsers
   , tickyParsers
@@ -126,10 +121,6 @@ standardParsers = [
                                         (fromIntegral sz_block_event))
                         }
    )),
-
- -- EVENT_SHUTDOWN is replaced by EVENT_CAP_DELETE and GHC 7.6+
- -- no longer generate the event; should be removed at some point
- (simpleEvent EVENT_SHUTDOWN Shutdown),
 
  (simpleEvent EVENT_REQUEST_SEQ_GC RequestSeqGC),
 
@@ -357,12 +348,8 @@ standardParsers = [
       nonmovingCensusFilledSegs <- get :: Get Word32
       nonmovingCensusLiveBlocks <- get :: Get Word32
       return NonmovingHeapCensus{..}
-    ))
- ]
+    )),
 
--- Parsers valid for GHC7 but not GHC6.
-ghc7Parsers :: [EventParser EventInfo]
-ghc7Parsers = [
  (FixedSizeParser EVENT_CREATE_THREAD sz_tid (do  -- (thread)
       t <- get
       return CreateThread{thread=t}
@@ -382,20 +369,6 @@ ghc7Parsers = [
       t  <- get
       nc <- get :: Get CapNo
       return MigrateThread{thread=t,newCap=fromIntegral nc}
-   )),
-
- -- Yes, EVENT_RUN/STEAL_SPARK are deprecated, but see the explanation in the
- -- 'ghc6Parsers' section below. Since we're parsing them anyway, we might
- -- as well convert them to the new SparkRun/SparkSteal events.
- (FixedSizeParser EVENT_RUN_SPARK sz_tid (do  -- (thread)
-      _ <- get :: Get ThreadId
-      return SparkRun
-   )),
-
- (FixedSizeParser EVENT_STEAL_SPARK (sz_tid + sz_cap) (do  -- (thread, victimCap)
-      _  <- get :: Get ThreadId
-      vc <- get :: Get CapNo
-      return SparkSteal{victimCap=fromIntegral vc}
    )),
 
  (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_tid (do  -- (sparkThread)
@@ -452,66 +425,8 @@ ghc7Parsers = [
       t <- get
       oc <- get :: Get CapNo
       return WakeupThread{thread=t,otherCap=fromIntegral oc}
-   ))
- ]
-
--- special thread stop event parsers for GHC version 7.8.2
--- see [Stop status in GHC-7.8.2] in EventTypes.hs
-ghc782StopParser :: EventParser EventInfo
-ghc782StopParser =
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid) (do
-      -- (thread, status, info)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      i <- get :: Get ThreadId
-      return StopThread{thread = t,
-                        status = case () of
-                                  _ | s > maxThreadStopStatus782
-                                    -> NoStatus
-                                    | s == 9 {- XXX yeuch -}
-                                      -- GHC-7.8.2: 9 == BlockedOnBlackHole
-                                    -> BlockedOnBlackHoleOwnedBy i
-                                    | otherwise
-                                    -> mkStopStatus782 s}
-   ))
-
--- parsers for GHC < 7.8.2. Older versions do not use block info
--- (different length).  See [Stop status in GHC-7.8.2] in
--- EventTypes.hs
-pre77StopParsers :: [EventParser EventInfo]
-pre77StopParsers = [
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status) (do
-      -- (thread, status)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      return StopThread{thread=t, status = if s > maxThreadStopStatusPre77
-                                              then NoStatus
-                                              else mkStopStatus s}
-                        -- older version of the event, no block info
    )),
 
- (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
-    (do
-      -- (thread, status, info)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      i <- get :: Get ThreadId
-      return StopThread{thread = t,
-                        status = case () of
-                                  _ | s > maxThreadStopStatusPre77
-                                    -> NoStatus
-                                    | s == 8 {- XXX yeuch -}
-                                      -- pre-7.7: 8==BlockedOnBlackhole
-                                    -> BlockedOnBlackHoleOwnedBy i
-                                    | otherwise
-                                    -> mkStopStatus s}
-    ))
-  ]
-
--- parsers for GHC >= 7.8.3, always using block info field parser.
--- See [Stop status in GHC-7.8.2] in EventTypes.hs
-post782StopParser :: EventParser EventInfo
-post782StopParser =
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
     (do
       -- (thread, status, info)
@@ -528,81 +443,8 @@ post782StopParser =
                                     | otherwise
                                     -> mkStopStatus s}
     ))
-
- -----------------------
- -- GHC 6.12 compat: GHC 6.12 reported the wrong sizes for some events,
- -- so we have to recognise those wrong sizes here for backwards
- -- compatibility.
-ghc6Parsers :: [EventParser EventInfo]
-ghc6Parsers = [
- (FixedSizeParser EVENT_STARTUP 0 (do
-      -- BUG in GHC 6.12: the startup event was incorrectly
-      -- declared as size 0, so we accept it here.
-      c <- get :: Get CapNo
-      return Startup{ n_caps = fromIntegral c }
-   )),
-
- (FixedSizeParser EVENT_CREATE_THREAD sz_old_tid (do  -- (thread)
-      t <- get
-      return CreateThread{thread=t}
-   )),
-
- (FixedSizeParser EVENT_RUN_THREAD sz_old_tid (do  --  (thread)
-      t <- get
-      return RunThread{thread=t}
-   )),
-
- (FixedSizeParser EVENT_STOP_THREAD (sz_old_tid + 2) (do  -- (thread, status)
-      t <- get
-      s <- get :: Get RawThreadStopStatus
-      return StopThread{thread=t, status = if s > maxThreadStopStatusPre77
-                                              then NoStatus
-                                              else mkStopStatus s}
-                        -- older version of the event uses pre-77 encoding
-                        -- (actually, it only uses encodings 0 to 5)
-                        -- see [Stop status in GHC-7.8.2] in EventTypes.hs
-   )),
-
- (FixedSizeParser EVENT_THREAD_RUNNABLE sz_old_tid (do  -- (thread)
-      t <- get
-      return ThreadRunnable{thread=t}
-   )),
-
- (FixedSizeParser EVENT_MIGRATE_THREAD (sz_old_tid + sz_cap) (do  --  (thread, newCap)
-      t  <- get
-      nc <- get :: Get CapNo
-      return MigrateThread{thread=t,newCap=fromIntegral nc}
-   )),
-
- -- Note: it is vital that these two (EVENT_RUN/STEAL_SPARK) remain here (at
- -- least in the ghc6Parsers section) even though both events are deprecated.
- -- The reason is that .eventlog files created by the buggy GHC-6.12
- -- mis-declare the size of these two events. So we have to handle them
- -- specially here otherwise we'll get the wrong size, leading to us getting
- -- out of sync and eventual parse failure. Since we're parsing them anyway,
- -- we might as well convert them to the new SparkRun/SparkSteal events.
- (FixedSizeParser EVENT_RUN_SPARK sz_old_tid (do  -- (thread)
-      _ <- get :: Get ThreadId
-      return SparkRun
-   )),
-
- (FixedSizeParser EVENT_STEAL_SPARK (sz_old_tid + sz_cap) (do  -- (thread, victimCap)
-      _  <- get :: Get ThreadId
-      vc <- get :: Get CapNo
-      return SparkSteal{victimCap=fromIntegral vc}
-   )),
-
- (FixedSizeParser EVENT_CREATE_SPARK_THREAD sz_old_tid (do  -- (sparkThread)
-      st <- get :: Get ThreadId
-      return CreateSparkThread{sparkThread=st}
-   )),
-
- (FixedSizeParser EVENT_THREAD_WAKEUP (sz_old_tid + sz_cap) (do  -- (thread, other_cap)
-      t <- get
-      oc <- get :: Get CapNo
-      return WakeupThread{thread=t,otherCap=fromIntegral oc}
-   ))
  ]
+
 
 -- Parsers for parallel events. Parameter is the thread_id size, to create
 -- ghc6-parsers (using the wrong size) where necessary.

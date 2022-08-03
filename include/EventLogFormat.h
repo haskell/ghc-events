@@ -227,11 +227,6 @@
 
 
 /* DEPRECATED EVENTS: */
-/* These two are deprecated because we don't need to record the thread, it's
-   implicit. We have to keep these #defines because for tiresome reasons we
-   still need to parse them, see GHC.RTS.Events.ghc6Parsers for details. */
-#define EVENT_RUN_SPARK            5 /* (thread)               */
-#define EVENT_STEAL_SPARK          6 /* (thread, victim_cap)   */
 /* shutdown replaced by EVENT_CAP_DELETE */
 #define EVENT_SHUTDOWN             7 /* ()                     */
 #if 0
