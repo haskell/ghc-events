@@ -73,7 +73,6 @@ import Control.Applicative
 import Control.Concurrent hiding (ThreadId)
 import qualified Data.Binary.Put as P
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as BL
 import Data.Char (isPrint)
 import Data.IntMap (IntMap)
@@ -542,7 +541,7 @@ replaceUnprintableWith
   :: Char -- ^ Replacement character
   -> B.ByteString -- ^ Binary message which may contain unprintable bytes
   -> T.Text
-replaceUnprintableWith replacement = TE.decodeUtf8 . B8.map replace
+replaceUnprintableWith replacement = T.map replace . TE.decodeUtf8With (\_ _ -> Just replacement) 
   where
     replace c
       | isPrint c = c
