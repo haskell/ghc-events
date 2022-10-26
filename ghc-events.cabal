@@ -51,13 +51,13 @@ common default
 
 library
   import:           default
-  build-depends:    base       >= 4.7 && < 4.17,
+  build-depends:    base       >= 4.7 && < 4.18,
                     containers >= 0.5 && < 0.7,
                     binary     >= 0.7 && < 0.11,
                     bytestring >= 0.10.4,
                     array      >= 0.2 && < 0.6,
                     text       >= 0.11.2.3 && < 2.1,
-                    vector     >= 0.7 && < 0.13
+                    vector     >= 0.7 && < 0.14
   exposed-modules:  GHC.RTS.Events,
                     GHC.RTS.Events.Incremental
                     GHC.RTS.Events.Merge
