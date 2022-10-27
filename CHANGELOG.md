@@ -48,7 +48,7 @@
 
 ## 0.11.0 - 2019-10-29
 
-* Add support for time profiling events (ProfSampleCostCetre and ProfBegin) ([#53](https://github.com/haskell/ghc-events/pull/53))
+* Add support for time profiling events (ProfSampleCostCentre and ProfBegin) ([#53](https://github.com/haskell/ghc-events/pull/53))
 
 ## 0.10.0 - 2019-10-01
 
@@ -121,4 +121,4 @@ The 0.5.* releases should be able to handle large event logs and logs that have 
 
 This release should be *mostly* backwards compatible, however the "old" way of reading event logs, namely the `readEventLogFromFile`  function is now **deprecated**.
 
-**NOTE:** Users parsing large logs may notice that this version of the library is noticably slower than the older versions. The incremental parser is at fault here - previous versions of the libray used a "trick" that would let them essentially skip the first step of the mergesort algorithm since `EventBlock`s were already sorted in time order. The new parser reads the file incrementally and cannot take the advantage of this. Apologies for any inconvenience this may have caused.
+**NOTE:** Users parsing large logs may notice that this version of the library is noticeably slower than the older versions. The incremental parser is at fault here - previous versions of the library used a "trick" that would let them essentially skip the first step of the mergesort algorithm since `EventBlock`s were already sorted in time order. The new parser reads the file incrementally and cannot take the advantage of this. Apologies for any inconvenience this may have caused.
