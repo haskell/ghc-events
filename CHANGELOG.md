@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.18.0 - 2022-10-28
+
+* Ensure that ghc-events show fails with an error on malformed events ([#86](https://github.com/haskell/ghc-events/pull/86))
+* Drop support for GHC < 8 ([#89](https://github.com/haskell/ghc-events/issues/89))
+* Allow parsing UserBinaryMessage events that have non-utf payloads ([#91](https://github.com/haskell/ghc-events/pull/91))
+* Update dependencies to support GHC 9.4
+
 ## 0.17.0.3 - 2022-04-18
 
 * Fix typos and terminology ([#81](https://github.com/haskell/ghc-events/pull/81), [#82](https://github.com/haskell/ghc-events/pull/82))
