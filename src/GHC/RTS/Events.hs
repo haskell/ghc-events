@@ -52,6 +52,7 @@ module GHC.RTS.Events (
        buildEventTypeMap,
 
        -- * Printing
+       TimeFormat(..),
        printEventsIncremental,
        showEventInfo, buildEventInfo,
        showThreadStopStatus,
@@ -596,16 +597,19 @@ showHeapProfBreakdown breakdown = case breakdown of
   HeapProfBreakdownClosureType -> "closure type"
   HeapProfBreakdownInfoTable -> "info table"
 
-ppEventLog :: EventLog -> String
-ppEventLog = TL.unpack . TB.toLazyText . buildEventLog
+-- | How to format event timestamps
+data TimeFormat = RawTime | PrettyTime
 
-buildEventLog :: EventLog -> TB.Builder
-buildEventLog (EventLog (Header ets) (Data es)) =
+ppEventLog :: TimeFormat -> EventLog -> String
+ppEventLog time_fmt = TL.unpack . TB.toLazyText . buildEventLog time_fmt
+
+buildEventLog :: TimeFormat -> EventLog -> TB.Builder
+buildEventLog time_fmt (EventLog (Header ets) (Data es)) =
   "Event Types:\n"
   <> foldMap (\evType -> buildEventType evType <> "\n") ets
   <> "\n"
   <> "Events:\n"
-  <> foldMap (\ev -> buildEvent imap ev <> "\n") sorted
+  <> foldMap (\ev -> buildEvent time_fmt imap ev <> "\n") sorted
   where
     imap = buildEventTypeMap ets
     sorted = sortEvents es
@@ -621,20 +625,45 @@ buildEventType (EventType num dsc msz) =
 
 -- | Pretty prints an 'Event', with clean handling for 'UnknownEvent'
 ppEvent
-  :: IntMap EventType -- ^ Look up @'UnknownEvent'.'ref'@ to find a suitable description.
+  :: TimeFormat
+  -> IntMap EventType -- ^ Look up @'UnknownEvent'.'ref'@ to find a suitable description.
   -> Event
   -> String
-ppEvent imap = TL.unpack . TB.toLazyText . buildEvent imap
+ppEvent time_fmt imap =
+  TL.unpack . TB.toLazyText . buildEvent time_fmt imap
 
-buildEvent :: IntMap EventType -> Event -> TB.Builder
-buildEvent imap Event {..} =
-  TB.decimal evTime
+buildEvent :: TimeFormat -> IntMap EventType -> Event -> TB.Builder
+buildEvent time_fmt imap Event {..} =
+  buildTime time_fmt evTime
   <> ": "
   <> maybe "" (\c -> "cap " <> TB.decimal c <> ": ") evCap
   <> case evSpec of
     UnknownEvent{ ref=ref } ->
       maybe "" (TB.fromText . desc) $ IM.lookup (fromIntegral ref) imap
     _ -> buildEventInfo evSpec
+
+buildTime :: TimeFormat -> Word64 -> TB.Builder
+buildTime RawTime t = TB.decimal t
+buildTime PrettyTime t =
+     rJustDecimal secs  <> "s "
+  <> rJustDecimal msecs <> "ms "
+  <> rJustDecimal usecs
+  <> "."
+  <> lJustDecimal nsecs''  <> "us"
+  where
+    (secs, nsecs) = t `divMod` (1000*1000*1000)
+    (msecs, nsecs') = nsecs `divMod` (1000*1000)
+    (usecs, nsecs'') = nsecs' `divMod` 1000
+
+    padSpaces :: Word64 -> TB.Builder
+    padSpaces n
+      | n < 10    = "  "
+      | n < 100   = " "
+      | otherwise = mempty
+
+    -- decimal numbers justified to three columns
+    rJustDecimal n = padSpaces n <> TB.decimal n
+    lJustDecimal n = TB.decimal n <> padSpaces n
 
 buildEvent' :: Event -> TB.Builder
 buildEvent' Event {..} =
