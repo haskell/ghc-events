@@ -20,6 +20,7 @@ files = map ("test/"++)
     , "ticky-ticky.eventlog"
     , "ticky-begin-sample.eventlog"
     , "ticky-new.eventlog"
+    , "ticky-json.eventlog"
     ]
 
 
