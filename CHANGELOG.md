@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.19.0 - 2022-12-15
+
+* Add support for extension to Ticky counter definition field ([#83](https://github.com/haskell/ghc-events/pull/83))
+* Add support for ticky definition json fields ([#87](https://github.com/haskell/ghc-events/pull/87))
+
 ## 0.18.0 - 2022-10-28
 
 * Ensure that ghc-events show fails with an error on malformed events ([#86](https://github.com/haskell/ghc-events/pull/86))
