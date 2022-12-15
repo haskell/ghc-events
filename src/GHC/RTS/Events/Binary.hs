@@ -29,6 +29,7 @@ import Control.Exception (assert)
 import Control.Monad
 import Data.List (intersperse)
 import Data.Maybe
+import Data.Int
 import Prelude hiding (gcd, rem, id)
 
 import Data.Array
@@ -763,22 +764,57 @@ binaryEventParsers =
     return $! UserBinaryMessage { payload }
   ]
 
+skipExtra :: Word16 -> Get a -> Get a
+skipExtra expected_size get_body = do
+  bytes_read <- G.bytesRead
+  res <- get_body
+  bytes_read_end <- G.bytesRead
+  let total_size = bytes_read_end - bytes_read
+      to_skip  = fromIntegral expected_size - total_size
+  when (to_skip < 0) (fail "Negative to_skip")
+  skip to_skip
+  return res
+
+-- | Skip extra stuff at the end of a variable sized event
+-- For forwards compatability (allowing newer events to be read with older versions)
+variableSizeParser :: Int -- ^ The identifier for the event
+                   -> (Word16 -> Int64 -> Get a) -- ^ A continuation to parse the body of the event
+                   -> EventParser a
+variableSizeParser event_type body_parser = do
+  VariableSizeParser event_type $ do
+    payloadLen         <- get :: Get Word16
+    bytes_read <- G.bytesRead
+    skipExtra payloadLen (body_parser payloadLen (fromIntegral bytes_read))
+
+-- | If we have already got everything then return the default value, otherwise get
+-- For backwards compatability (to allow older events to be read with newer versions)
+optionalGet :: (Binary b)
+            => Word16 -- ^ Expected size
+            -> Int64  -- ^ Starting byte offset
+            -> b      -- ^ Default value
+            -> Get b
+optionalGet expected_size bytes_read def = do
+  bytes_read_end <- G.bytesRead
+  let total_size = bytes_read_end - bytes_read
+  if fromIntegral expected_size == total_size then return def else get
+
 tickyParsers :: [EventParser EventInfo]
 tickyParsers =
-  [ VariableSizeParser EVENT_TICKY_COUNTER_DEF $ do
-    payloadLen         <- get :: Get Word16
+  [ variableSizeParser EVENT_TICKY_COUNTER_DEF $ \payloadLen start_bytes -> do
     tickyCtrDefId      <- get
     tickyCtrDefArity   <- get
     tickyCtrDefKinds   <- getTextNul
     tickyCtrDefName    <- getTextNul
-    assert
-      (fromIntegral payloadLen == sum
+    tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64)
+    assert (fromIntegral payloadLen ==
+      (sum
         [ 8 -- tickyCtrDefId
         , 2 -- tickyCtrDefArity
         , textByteLen tickyCtrDefKinds
         , textByteLen tickyCtrDefName
-        ])
-      (return ())
+        , 8 -- tickyCtrInfoTbl
+        ]))
+        (return ())
     return $! TickyCounterDef{..}
   , FixedSizeParser EVENT_TICKY_COUNTER_SAMPLE (8*4) $ do
     tickyCtrSampleId         <- get

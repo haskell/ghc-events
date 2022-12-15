@@ -19,6 +19,7 @@ files = map ("test/"++)
     , "unicode.eventlog"
     , "ticky-ticky.eventlog"
     , "ticky-begin-sample.eventlog"
+    , "ticky-new.eventlog"
     ]
 
 

@@ -110,9 +110,9 @@ Events:
 12419000: ticky counter sample 4535063528: entry count: 1, 0 allocs, 0 allocd
 12420000: ticky counter sample 4535063632: entry count: 1, 0 allocs, 0 allocd
 12421000: ticky counter sample 4535063728: entry count: 1, 0 allocs, 0 allocd
-12434000: ticky counter definition 4535063528, arity: 0, def kinds: , name: Main.main1{v r1sI} (fun)
-12434000: ticky counter definition 4535063632, arity: 0, def kinds: , name: Main.main2{v r1sJ} (fun)
-12434000: ticky counter definition 4535063728, arity: 0, def kinds: , name: :Main.main{v 01D} (fun)
+12434000: ticky counter definition 4535063528, arity: 0, def kinds: , name: Main.main1{v r1sI} (fun), itbl: 0
+12434000: ticky counter definition 4535063632, arity: 0, def kinds: , name: Main.main2{v r1sJ} (fun), itbl: 0
+12434000: ticky counter definition 4535063728, arity: 0, def kinds: , name: :Main.main{v 01D} (fun), itbl: 0
 12448000: cap 0: allocated on heap capset 0: 51672 total bytes till now
 12451000: removed cap 0 from capset 0
 12451000: removed cap 0 from capset 1
