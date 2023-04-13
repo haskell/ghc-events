@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.19.0.1 - 2023-04-13
+
+* Update for GHC 9.6 ([#93](https://github.com/haskell/ghc-events/pull/93))
+
 ## 0.19.0 - 2022-12-15
 
 * Add support for extension to Ticky counter definition field ([#83](https://github.com/haskell/ghc-events/pull/83))
