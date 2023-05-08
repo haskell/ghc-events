@@ -5,6 +5,7 @@ module GHC.RTS.Events.Binary
   ( -- * Readers
     getHeader
   , getEvent
+  , customParsers
   , standardParsers
   , mercuryParsers
   , perfParsers
@@ -446,6 +447,30 @@ standardParsers = [
     ))
  ]
 
+
+customParsers :: [EventParser EventInfo]
+customParsers =
+    [ simpleEvent EVENT_PRE_RUN_THREAD PreRunThread
+    , simpleEvent EVENT_PRE_RUN_THREAD_USER PreRunThreadUser
+    , simpleEvent EVENT_PRE_RUN_THREAD_SYSTEM PreRunThreadSystem
+    , simpleEvent EVENT_POST_RUN_THREAD PostRunThread
+    , simpleEvent EVENT_POST_RUN_THREAD_USER PostRunThreadUser
+    , simpleEvent EVENT_POST_RUN_THREAD_SYSTEM PostRunThreadSystem
+    , simpleEvent EVENT_THREAD_PAGE_FAULTS ThreadPageFaults
+    , simpleEvent EVENT_THREAD_CTX_SWITCHES ThreadCtxSwitches
+    , FixedSizeParser
+          EVENT_THREAD_IO_BLOCKS
+          (sz_tid + 8 + 8)
+          (do tid <- get :: Get ThreadId
+              sec <- get :: Get Word64
+              nsec <- get :: Get Word64
+              pure
+                  $ ThreadIOBlocks
+                        { tibThreadId = tid
+                        , tibCpuTimeSec = sec
+                        , tibCpuTimeNSec = nsec
+                        })
+    ]
 
 -- Parsers for parallel events. Parameter is the thread_id size, to create
 -- ghc6-parsers (using the wrong size) where necessary.
@@ -987,6 +1012,15 @@ eventTypeNum e = case e of
     InfoTableProv {} -> EVENT_IPE
     MemReturn {} -> EVENT_MEM_RETURN
     TickyBeginSample {} -> EVENT_TICKY_BEGIN_SAMPLE
+    PreRunThread {} -> EVENT_PRE_RUN_THREAD
+    PreRunThreadUser {} -> EVENT_PRE_RUN_THREAD_USER
+    PreRunThreadSystem {} -> EVENT_PRE_RUN_THREAD_SYSTEM
+    PostRunThread {} -> EVENT_POST_RUN_THREAD
+    PostRunThreadUser {} -> EVENT_POST_RUN_THREAD_USER
+    PostRunThreadSystem {} -> EVENT_POST_RUN_THREAD_SYSTEM
+    ThreadPageFaults {} -> EVENT_THREAD_PAGE_FAULTS
+    ThreadCtxSwitches {} -> EVENT_THREAD_CTX_SWITCHES
+    ThreadIOBlocks {} -> EVENT_THREAD_IO_BLOCKS
 
 nEVENT_PERF_NAME, nEVENT_PERF_COUNTER, nEVENT_PERF_TRACEPOINT :: EventTypeNum
 nEVENT_PERF_NAME = EVENT_PERF_NAME
@@ -1462,3 +1496,16 @@ putEventSpec InfoTableProv{..} = do
       , itSrcLoc
       ]
 putEventSpec TickyBeginSample = return ()
+
+putEventSpec PreRunThread = pure ()
+putEventSpec PreRunThreadUser = pure ()
+putEventSpec PreRunThreadSystem = pure ()
+putEventSpec PostRunThread = pure ()
+putEventSpec PostRunThreadUser = pure ()
+putEventSpec PostRunThreadSystem = pure ()
+putEventSpec ThreadPageFaults = pure ()
+putEventSpec ThreadCtxSwitches = pure ()
+putEventSpec ThreadIOBlocks {..} = do
+    putE tibThreadId
+    putE tibCpuTimeSec
+    putE tibCpuTimeNSec

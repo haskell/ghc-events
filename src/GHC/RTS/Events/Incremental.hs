@@ -185,7 +185,8 @@ mkEventDecoder header = G.runGetIncremental $ getEvent parsers
     imap = IM.fromList [(fromIntegral (num t), t) | t <- eventTypes header]
 
     event_parsers = concat
-        [ standardParsers
+        [ customParsers
+        , standardParsers
         , parRTSParsers sz_tid
         , mercuryParsers
         , perfParsers

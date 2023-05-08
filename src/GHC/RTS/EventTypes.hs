@@ -477,6 +477,21 @@ data EventInfo
                        , tickyCtrSampleAllocd     :: !Word64
                        }
   | TickyBeginSample
+
+  -- Custom events
+  | PreRunThread
+  | PreRunThreadUser
+  | PreRunThreadSystem
+  | PostRunThread
+  | PostRunThreadUser
+  | PostRunThreadSystem
+  | ThreadPageFaults
+  | ThreadCtxSwitches
+  | ThreadIOBlocks
+        { tibThreadId    :: !ThreadId
+        , tibCpuTimeSec  :: !Word64
+        , tibCpuTimeNSec :: !Word64
+        }
   deriving Show
 
 {- [Note: Stop status in GHC-7.8.2]

@@ -537,12 +537,27 @@ buildEventInfo spec' =
         TickyBeginSample ->
           "ticky begin counter sample"
 
+        PreRunThread -> "pre run thread"
+        PreRunThreadUser -> "pre run thread user"
+        PreRunThreadSystem -> "pre run thread system"
+        PostRunThread -> "post run thread"
+        PostRunThreadUser -> "post run thread user"
+        PostRunThreadSystem -> "post run thread system"
+        ThreadPageFaults -> "thread page faults"
+        ThreadCtxSwitches -> "thread ctx switches"
+        ThreadIOBlocks {..} ->
+          "thread io blocks"
+          <> ": " <> TB.decimal tibThreadId
+          <> ", " <> TB.decimal tibCpuTimeSec
+          <> ", " <> TB.decimal tibCpuTimeNSec
+
+
 -- | Replace unprintable bytes in the message with the replacement character
 replaceUnprintableWith
   :: Char -- ^ Replacement character
   -> B.ByteString -- ^ Binary message which may contain unprintable bytes
   -> T.Text
-replaceUnprintableWith replacement = T.map replace . TE.decodeUtf8With (\_ _ -> Just replacement) 
+replaceUnprintableWith replacement = T.map replace . TE.decodeUtf8With (\_ _ -> Just replacement)
   where
     replace c
       | isPrint c = c
