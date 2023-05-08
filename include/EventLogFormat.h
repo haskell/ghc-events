@@ -218,12 +218,27 @@
 #define EVENT_TICKY_COUNTER_SAMPLE         211
 #define EVENT_TICKY_BEGIN_SAMPLE           212
 
+/* Temporary, custom events
+ * We can perhaps add it to perf events range ultimately.
+ * */
+#define EVENT_PRE_RUN_THREAD           300
+#define EVENT_POST_RUN_THREAD          301
+#define EVENT_THREAD_PAGE_FAULTS       302
+#define EVENT_THREAD_CTX_SWITCHES      303
+#define EVENT_THREAD_IO_BLOCKS         304
+#define EVENT_PRE_RUN_THREAD_RU        305
+#define EVENT_POST_RUN_THREAD_RU       306
+#define EVENT_PRE_RUN_THREAD_USER      307
+#define EVENT_PRE_RUN_THREAD_SYSTEM    308
+#define EVENT_POST_RUN_THREAD_USER     309
+#define EVENT_POST_RUN_THREAD_SYSTEM   310
+
 /*
  * The highest event code +1 that ghc itself emits. Note that some event
  * ranges higher than this are reserved but not currently emitted by ghc.
  * This must match the size of the EventDesc[] array in EventLog.c
  */
-#define NUM_GHC_EVENT_TAGS        213
+#define NUM_GHC_EVENT_TAGS        313
 
 
 /* DEPRECATED EVENTS: */
