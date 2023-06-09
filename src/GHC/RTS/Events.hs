@@ -95,11 +95,6 @@ import GHC.RTS.EventTypes
 import GHC.RTS.Events.Binary
 import GHC.RTS.Events.Incremental
 
-#if !MIN_VERSION_base(4, 8, 0)
-import Data.Foldable (foldMap)
-import Data.Monoid (mempty)
-#endif
-
 #if !MIN_VERSION_base(4, 11, 0)
 import Data.Monoid ((<>))
 #endif

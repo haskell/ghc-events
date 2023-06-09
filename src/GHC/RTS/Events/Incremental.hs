@@ -131,10 +131,6 @@ readEvents :: Header -> BL.ByteString -> ([Event], Maybe String)
 readEvents header = f . break isLeft . readEvents' header
   where
     f (rs, ls) = (rights rs, listToMaybe (lefts ls))
-#if !MIN_VERSION_base(4, 7, 0)
-    isLeft (Left _) = True
-    isLeft _ = False
-#endif
 
 -- | Read events from a lazy bytestring. It returns an error message if it
 -- encounters an error while decoding the header.
