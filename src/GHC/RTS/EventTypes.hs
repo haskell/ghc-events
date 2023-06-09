@@ -211,12 +211,17 @@ data EventInfo
   | SparkGC            { }
 
   -- tasks
+  -- | Marks the creation of a task.
   | TaskCreate         { taskId :: TaskId,
                          cap :: {-# UNPACK #-}!Int,
+                         -- | The thread-id of the kernel thread which created the task.
                          tid :: {-# UNPACK #-}!KernelThreadId
                        }
+  -- | Marks the migration of a task to a new capability.
   | TaskMigrate        { taskId :: TaskId,
+                         -- | Old capability
                          cap :: {-# UNPACK #-}!Int,
+                         -- | New capability 
                          new_cap :: {-# UNPACK #-}!Int
                        }
   | TaskDelete         { taskId :: TaskId }
@@ -356,8 +361,11 @@ data EventInfo
                        }
 
   -- messages
+  -- | A log message from the runtime system.
   | Message            { msg :: !Text }
+  -- | A user log message (from, e.g., Control.Concurrent.traceEvent).
   | UserMessage        { msg :: !Text }
+  -- | A user marker (from Debug.Trace.traceMarker).
   | UserMarker         { markername :: !Text }
 
   -- Events emitted by a parallel RTS
@@ -451,21 +459,38 @@ data EventInfo
   | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
                        , tid     :: {-# UNPACK #-}!KernelThreadId
                        }
-  | HeapProfBegin      { heapProfId :: !Word8
+  -- | A single fixed-width event emitted during program start-up describing the samples that follow.
+  | HeapProfBegin      { -- | Profile ID
+                         heapProfId :: !Word8
+                         -- | Sampling period in nanoseconds
                        , heapProfSamplingPeriod :: !Word64
+                         -- | Sample breakdown type
                        , heapProfBreakdown :: !HeapProfBreakdown
+                         -- | Module filter
                        , heapProfModuleFilter :: !Text
+                         -- | Closure description filter
                        , heapProfClosureDescrFilter :: !Text
+                         -- | Type description filter
                        , heapProfTypeDescrFilter :: !Text
+                         -- | Cost centre filter
                        , heapProfCostCentreFilter :: !Text
+                         -- | Cost centre stack filter
                        , heapProfCostCentreStackFilter :: !Text
+                         -- | Retainer filter
                        , heapProfRetainerFilter :: !Text
+                         -- | Biography filter
                        , heapProfBiographyFilter :: !Text
                        }
-  | HeapProfCostCentre { heapProfCostCentreId :: !Word32
+  -- | A variable-length packet produced once for each cost centre,
+  | HeapProfCostCentre { -- | Cost centre number
+                         heapProfCostCentreId :: !Word32
+                         -- | Label
                        , heapProfLabel :: !Text
+                         -- | Module
                        , heapProfModule :: !Text
+                         -- | Source location
                        , heapProfSrcLoc :: !Text
+                         -- | bit 0: is the cost-centre a CAF?
                        , heapProfFlags :: !HeapProfFlags
                        }
   | InfoTableProv      { itInfo :: !Word64
