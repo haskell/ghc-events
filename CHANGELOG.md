@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+
+* Added `--version` option to CLI interface
+
 ## 0.19.0.1 - 2023-04-13
 
 * Update for GHC 9.6 ([#93](https://github.com/haskell/ghc-events/pull/93))

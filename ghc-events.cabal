@@ -70,6 +70,8 @@ library
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
                     GHC.RTS.Events.Binary
+                    Paths_ghc_events
+  autogen-modules:  Paths_ghc_events
   hs-source-dirs:   src
   include-dirs:     include
   other-extensions: FlexibleContexts, CPP
@@ -79,6 +81,8 @@ executable ghc-events
   import:           default
   main-is:          GhcEvents.hs
   build-depends:    ghc-events, base, containers, bytestring
+  other-modules:    Paths_ghc_events
+  autogen-modules:  Paths_ghc_events
 
 test-suite test-versions
   import:           default
