@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 module Main where
 
 import GHC.RTS.Events
@@ -252,8 +250,3 @@ showMap showKey showValue m =
   concat $ zipWith (++)
     (map showKey . M.keys $ m :: [String])
     (map (showValue . (M.!) m) . M.keys $ m :: [String])
-
-#if !MIN_VERSION_base(4,8,0)
-die :: String -> IO a
-die err = hPutStrLn stderr err >> exitFailure
-#endif
