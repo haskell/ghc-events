@@ -27,7 +27,7 @@ testFile f = do
         Left m -> oops m
         Right newlogdata -> do
             oldlog <- readFile (f ++ ".reference")
-            let newlog = ppEventLog newlogdata ++ "\n" in
+            let newlog = ppEventLog RawTime newlogdata ++ "\n" in
                 if oldlog == newlog
                     then putStrLn (f ++ ": success") >> return True
                     else do putStrLn $ diffLines oldlog newlog

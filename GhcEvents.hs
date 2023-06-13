@@ -33,9 +33,13 @@ command ["inc", file] = printEventsIncremental False file
 
 command ["inc", "force", file] = printEventsIncremental True file
 
+command ["show", "--pretty-time", file] = do
+    evtLog <- readLogOrDie file
+    putStrLn $ ppEventLog PrettyTime evtLog
+
 command ["show", file] = do
     evtLog <- readLogOrDie file
-    putStrLn $ ppEventLog evtLog
+    putStrLn $ ppEventLog RawTime evtLog
 
 command ["show", "threads", file] = do
     eventLog <- readLogOrDie file
@@ -49,7 +53,7 @@ command ["show", "threads", file] = do
     putStrLn "Thread Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
+      (unlines . map (("  " ++) . ppEvent RawTime eventTypeMap)) $
         threadMap
 
 command ["show", "caps", file] = do
@@ -63,7 +67,7 @@ command ["show", "caps", file] = do
     putStrLn "Cap Indexed Events:"
     putStrLn . showMap
       ((++ "\n") . show)
-      (unlines . map (("  " ++) . ppEvent eventTypeMap)) $
+      (unlines . map (("  " ++) . ppEvent RawTime eventTypeMap)) $
         capMap
 
 command ["merge", out, file1, file2] = do
