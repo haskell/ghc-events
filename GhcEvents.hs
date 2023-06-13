@@ -15,13 +15,18 @@ import qualified Data.ByteString.Lazy as BL
 import System.Environment (getArgs)
 import Data.Either (rights)
 import qualified Data.Map as M
+import Data.Version (showVersion)
+import qualified Paths_ghc_events as P
 import System.IO
 import System.Exit
+
 
 main :: IO ()
 main = getArgs >>= command
 
 command :: [String] -> IO ()
+command ["--version"] = putStrLn $ "ghc-events version: " ++ showVersion P.version
+
 command ["--help"] = putStr usage
 
 command ["inc", file] = printEventsIncremental False file
@@ -188,6 +193,7 @@ usage = unlines $ map pad strings
     align = 4 + (maximum . map (length . fst) $ strings)
     pad (x, y) = zipWith const (x ++ repeat ' ') (replicate align ()) ++ y
     strings = [ ("ghc-events --help:",                     "Display this help.")
+              , ("ghc-events --version",                   "Print the version of ghc-events.")
               , ("ghc-events inc <file>:",                 "Pretty print an event log incrementally")
               , ("ghc-events inc force <file>:",           "Pretty print an event log incrementally. Retry on incomplete input (aka 'tail -f').")
               , ("ghc-events show <file>:",                "Pretty print an event log.")
