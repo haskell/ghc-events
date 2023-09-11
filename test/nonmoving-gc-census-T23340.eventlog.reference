@@ -1,0 +1,231 @@
+Event Types:
+0: Create thread (size 4)
+1: Run thread (size 4)
+2: Stop thread (size 10)
+3: Thread runnable (size 4)
+4: Migrate thread (size 6)
+8: Wakeup thread (size 6)
+9: Starting GC (size 0)
+10: Finished GC (size 0)
+11: Request sequential GC (size 0)
+12: Request parallel GC (size 0)
+15: Create spark thread (size 4)
+16: Log message (size variable)
+18: Block marker (size 14)
+19: User message (size variable)
+20: GC idle (size 0)
+21: GC working (size 0)
+22: GC done (size 0)
+25: Create capability set (size 6)
+26: Delete capability set (size 4)
+27: Add capability to capability set (size 6)
+28: Remove capability from capability set (size 6)
+29: RTS name and version (size variable)
+30: Program arguments (size variable)
+31: Program environment variables (size variable)
+32: Process ID (size 8)
+33: Parent process ID (size 8)
+34: Spark counters (size 56)
+35: Spark create (size 0)
+36: Spark dud (size 0)
+37: Spark overflow (size 0)
+38: Spark run (size 0)
+39: Spark steal (size 2)
+40: Spark fizzle (size 0)
+41: Spark GC (size 0)
+42: Intern string (size variable)
+43: Wall clock time (size 16)
+44: Thread label (size variable)
+45: Create capability (size 2)
+46: Delete capability (size 2)
+47: Disable capability (size 2)
+48: Enable capability (size 2)
+49: Total heap memory ever allocated (size 12)
+50: Current heap size (number of allocated mblocks) (size 12)
+51: Current heap live data (size 12)
+52: Heap static parameters (size 38)
+53: GC statistics (size 58)
+54: Synchronise stop-the-world GC (size 0)
+55: Task create (size 18)
+56: Task migrate (size 12)
+57: Task delete (size 8)
+58: User marker (size variable)
+59: Empty event for bug #9003 (size 0)
+90: The RTS attempted to return heap memory to the OS (size 16)
+91: Report the size of the heap in blocks (size 12)
+160: Start of heap profile (size variable)
+161: Cost-centre definition (size variable)
+162: Start of heap profile sample (size 8)
+163: Heap profile cost-centre sample (size variable)
+164: Heap profile string sample (size variable)
+165: End of heap profile sample (size 8)
+166: Start of heap profile (biographical) sample (size 16)
+167: Time profile cost-centre stack (size variable)
+168: Start of a time profile (size 8)
+169: An IPE entry (size variable)
+181: User binary message (size variable)
+200: Begin concurrent mark phase (size 0)
+201: End concurrent mark phase (size 4)
+202: Begin concurrent GC synchronisation (size 0)
+203: End concurrent mark synchronisation (size 0)
+204: Begin concurrent sweep phase (size 0)
+205: End concurrent sweep phase (size 0)
+206: Update remembered set flushed (size 2)
+207: Nonmoving heap census (size 14)
+210: Ticky-ticky entry counter definition (size variable)
+211: Ticky-ticky entry counter sample (size 32)
+212: Ticky-ticky entry counter begin sample (size 0)
+
+Events:
+219698: capset 1: wall clock time 1694431580s 894343000ns (unix epoch)
+220498: capset 0: pid 2073360
+221298: capset 0: parent pid 1906706
+222298: capset 0: RTS version "GHC-9.9.20230901 rts_v"
+222498: capset 0: args: ["nofib/shootout/binary-trees/Main","15","11","+RTS","-xn","-l-an"]
+3158969: Starting nonmoving GC preparation
+3161769: Marking roots for nonmoving GC
+3162369: Finished marking roots for nonmoving GC
+3162369: Finished nonmoving GC preparation
+3165069: concurrent mark began
+3483866: concurrent mark ended: marked 2789 objects
+3484166: concurrent mark began
+3484166: concurrent mark ended: marked 1 objects
+3484266: concurrent mark began
+3484266: concurrent mark ended: marked 1 objects
+3490366: concurrent sweep began
+3490566: concurrent sweep ended
+3493366: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+3494866: nonmoving heap census 16: 0 active segments, 0 filled segments, 38 live blocks
+3495766: nonmoving heap census 24: 0 active segments, 0 filled segments, 99 live blocks
+3496466: nonmoving heap census 32: 0 active segments, 0 filled segments, 5 live blocks
+3496966: nonmoving heap census 40: 0 active segments, 0 filled segments, 0 live blocks
+3497466: nonmoving heap census 48: 0 active segments, 0 filled segments, 0 live blocks
+3498166: nonmoving heap census 56: 0 active segments, 0 filled segments, 0 live blocks
+3499866: nonmoving heap census 64: 0 active segments, 0 filled segments, 0 live blocks
+3500366: nonmoving heap census 72: 0 active segments, 0 filled segments, 0 live blocks
+3527666: nonmoving heap census 80: 0 active segments, 0 filled segments, 0 live blocks
+3527866: nonmoving heap census 88: 0 active segments, 0 filled segments, 0 live blocks
+3528366: nonmoving heap census 96: 0 active segments, 0 filled segments, 0 live blocks
+3528766: nonmoving heap census 104: 0 active segments, 0 filled segments, 0 live blocks
+3529066: nonmoving heap census 112: 0 active segments, 0 filled segments, 0 live blocks
+3529366: nonmoving heap census 120: 0 active segments, 0 filled segments, 0 live blocks
+3529566: nonmoving heap census 128: 0 active segments, 0 filled segments, 0 live blocks
+3529866: nonmoving heap census 256: 0 active segments, 0 filled segments, 0 live blocks
+3529966: nonmoving heap census 512: 0 active segments, 0 filled segments, 0 live blocks
+3530066: nonmoving heap census 1024: 0 active segments, 0 filled segments, 0 live blocks
+3530166: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+3530266: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+3530466: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+3530566: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+30946697: Starting nonmoving GC preparation
+30949497: Marking roots for nonmoving GC
+30949997: Finished marking roots for nonmoving GC
+30950097: Finished nonmoving GC preparation
+30957296: concurrent mark began
+31188794: concurrent mark ended: marked 10999 objects
+31188894: concurrent mark began
+31189694: concurrent mark ended: marked 12 objects
+31189794: concurrent mark began
+31189794: concurrent mark ended: marked 1 objects
+31189794: concurrent mark began
+31189894: concurrent mark ended: marked 1 objects
+31190794: concurrent sweep began
+31230594: concurrent sweep ended
+31232294: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+31233394: nonmoving heap census 16: 0 active segments, 0 filled segments, 54 live blocks
+31234094: nonmoving heap census 24: 0 active segments, 0 filled segments, 120 live blocks
+31236194: nonmoving heap census 32: 2 active segments, 4 filled segments, 4100 live blocks
+31236594: nonmoving heap census 40: 0 active segments, 0 filled segments, 1 live blocks
+31236994: nonmoving heap census 48: 0 active segments, 0 filled segments, 3 live blocks
+31237294: nonmoving heap census 56: 0 active segments, 0 filled segments, 0 live blocks
+31237594: nonmoving heap census 64: 0 active segments, 0 filled segments, 2 live blocks
+31237894: nonmoving heap census 72: 0 active segments, 0 filled segments, 0 live blocks
+31238094: nonmoving heap census 80: 0 active segments, 0 filled segments, 0 live blocks
+31238394: nonmoving heap census 88: 0 active segments, 0 filled segments, 0 live blocks
+31238694: nonmoving heap census 96: 0 active segments, 0 filled segments, 0 live blocks
+31238894: nonmoving heap census 104: 0 active segments, 0 filled segments, 0 live blocks
+31239094: nonmoving heap census 112: 0 active segments, 0 filled segments, 0 live blocks
+31239394: nonmoving heap census 120: 0 active segments, 0 filled segments, 0 live blocks
+31239594: nonmoving heap census 128: 0 active segments, 0 filled segments, 1 live blocks
+31239694: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+31239794: nonmoving heap census 512: 0 active segments, 0 filled segments, 0 live blocks
+31239894: nonmoving heap census 1024: 0 active segments, 0 filled segments, 1 live blocks
+31239994: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+31240094: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+31240294: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+31240294: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+58695524: Starting nonmoving GC preparation
+58698024: Marking roots for nonmoving GC
+58698924: Finished marking roots for nonmoving GC
+58699024: Finished nonmoving GC preparation
+58708324: concurrent mark began
+58950222: concurrent mark ended: marked 10996 objects
+58950422: concurrent mark began
+58951222: concurrent mark ended: marked 12 objects
+58951222: concurrent mark began
+58951322: concurrent mark ended: marked 1 objects
+58951322: concurrent mark began
+58951322: concurrent mark ended: marked 1 objects
+58952922: concurrent sweep began
+58992921: concurrent sweep ended
+58995021: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+58996121: nonmoving heap census 16: 0 active segments, 0 filled segments, 54 live blocks
+58996721: nonmoving heap census 24: 0 active segments, 0 filled segments, 120 live blocks
+58998821: nonmoving heap census 32: 2 active segments, 4 filled segments, 4100 live blocks
+58999321: nonmoving heap census 40: 0 active segments, 0 filled segments, 1 live blocks
+58999821: nonmoving heap census 48: 0 active segments, 0 filled segments, 3 live blocks
+59000121: nonmoving heap census 56: 0 active segments, 0 filled segments, 0 live blocks
+59000421: nonmoving heap census 64: 0 active segments, 0 filled segments, 2 live blocks
+59000721: nonmoving heap census 72: 0 active segments, 0 filled segments, 0 live blocks
+59001021: nonmoving heap census 80: 0 active segments, 0 filled segments, 0 live blocks
+59001321: nonmoving heap census 88: 0 active segments, 0 filled segments, 0 live blocks
+59001721: nonmoving heap census 96: 0 active segments, 0 filled segments, 0 live blocks
+59001921: nonmoving heap census 104: 0 active segments, 0 filled segments, 0 live blocks
+59002221: nonmoving heap census 112: 0 active segments, 0 filled segments, 0 live blocks
+59002421: nonmoving heap census 120: 0 active segments, 0 filled segments, 0 live blocks
+59002621: nonmoving heap census 128: 0 active segments, 0 filled segments, 1 live blocks
+59002821: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+59002921: nonmoving heap census 512: 0 active segments, 0 filled segments, 0 live blocks
+59003021: nonmoving heap census 1024: 0 active segments, 0 filled segments, 1 live blocks
+59003121: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+59003221: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+59003421: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+59003421: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+60250409: Starting nonmoving GC preparation
+60251309: Marking roots for nonmoving GC
+60251709: Finished marking roots for nonmoving GC
+60251709: Finished nonmoving GC preparation
+60252909: concurrent mark began
+60308008: concurrent mark ended: marked 1897 objects
+60308108: concurrent mark began
+60308508: concurrent mark ended: marked 8 objects
+60308608: concurrent mark began
+60308708: concurrent mark ended: marked 1 objects
+60308708: concurrent mark began
+60308808: concurrent mark ended: marked 2 objects
+60309608: concurrent sweep began
+60314808: concurrent sweep ended
+60316708: nonmoving heap census 8: 0 active segments, 0 filled segments, 0 live blocks
+60317708: nonmoving heap census 16: 0 active segments, 0 filled segments, 55 live blocks
+60318408: nonmoving heap census 24: 0 active segments, 0 filled segments, 121 live blocks
+60320508: nonmoving heap census 32: 2 active segments, 0 filled segments, 37 live blocks
+60320908: nonmoving heap census 40: 0 active segments, 0 filled segments, 1 live blocks
+60321408: nonmoving heap census 48: 0 active segments, 0 filled segments, 3 live blocks
+60321708: nonmoving heap census 56: 0 active segments, 0 filled segments, 0 live blocks
+60322008: nonmoving heap census 64: 0 active segments, 0 filled segments, 2 live blocks
+60322308: nonmoving heap census 72: 0 active segments, 0 filled segments, 0 live blocks
+60322608: nonmoving heap census 80: 0 active segments, 0 filled segments, 0 live blocks
+60322808: nonmoving heap census 88: 0 active segments, 0 filled segments, 0 live blocks
+60323408: nonmoving heap census 96: 0 active segments, 0 filled segments, 0 live blocks
+60323608: nonmoving heap census 104: 0 active segments, 0 filled segments, 0 live blocks
+60323808: nonmoving heap census 112: 0 active segments, 0 filled segments, 0 live blocks
+60324008: nonmoving heap census 120: 0 active segments, 0 filled segments, 0 live blocks
+60324208: nonmoving heap census 128: 0 active segments, 0 filled segments, 1 live blocks
+60324408: nonmoving heap census 256: 0 active segments, 0 filled segments, 1 live blocks
+60324508: nonmoving heap census 512: 0 active segments, 0 filled segments, 0 live blocks
+60324608: nonmoving heap census 1024: 0 active segments, 0 filled segments, 1 live blocks
+60324708: nonmoving heap census 2048: 0 active segments, 0 filled segments, 0 live blocks
+60324808: nonmoving heap census 4096: 0 active segments, 0 filled segments, 0 live blocks
+60324808: nonmoving heap census 8192: 0 active segments, 0 filled segments, 0 live blocks
+60324908: nonmoving heap census 16384: 0 active segments, 0 filled segments, 0 live blocks
+

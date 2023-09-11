@@ -343,8 +343,17 @@ standardParsers = [
       cap <- get :: Get CapNo
       return ConcUpdRemSetFlush{ cap = fromIntegral cap }
     )),
+ -- Before GHC issue 23340 event where we are given the logarithm of the block size
  (FixedSizeParser EVENT_NONMOVING_HEAP_CENSUS 13 (do -- (blk_size, active_segs, filled_segs, live_blks)
-      nonmovingCensusBlkSize <- get :: Get Word8
+      nonmovingCensusLogBlkSize <- get :: Get Word8
+      let nonmovingCensusBlkSize = 2^nonmovingCensusLogBlkSize
+      nonmovingCensusActiveSegs <- get :: Get Word32
+      nonmovingCensusFilledSegs <- get :: Get Word32
+      nonmovingCensusLiveBlocks <- get :: Get Word32
+      return NonmovingHeapCensus{..}
+    )),
+ (FixedSizeParser EVENT_NONMOVING_HEAP_CENSUS 14 (do -- (blk_size, active_segs, filled_segs, live_blks)
+      nonmovingCensusBlkSize <- get :: Get Word16
       nonmovingCensusActiveSegs <- get :: Get Word32
       nonmovingCensusFilledSegs <- get :: Get Word32
       nonmovingCensusLiveBlocks <- get :: Get Word32

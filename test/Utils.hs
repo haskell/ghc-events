@@ -4,6 +4,7 @@ files :: [FilePath]
 files = map ("test/"++)
     [ "nonmoving-gc.eventlog"
     , "nonmoving-gc-census.eventlog"
+    , "nonmoving-gc-census-T23340.eventlog"
     , "parallelTest.eventlog"
     , "sleep.h.eventlog"
     , "sleep.hC.eventlog"
