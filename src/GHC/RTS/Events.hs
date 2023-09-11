@@ -515,7 +515,7 @@ buildEventInfo spec' =
         ConcUpdRemSetFlush {..}  ->
           "update remembered set flushed by " <> TB.decimal cap
         NonmovingHeapCensus {..}  ->
-          "nonmoving heap census " <> TB.decimal (2^nonmovingCensusBlkSize :: Int)
+          "nonmoving heap census " <> TB.decimal nonmovingCensusBlkSize
           <> ": " <> TB.decimal nonmovingCensusActiveSegs <> " active segments"
           <> ", " <> TB.decimal nonmovingCensusFilledSegs <> " filled segments"
           <> ", " <> TB.decimal nonmovingCensusLiveBlocks <> " live blocks"

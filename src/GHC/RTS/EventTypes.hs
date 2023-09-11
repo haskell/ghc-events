@@ -457,7 +457,7 @@ data EventInfo
   | ConcUpdRemSetFlush { cap    :: {-# UNPACK #-}!Int
                        }
   | NonmovingHeapCensus
-                       { nonmovingCensusBlkSize :: !Word8
+                       { nonmovingCensusBlkSize :: !Word16
                        , nonmovingCensusActiveSegs :: !Word32
                        , nonmovingCensusFilledSegs :: !Word32
                        , nonmovingCensusLiveBlocks :: !Word32
