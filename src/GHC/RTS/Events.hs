@@ -538,7 +538,7 @@ replaceUnprintableWith
   :: Char -- ^ Replacement character
   -> B.ByteString -- ^ Binary message which may contain unprintable bytes
   -> T.Text
-replaceUnprintableWith replacement = T.map replace . TE.decodeUtf8With (\_ _ -> Just replacement) 
+replaceUnprintableWith replacement = T.map replace . TE.decodeUtf8With (\_ _ -> Just replacement)
   where
     replace c
       | isPrint c = c
@@ -592,6 +592,7 @@ showHeapProfBreakdown breakdown = case breakdown of
   HeapProfBreakdownBiography -> "biography"
   HeapProfBreakdownClosureType -> "closure type"
   HeapProfBreakdownInfoTable -> "info table"
+  HeapProfBreakdownEra -> "era"
 
 -- | How to format event timestamps
 data TimeFormat = RawTime | PrettyTime
