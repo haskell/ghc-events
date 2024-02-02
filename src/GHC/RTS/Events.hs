@@ -2,16 +2,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# OPTIONS_GHC -fsimpl-tick-factor=150 #-}
-{-
- -   Parser functions for GHC RTS EventLog framework.
- -}
+{-|
+Module      : GHC.RTS.Events
+Description : Eventlog types and utility functions
 
+A Haskell program compiled with GHC can be instructed to emit *.eventlog files during runtime.
+These *.eventlog files contain useful information which is collected by the runtime system.
+The *.eventlog files use a binary format; this module contains the Haskell types which correspond to a parsed *.eventlog file and utility functions for parsing and prettyprinting them.
+
+-}
 module GHC.RTS.Events (
-       -- * The event log types
+       -- * The Eventlog
        EventLog(..),
+       -- ** Header
        Header(..),
-       Data(..),
        EventType(..),
+       EventTypeNum,
+       EventTypeDesc,
+       EventTypeSize,
+       -- ** Data
+       Data(..),
        Event(..),
        EventInfo(..),
        ThreadStopStatus(..),
@@ -22,9 +32,6 @@ module GHC.RTS.Events (
        ThreadId,
        TaskId,
        KernelThreadId(..),
-       EventTypeNum,
-       EventTypeDesc,
-       EventTypeSize,
        BlockSize,
        Capset,
        PID,
