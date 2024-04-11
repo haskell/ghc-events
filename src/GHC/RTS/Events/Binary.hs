@@ -37,6 +37,7 @@ import Data.Binary
 import Data.Binary.Put
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.Text.Read as TR
 import qualified Data.Text.Encoding as TE
@@ -804,23 +805,25 @@ optionalGet expected_size bytes_read def get_this = do
 tickyParsers :: [EventParser EventInfo]
 tickyParsers =
   [ variableSizeParser EVENT_TICKY_COUNTER_DEF $ \payloadLen start_bytes -> do
-    tickyCtrDefId      <- get
-    tickyCtrDefArity   <- get
-    tickyCtrDefKinds   <- getTextNul
-    tickyCtrDefName    <- getTextNul
-    tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64) get
-    tickyCtrJsonDesc   <- optionalGet payloadLen start_bytes Nothing (Just <$> getTextNul)
-    assert (fromIntegral payloadLen ==
-      (sum
-        [ 8 -- tickyCtrDefId
-        , 2 -- tickyCtrDefArity
-        , textByteLen tickyCtrDefKinds
-        , textByteLen tickyCtrDefName
-        , 8 -- tickyCtrInfoTbl
-        , maybe 0 textByteLen tickyCtrJsonDesc
-        ]))
-        (return ())
-    return $! TickyCounterDef{..}
+    bs <- G.getByteString $ fromIntegral payloadLen
+    pure (flip G.runGet (BL.fromStrict bs) $ do
+      tickyCtrDefId      <- get
+      tickyCtrDefArity   <- get
+      tickyCtrDefKinds   <- getTextNul
+      tickyCtrDefName    <- getTextNul
+      tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64) get
+      tickyCtrJsonDesc   <- optionalGet payloadLen start_bytes Nothing (Just <$> getTextNul)
+      assert (fromIntegral payloadLen ==
+        (sum
+          [ 8 -- tickyCtrDefId
+          , 2 -- tickyCtrDefArity
+          , textByteLen tickyCtrDefKinds
+          , textByteLen tickyCtrDefName
+          , 8 -- tickyCtrInfoTbl
+          , maybe 0 textByteLen tickyCtrJsonDesc
+          ]))
+          (return ())
+      return $! TickyCounterDef{..})
   , FixedSizeParser EVENT_TICKY_COUNTER_SAMPLE (8*4) $ do
     tickyCtrSampleId         <- get
     tickyCtrSampleEntryCount <- get
@@ -834,6 +837,9 @@ tickyParsers =
 -- 1 byte for NUL.
 textByteLen :: T.Text -> Int
 textByteLen = (+1) . B.length . TE.encodeUtf8
+
+putText :: T.Text -> Put
+putText t = putByteString (TE.encodeUtf8 t) >> putWord8 0
 
 -----------------------------------------------------------
 
@@ -1438,14 +1444,20 @@ putEventSpec NonmovingHeapCensus {..} = do
     putE nonmovingCensusFilledSegs
     putE nonmovingCensusLiveBlocks
 putEventSpec TickyCounterDef {..} = do
-    putE tickyCtrDefId
-    putE tickyCtrDefArity
-    putE (T.unpack tickyCtrDefKinds)
-    putE (T.unpack tickyCtrDefName)
-    when (tickyCtrInfoTbl /= 0) $ do
-      putE tickyCtrInfoTbl
-      -- The json description without the info table field is not supported.
-      when (isJust tickyCtrJsonDesc) $ putE (fromJust tickyCtrJsonDesc)
+    let (_, bl) =  runPutM (do
+                  putE tickyCtrDefId
+                  putE tickyCtrDefArity
+                  putText tickyCtrDefKinds
+                  putText tickyCtrDefName
+                  when (tickyCtrInfoTbl /= 0) $ do
+                    putE tickyCtrInfoTbl
+                    -- The json description without the info table field is not supported.
+                    when (isJust tickyCtrJsonDesc) $ putText (fromJust tickyCtrJsonDesc)
+                  )
+    let bs = BL.toStrict bl
+        sz_msg = fromIntegral (B.length bs)
+    putE (sz_msg :: Word16)
+    putByteString bs
 putEventSpec TickyCounterSample {..} = do
     putE tickyCtrSampleId
     putE tickyCtrSampleEntryCount
