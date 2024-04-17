@@ -804,15 +804,15 @@ optionalGet expected_size bytes_read def get_this = do
 
 tickyParsers :: [EventParser EventInfo]
 tickyParsers =
-  [ variableSizeParser EVENT_TICKY_COUNTER_DEF $ \payloadLen start_bytes -> do
+  [ variableSizeParser EVENT_TICKY_COUNTER_DEF $ \payloadLen _start_bytes -> do
     bs <- G.getByteString $ fromIntegral payloadLen
     pure (flip G.runGet (BL.fromStrict bs) $ do
       tickyCtrDefId      <- get
       tickyCtrDefArity   <- get
       tickyCtrDefKinds   <- getTextNul
       tickyCtrDefName    <- getTextNul
-      tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64) get
-      tickyCtrJsonDesc   <- optionalGet payloadLen start_bytes Nothing (Just <$> getTextNul)
+      tickyCtrInfoTbl    <- optionalGet payloadLen 0 (0 :: Word64) get
+      tickyCtrJsonDesc   <- optionalGet payloadLen 0 Nothing (Just <$> getTextNul)
       assert (fromIntegral payloadLen ==
         (sum
           [ 8 -- tickyCtrDefId
