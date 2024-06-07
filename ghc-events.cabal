@@ -32,6 +32,7 @@ tested-with:      GHC == 8.0.2
                   GHC == 9.4.2
                   GHC == 9.6.1
                   GHC == 9.8.1
+                  GHC == 9.10.1
 extra-source-files: include/EventLogFormat.h
                     test/*.eventlog
                     test/*.reference
@@ -54,7 +55,7 @@ common default
 
 library
   import:           default
-  build-depends:    base       >= 4.7 && < 4.20,
+  build-depends:    base       >= 4.7 && < 4.21,
                     containers >= 0.5 && < 0.8,
                     binary     >= 0.7 && < 0.11,
                     bytestring >= 0.10.4,
