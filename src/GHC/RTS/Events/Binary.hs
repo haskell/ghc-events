@@ -360,6 +360,11 @@ standardParsers = [
       nonmovingCensusLiveBlocks <- get :: Get Word32
       return NonmovingHeapCensus{..}
     )),
+ (FixedSizeParser EVENT_NONMOVING_PRUNED_SEGMENTS 8 (do -- (pruned_segments, free_segments)
+      nonmovingPrunedSegments <- get :: Get Word32
+      nonmovingFreeSegments <- get :: Get Word32
+      return NonmovingPrunedSegments{..}
+    )),
 
  (FixedSizeParser EVENT_CREATE_THREAD sz_tid (do  -- (thread)
       t <- get
@@ -992,6 +997,7 @@ eventTypeNum e = case e of
     ConcSweepEnd {} -> EVENT_CONC_SWEEP_END
     ConcUpdRemSetFlush {} -> EVENT_CONC_UPD_REM_SET_FLUSH
     NonmovingHeapCensus {} -> EVENT_NONMOVING_HEAP_CENSUS
+    NonmovingPrunedSegments {} -> EVENT_NONMOVING_PRUNED_SEGMENTS
     TickyCounterDef {} -> EVENT_TICKY_COUNTER_DEF
     TickyCounterSample {} -> EVENT_TICKY_COUNTER_SAMPLE
     InfoTableProv {} -> EVENT_IPE
@@ -1447,6 +1453,9 @@ putEventSpec NonmovingHeapCensus {..} = do
     putE nonmovingCensusActiveSegs
     putE nonmovingCensusFilledSegs
     putE nonmovingCensusLiveBlocks
+putEventSpec NonmovingPrunedSegments {..} = do
+    putE nonmovingPrunedSegments
+    putE nonmovingFreeSegments
 putEventSpec TickyCounterDef {..} = do
     putE tickyCtrDefId
     putE tickyCtrDefArity

@@ -462,6 +462,14 @@ data EventInfo
                        , nonmovingCensusFilledSegs :: !Word32
                        , nonmovingCensusLiveBlocks :: !Word32
                        }
+  | NonmovingPrunedSegments
+                       { -- | The number of pruned segments.
+                         nonmovingPrunedSegments :: !Word32
+                       -- | The number of leftover free segments.
+                       -- These could not be pruned as they belong to megablocks
+                       -- with at least one non-free segment.
+                       , nonmovingFreeSegments :: !Word32
+                       }
   | TickyCounterDef
                        { tickyCtrDefId      :: !Word64
                        , tickyCtrDefArity   :: !Word16
