@@ -3,6 +3,7 @@
 ## Unreleased
 
 * Added `--version` option to CLI interface
+* Fix the type of the `profCap` field of `ProfSampleCostCentre`
 
 ## 0.19.0.1 - 2023-04-13
 

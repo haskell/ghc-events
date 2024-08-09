@@ -489,7 +489,7 @@ buildEventInfo spec' =
           <> ", label " <> TB.fromText heapProfLabel
 
         ProfSampleCostCentre {..} ->
-          "cap no " <> TB.decimal profCapset
+          "cap no " <> TB.decimal profCap
           <> ", prof sample " <> TB.decimal profTicks
           <> ", cost centre stack " <> buildCostCentreStack profCcsStack
 
