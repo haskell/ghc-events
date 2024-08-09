@@ -435,7 +435,7 @@ data EventInfo
                        }
 
   | ProfSampleCostCentre
-                       { profCapset :: !Capset
+                       { profCap :: !CapNo
                        , profTicks :: !Word64
                        , profStackDepth :: !Word8
                        , profCcsStack :: !(VU.Vector Word32)

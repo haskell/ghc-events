@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeApplications #-}
 module GHC.RTS.Events.Binary
   ( -- * Readers
     getHeader
@@ -751,7 +752,7 @@ timeProfParsers = [
     return $! ProfBegin{..}
   , VariableSizeParser EVENT_PROF_SAMPLE_COST_CENTRE $ do
     payloadLen <- get :: Get Word16
-    profCapset <- get
+    profCap <- fromIntegral @Int32 @CapNo <$> get
     profTicks <- get
     profStackDepth <- get
     profCcsStack <- VU.replicateM (fromIntegral profStackDepth) get
@@ -1420,7 +1421,7 @@ putEventSpec HeapProfSampleString {..} = do
     putE $ T.unpack heapProfLabel
 
 putEventSpec ProfSampleCostCentre {..} = do
-    putE profCapset
+    putE $ fromIntegral @CapNo @Int16 profCap
     putE profTicks
     putE profStackDepth
     VU.mapM_ putE profCcsStack
