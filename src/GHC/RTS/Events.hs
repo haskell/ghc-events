@@ -519,6 +519,10 @@ buildEventInfo spec' =
           <> ": " <> TB.decimal nonmovingCensusActiveSegs <> " active segments"
           <> ", " <> TB.decimal nonmovingCensusFilledSegs <> " filled segments"
           <> ", " <> TB.decimal nonmovingCensusLiveBlocks <> " live blocks"
+        NonmovingPrunedSegments {..} ->
+          "nonmoving segments pruned: "
+           <> TB.decimal nonmovingPrunedSegments <> " pruned segments, "
+           <> TB.decimal nonmovingFreeSegments <> " free segments retained"
         TickyCounterDef {..}  ->
           "ticky counter definition " <> TB.decimal tickyCtrDefId
           <> ", " <>  "arity: " <> TB.decimal tickyCtrDefArity
