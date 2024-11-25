@@ -38,8 +38,8 @@ extra-source-files: include/EventLogFormat.h
                     test/*.reference
                     test/Utils.hs
                     test/stop.hs
-                    README.md
-                    CHANGELOG.md
+extra-doc-files: README.md
+                 CHANGELOG.md
 
 source-repository head
   type: git
