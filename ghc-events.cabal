@@ -38,8 +38,8 @@ extra-source-files: include/EventLogFormat.h
                     test/*.reference
                     test/Utils.hs
                     test/stop.hs
-                    README.md
-                    CHANGELOG.md
+extra-doc-files: README.md
+                 CHANGELOG.md
 
 source-repository head
   type: git
@@ -58,7 +58,7 @@ library
   build-depends:    base       >= 4.7 && < 4.21,
                     containers >= 0.5 && < 0.8,
                     binary     >= 0.7 && < 0.11,
-                    bytestring >= 0.10.4,
+                    bytestring >= 0.10.4 && < 0.13,
                     array      >= 0.2 && < 0.6,
                     text       >= 0.11.2.3 && < 2.2,
                     vector     >= 0.7 && < 0.14
