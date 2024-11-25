@@ -2,8 +2,17 @@
 
 ## Unreleased
 
-* Added `--version` option to CLI interface
-* Fix the type of the `profCap` field of `ProfSampleCostCentre`
+
+## 0.20.0.0 - 2024-11-25
+
+* Add pretty printing for timestamps ([#92](https://github.com/haskell/ghc-events/pull/92))
+* Added `--version` option to CLI interface ([#95](https://github.com/haskell/ghc-events/pull/95))
+* Support GHC 9.8 ([#102](https://github.com/haskell/ghc-events/pull/102))
+* Add support for era profiling events ([#103](https://github.com/haskell/ghc-events/pull/103))
+* Support GHC 9.10 ([#105](https://github.com/haskell/ghc-events/pull/105))
+* Add support for the NonmovingPrunedSegment event ([#107](https://github.com/haskell/ghc-events/pull/107))
+* Fix the type of the `profCap` field of `ProfSampleCostCentre` ([#108](https://github.com/haskell/ghc-events/pull/108))
+
 
 ## 0.19.0.1 - 2023-04-13
 
