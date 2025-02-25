@@ -2,6 +2,7 @@
 
 ## Unreleased
 * Drop dependency on `array` ([#114](https://github.com/haskell/ghc-events/pull/114))
+* Make definition of `Monoid MaxVars` cannonical ([#115](https://github.com/haskell/ghc-events/pull/115))
 
 
 ## 0.20.0.0 - 2024-11-25

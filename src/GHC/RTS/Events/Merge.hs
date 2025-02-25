@@ -49,15 +49,22 @@ data MaxVars = MaxVars { mcapset :: !Word32
                        , mthread :: !ThreadId }
 -- TODO introduce parallel RTS process and machine var.s
 
+combineMaxVars :: MaxVars -> MaxVars -> MaxVars
+combineMaxVars (MaxVars a b c) (MaxVars x y z) =
+      MaxVars (max a x) (b + y) (max c z)
+
 #if MIN_VERSION_base(4,11,0)
 instance Semigroup MaxVars where
-    (<>) = mappend
+    (<>) = combineMaxVars
 #endif
 
 instance Monoid MaxVars where
     mempty  = MaxVars 0 0 0
-    mappend (MaxVars a b c) (MaxVars x y z) =
-      MaxVars (max a x) (b + y) (max c z)
+#if MIN_VERSION_base(4,11,0)
+    mappend = (<>)
+#else
+    mappend = combineMaxVars
+#endif
     -- avoid space leaks:
     mconcat = foldl' mappend mempty
 
