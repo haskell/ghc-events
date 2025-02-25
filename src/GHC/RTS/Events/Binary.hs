@@ -33,7 +33,7 @@ import Data.Maybe
 import Data.Int
 import Prelude hiding (gcd, rem, id)
 
-import Data.Array
+import Data.Vector ((!))
 import Data.Binary
 import Data.Binary.Put
 import qualified Data.Binary.Get as G

@@ -1,6 +1,7 @@
 # Change Log
 
 ## Unreleased
+* Drop dependency on `array` ([#114](https://github.com/haskell/ghc-events/pull/114))
 
 
 ## 0.20.0.0 - 2024-11-25

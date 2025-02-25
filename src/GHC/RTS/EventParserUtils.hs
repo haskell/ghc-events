@@ -12,26 +12,27 @@ module GHC.RTS.EventParserUtils (
         skip,
     ) where
 
-import Data.Array
 import Data.Binary
 import Data.Binary.Get ()
 import Data.Binary.Put ()
 import Data.IntMap (IntMap)
 import Data.List
 import Data.Text (Text)
+import Data.Vector (Vector)
 import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.IntMap as M
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
+import qualified Data.Vector as Vec
 
 #define EVENTLOG_CONSTANTS_ONLY
 #include "EventLogFormat.h"
 
 import GHC.RTS.EventTypes
 
-newtype EventParsers = EventParsers (Array Int (Get EventInfo))
+newtype EventParsers = EventParsers (Vector (Get EventInfo))
 
 getString :: Integral a => a -> Get String
 getString len = do
@@ -123,10 +124,10 @@ simpleEvent t p = FixedSizeParser t 0 (return p)
 
 mkEventTypeParsers :: IntMap EventType
                    -> [EventParser EventInfo]
-                   -> Array Int (Get EventInfo)
+                   -> Vector (Get EventInfo)
 mkEventTypeParsers etypes event_parsers
- = accumArray (flip const) undefined (0, max_event_num)
-    [ (num, parser num) | num <- [0..max_event_num] ]
+ = Vec.fromList
+    [ parser num | num <- [0..max_event_num] ]
   where
     max_event_num = maximum (M.keys etypes)
     undeclared_etype num = fail ("undeclared event type: " ++ show num)
