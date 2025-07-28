@@ -1,5 +1,6 @@
 module GHC.RTS.Events.Analysis
   ( Machine (..)
+  , step
   , validate
   , validates
   , simulate
