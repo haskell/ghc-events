@@ -23,6 +23,7 @@ import qualified Data.Binary.Get as G
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.IntMap as M
 import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Encoding.Error as TEE
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Data.Vector as Vec
@@ -55,7 +56,7 @@ getTextNul :: Get Text
 getTextNul = do
   chunks <- G.getLazyByteStringNul
   case TLE.decodeUtf8' chunks of
-    Left err -> fail $ show err
+    Left _err -> return (TL.toStrict $ TLE.decodeUtf8With TEE.lenientDecode chunks)
     Right text -> return $ TL.toStrict text
 
 -- | Skip over n bytes of input
