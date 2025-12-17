@@ -657,7 +657,7 @@ heapProfParsers =
     heapProfRetainerFilter <- getTextNul
     heapProfBiographyFilter <- getTextNul
     assert
-      (fromIntegral payloadLen == sum
+      (fromIntegral payloadLen >= sum
         [ 1 -- heapProfId
         , 8 -- heapProfSamplingPeriod
         , 4 -- heapProfBreakdown
@@ -679,7 +679,7 @@ heapProfParsers =
     heapProfSrcLoc <- getTextNul
     heapProfFlags <- get
     assert
-      (fromIntegral payloadLen == sum
+      (fromIntegral payloadLen >= sum
         [ 4 -- heapProfCostCentreId
         , textByteLen heapProfLabel
         , textByteLen heapProfModule
@@ -699,7 +699,7 @@ heapProfParsers =
     itModule <- getTextNul
     itSrcLoc <- getTextNul
     assert
-      (fromIntegral payloadLen == sum
+      (fromIntegral payloadLen >= sum
         [ 8 -- itInfo
         , textByteLen itTableName
         , textByteLen itClosureDescText
@@ -727,7 +727,7 @@ heapProfParsers =
     heapProfStackDepth <- get
     heapProfStack <- VU.replicateM (fromIntegral heapProfStackDepth) get
     assert
-      ((fromIntegral payloadLen :: Int) == sum
+      ((fromIntegral payloadLen :: Int) >= sum
         [ 1 -- heapProfId
         , 8 -- heapProfResidency
         , 1 -- heapProfStackDepth
@@ -741,7 +741,7 @@ heapProfParsers =
     heapProfResidency <- get
     heapProfLabel <- getTextNul
     assert
-      (fromIntegral payloadLen == sum
+      (fromIntegral payloadLen >= sum
         [ 1 -- heapProfId
         , 8 -- heapProfResidency
         , textByteLen heapProfLabel
@@ -762,7 +762,7 @@ timeProfParsers = [
     profStackDepth <- get
     profCcsStack <- VU.replicateM (fromIntegral profStackDepth) get
     assert
-      ((fromIntegral payloadLen :: Int) == sum
+      ((fromIntegral payloadLen :: Int) >= sum
         [ 4
         , 8 -- ticks
         , 1 -- stack depth
@@ -825,7 +825,7 @@ tickyParsers =
     tickyCtrDefName    <- getTextNul
     tickyCtrInfoTbl    <- optionalGet payloadLen start_bytes (0 :: Word64) get
     tickyCtrJsonDesc   <- optionalGet payloadLen start_bytes Nothing (Just <$> getTextNul)
-    assert (fromIntegral payloadLen ==
+    assert (fromIntegral payloadLen >=
       (sum
         [ 8 -- tickyCtrDefId
         , 2 -- tickyCtrDefArity
