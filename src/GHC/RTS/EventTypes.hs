@@ -1,5 +1,40 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module GHC.RTS.EventTypes where
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+module GHC.RTS.EventTypes
+  ( module GHC.RTS.EventTypes
+  , EventInfo
+    ( ..
+    , EdenStartReceive
+    , EdenEndReceive
+    , Version
+    , ProgramInvocation
+    , CreateMachine
+    , KillMachine
+    , CreateProcess
+    , KillProcess
+    , AssignThreadToProcess
+    , SendMessage
+    , ReceiveMessage
+    , SendReceiveLocalMessage
+    , MerStartParConjunction
+    , MerEndParConjunction
+    , MerEndParConjunct
+    , MerCreateSpark
+    , MerFutureCreate
+    , MerFutureWaitNosuspend
+    , MerFutureWaitSuspended
+    , MerFutureSignal
+    , MerLookingForGlobalThread
+    , MerWorkStealing
+    , MerLookingForLocalSpark
+    , MerReleaseThread
+    , MerCapSleeping
+    , MerCallingMain
+    )
+  )
+where
 import Control.Monad
 import Data.Bits
 
@@ -296,85 +331,9 @@ data EventInfo
   | UserMessage        { msg :: !Text }
   | UserMarker         { markername :: !Text }
 
-  -- Events emitted by a parallel RTS
-   -- Program /process info (tools might prefer newer variants above)
-  | Version            { version :: String }
-  | ProgramInvocation  { commandline :: String }
-   -- startup and shutdown (incl. real start time, not first log entry)
-  | CreateMachine      { machine :: {-# UNPACK #-} !MachineId,
-                         realtime    :: {-# UNPACK #-} !Timestamp}
-  | KillMachine        { machine ::  {-# UNPACK #-} !MachineId }
-   -- Haskell processes mgmt (thread groups that share heap and communicate)
-  | CreateProcess      { process :: {-# UNPACK #-} !ProcessId }
-  | KillProcess        { process :: {-# UNPACK #-} !ProcessId }
-  | AssignThreadToProcess { thread :: {-# UNPACK #-} !ThreadId,
-                            process :: {-# UNPACK #-} !ProcessId
-                          }
-   -- communication between processes
-  | EdenStartReceive   { }
-  | EdenEndReceive     { }
-  | SendMessage        { mesTag :: !MessageTag,
-                         senderProcess :: {-# UNPACK #-} !ProcessId,
-                         senderThread :: {-# UNPACK #-} !ThreadId,
-                         receiverMachine ::  {-# UNPACK #-} !MachineId,
-                         receiverProcess :: {-# UNPACK #-} !ProcessId,
-                         receiverInport :: {-# UNPACK #-} !PortId
-                       }
-  | ReceiveMessage     { mesTag :: !MessageTag,
-                         receiverProcess :: {-# UNPACK #-} !ProcessId,
-                         receiverInport :: {-# UNPACK #-} !PortId,
-                         senderMachine ::  {-# UNPACK #-} !MachineId,
-                         senderProcess :: {-# UNPACK #-} !ProcessId,
-                         senderThread :: {-# UNPACK #-} !ThreadId,
-                         messageSize :: {-# UNPACK #-} !MessageSize
-                       }
-  | SendReceiveLocalMessage { mesTag :: !MessageTag,
-                              senderProcess :: {-# UNPACK #-} !ProcessId,
-                              senderThread :: {-# UNPACK #-} !ThreadId,
-                              receiverProcess :: {-# UNPACK #-} !ProcessId,
-                              receiverInport :: {-# UNPACK #-} !PortId
-                            }
-
   -- These events have been added for Mercury's benefit but are generally
   -- useful.
   | InternString       { str :: String, sId :: {-# UNPACK #-}!StringId }
-
-  -- Mercury specific events.
-  | MerStartParConjunction {
-        dyn_id      :: {-# UNPACK #-}!ParConjDynId,
-        static_id   :: {-# UNPACK #-}!ParConjStaticId
-    }
-  | MerEndParConjunction {
-        dyn_id      :: {-# UNPACK #-}!ParConjDynId
-    }
-  | MerEndParConjunct {
-        dyn_id      :: {-# UNPACK #-}!ParConjDynId
-    }
-  | MerCreateSpark {
-        dyn_id      :: {-# UNPACK #-}!ParConjDynId,
-        spark_id    :: {-# UNPACK #-}!SparkId
-    }
-  | MerFutureCreate {
-        future_id   :: {-# UNPACK #-}!FutureId,
-        name_id     :: {-# UNPACK #-}!StringId
-    }
-  | MerFutureWaitNosuspend {
-        future_id   :: {-# UNPACK #-}!FutureId
-    }
-  | MerFutureWaitSuspended {
-        future_id   :: {-# UNPACK #-}!FutureId
-    }
-  | MerFutureSignal {
-        future_id   :: {-# UNPACK #-}!FutureId
-    }
-  | MerLookingForGlobalThread
-  | MerWorkStealing
-  | MerLookingForLocalSpark
-  | MerReleaseThread {
-        thread_id   :: {-# UNPACK #-}!ThreadId
-    }
-  | MerCapSleeping
-  | MerCallingMain
 
   -- perf events
   | PerfName           { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
@@ -486,6 +445,110 @@ data EventInfo
                        }
   | TickyBeginSample
   deriving Show
+
+-- ** Deprecated events. **
+-- None of these are emitted by GHC anymore, but we keep pattern synonyms to avoid breakage.
+-- The pattern synonyms will never match and desugar to trying to match @Just@ against @Nothing@.
+pattern EdenStartReceive :: EventInfo
+pattern EdenStartReceive <- (const Nothing -> Just ())
+pattern EdenEndReceive :: EventInfo
+pattern EdenEndReceive <- (const Nothing -> Just ())
+-- Events emitted by a parallel RTS
+-- Program /process info (tools might prefer newer variants above)
+pattern Version :: String -> EventInfo
+pattern Version { version } <- (const Nothing -> Just (version))
+pattern ProgramInvocation :: String -> EventInfo
+pattern ProgramInvocation  { commandline } <- (const Nothing -> Just (commandline))
+-- startup and shutdown (incl. real start time, not first log entry)
+pattern CreateMachine ::  MachineId -> Timestamp -> EventInfo
+pattern CreateMachine {machine, realtime} <- (const Nothing -> Just (machine, realtime))
+pattern KillMachine :: MachineId -> EventInfo
+pattern KillMachine { machine } <- (const Nothing -> Just (machine))
+-- Haskell processes mgmt (thread groups that share heap and communicate)
+pattern CreateProcess :: ProcessId  -> EventInfo
+pattern CreateProcess { process } <- (const Nothing -> Just (process))
+pattern KillProcess ::  ProcessId -> EventInfo
+pattern KillProcess  { process } <- (const Nothing -> Just (process))
+pattern AssignThreadToProcess :: ThreadId -> ProcessId -> EventInfo
+pattern AssignThreadToProcess { thread, process } <- (const Nothing -> Just (thread, process))
+-- communication between processes
+pattern SendMessage :: MessageTag -> ProcessId -> ThreadId -> MachineId -> ProcessId -> PortId -> EventInfo
+pattern SendMessage {
+        mesTag,
+        senderProcess,
+        senderThread,
+        receiverMachine,
+        receiverProcess,
+        receiverInport
+     } <- (const Nothing -> Just (mesTag, senderProcess, senderThread, receiverMachine, receiverProcess, receiverInport))
+pattern ReceiveMessage  :: MessageTag -> ProcessId -> PortId -> MachineId -> ProcessId -> ThreadId -> MessageSize -> EventInfo
+pattern ReceiveMessage {
+  mesTag,
+  receiverProcess,
+  receiverInport,
+  senderMachine,
+  senderProcess,
+  senderThread,
+  messageSize
+  } <- (const Nothing -> Just (mesTag, receiverProcess, receiverInport, senderMachine, senderProcess, senderThread, messageSize))
+pattern SendReceiveLocalMessage :: MessageTag -> ProcessId -> ThreadId -> ProcessId -> PortId -> EventInfo
+pattern SendReceiveLocalMessage {
+  mesTag,
+  senderProcess,
+  senderThread,
+  receiverProcess,
+  receiverInport
+  } <- (const Nothing -> Just (mesTag, senderProcess, senderThread, receiverProcess, receiverInport))
+-- Mercury specific events.
+pattern MerStartParConjunction :: ParConjDynId -> ParConjStaticId -> EventInfo
+pattern MerStartParConjunction {
+        dyn_id,
+        static_id
+    } <- (const Nothing -> Just (dyn_id, static_id))
+pattern MerEndParConjunction :: ParConjDynId -> EventInfo
+pattern MerEndParConjunction {
+        dyn_id
+    } <- (const Nothing -> Just (dyn_id))
+pattern MerEndParConjunct :: ParConjDynId -> EventInfo
+pattern MerEndParConjunct {
+        dyn_id
+    } <- (const Nothing -> Just (dyn_id))
+pattern MerCreateSpark :: ParConjDynId -> SparkId -> EventInfo
+pattern MerCreateSpark {
+        dyn_id,
+        spark_id
+    } <- (const Nothing -> Just (dyn_id, spark_id))
+pattern MerFutureCreate :: FutureId -> StringId -> EventInfo
+pattern MerFutureCreate {
+        future_id,
+        name_id
+    } <- (const Nothing -> Just (future_id, name_id))
+pattern MerFutureWaitNosuspend :: FutureId -> EventInfo
+pattern MerFutureWaitNosuspend {
+        future_id
+    } <- (const Nothing -> Just (future_id))
+pattern MerFutureWaitSuspended :: FutureId -> EventInfo
+pattern MerFutureWaitSuspended {
+        future_id
+    } <- (const Nothing -> Just (future_id))
+pattern MerFutureSignal :: FutureId -> EventInfo
+pattern MerFutureSignal {
+        future_id
+    } <- (const Nothing -> Just (future_id))
+pattern MerLookingForGlobalThread :: EventInfo
+pattern MerLookingForGlobalThread <- (const Nothing -> Just ())
+pattern MerWorkStealing :: EventInfo
+pattern MerWorkStealing <- (const Nothing -> Just ())
+pattern MerLookingForLocalSpark :: EventInfo
+pattern MerLookingForLocalSpark <- (const Nothing -> Just ())
+pattern MerReleaseThread :: ThreadId -> EventInfo
+pattern MerReleaseThread {
+        thread_id
+    } <- (const Nothing -> Just (thread_id) )
+pattern MerCapSleeping :: EventInfo
+pattern MerCapSleeping <- (const Nothing -> Just ())
+pattern MerCallingMain :: EventInfo
+pattern MerCallingMain <- (const Nothing -> Just ())
 
 {- [Note: Stop status in GHC-7.8.2]
 
