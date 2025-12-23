@@ -1,9 +1,16 @@
 # Change Log
 
 ## Unreleased
-* Drop dependency on `array` ([#114](https://github.com/haskell/ghc-events/pull/114))
-* Make definition of `Monoid MaxVars` cannonical ([#115](https://github.com/haskell/ghc-events/pull/115))
 
+## 0.21.0.0 - 2025-12-23 (Happy Holidays!)
+* NB: The next version of `ghc-events` will likely drop support for versions of GHC before 9.2. Please open a ticket if this is an issue for you.
+* Support GHC-9.12 ([#113](https://github.com/haskell/ghc-events/pull/113))
+* Drop dependency on array ([#114](https://github.com/haskell/ghc-events/pull/114))
+* Canonical Monoid instance for MaxVars ([#115](https://github.com/haskell/ghc-events/pull/115))
+* Support containers-0.8 ([#117](https://github.com/haskell/ghc-events/pull/117))
+* Export `step` from GHC.RTS.Events.Analysis ([#118](https://github.com/haskell/ghc-events/pull/118))
+* Relax event length assertions ([#122](https://github.com/haskell/ghc-events/pull/122))
+* Support GHC-9.14 ([#124](https://github.com/haskell/ghc-events/pull/124))
 
 ## 0.20.0.0 - 2024-11-25
 
