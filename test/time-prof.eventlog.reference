@@ -62,6 +62,10 @@ Event Types:
 181: User binary message (size variable)
 
 Events:
+60066: event block: cap 65535, end time: 374234993
+
+60135: cap 0: event block: cap 0, end time: 374234555
+
 60526: created capset 0 of type CapsetOsProcess
 60597: created capset 1 of type CapsetClockDomain
 61788: created cap 0

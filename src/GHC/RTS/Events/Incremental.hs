@@ -83,7 +83,7 @@ decodeEvents header = go (0 :: Int) Nothing decoder0
         case r of
           Just event -> case evSpec event of
             EventBlock {..} ->
-              go (fromIntegral block_size) (mkCap cap) decoder'
+              Produce (event { evCap = mkCap cap }) $ go (fromIntegral block_size) (mkCap cap) decoder'
             _ -> do
               let
                 !remaining' = remaining - fromIntegral consumed
