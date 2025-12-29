@@ -70,6 +70,10 @@ Event Types:
 207: Nonmoving heap census (size 13)
 
 Events:
+202792: event block: cap 65535, end time: 240776872
+
+203138: cap 0: event block: cap 0, end time: 240773783
+
 227855: capset 1: wall clock time 1587597517s 544758000ns (unix epoch)
 229418: capset 0: pid 1158
 231368: capset 0: parent pid 25700

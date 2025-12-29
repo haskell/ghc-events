@@ -72,6 +72,10 @@ Event Types:
 211: Ticky-ticky entry counter sample (size 32)
 
 Events:
+237000: event block: cap 65535, end time: 316000
+
+239000: cap 0: event block: cap 0, end time: 12471000
+
 292000: created capset 0 of type CapsetOsProcess
 292000: created capset 1 of type CapsetClockDomain
 293000: created cap 0
@@ -82,6 +86,8 @@ Events:
 305000: capset 0: parent pid 9239
 312000: capset 0: RTS version "GHC-9.1.0.20201210 rts_debug"
 315000: capset 0: args: ["./HelloWorld","+RTS","-lT"]
+326000: event block: cap 65535, end time: 12499000
+
 3772000: heap stats for heap capset 0: generations 2, 0 bytes max heap size, 1048576 bytes alloc area size, 1048576 bytes mblock size, 4096 bytes block size
 3857000: task 0x7fd27f405e90 created on cap 0 with OS kernel thread 32996106
 3861000: cap 0: creating thread 1
