@@ -113,7 +113,7 @@ printEventsIncremental
   :: Bool -- ^ Follow the file or not
   -> FilePath
   -> IO ()
-printEventsIncremental follow path =
+printEventsIncremental follow path = do
   withFile path ReadMode (hPrintEventsIncremental follow)
 
 -- | Read an event log from the Handle and pretty print it to stdout
@@ -151,9 +151,8 @@ serialiseEventLog el@(EventLog _ (Data events)) =
   P.runPut $ putEventLog blockedEl
   where
     eventsMap = capSplitEvents events
-    blockedEventsMap = IM.mapWithKey addBlockMarker eventsMap
+    blockedEvents = joinCapEvents eventsMap
     blockedEl = el{dat = Data blockedEvents}
-    blockedEvents = IM.foldr (++) [] blockedEventsMap
 
 -- Gets the Capability of an event in numeric form
 getIntCap :: Event -> Int
@@ -165,7 +164,7 @@ getIntCap Event{evCap = cap} =
 -- Creates an IntMap of the events with capability number as the key.
 -- Key -1 indicates global (capless) event
 capSplitEvents :: [Event] -> IM.IntMap [Event]
-capSplitEvents evts = capSplitEvents' evts IM.empty
+capSplitEvents evts = IM.map reverse $ capSplitEvents' evts IM.empty
 
 capSplitEvents' :: [Event] -> IM.IntMap [Event] -> IM.IntMap [Event]
 capSplitEvents' evts imap =
@@ -173,18 +172,33 @@ capSplitEvents' evts imap =
   (x:xs) -> capSplitEvents' xs (IM.insertWith (++) (getIntCap x) [x] imap)
   []     -> imap
 
--- Adds a block marker to the beginning of a list of events, annotated with
--- its capability. All events are expected to belong to the same cap.
-addBlockMarker :: Int -> [Event] -> [Event]
-addBlockMarker cap evts =
-  (Event startTime (EventBlock endTime cap sz) (mkCap cap)) : sortedEvts
+-- | Join events labelled by capability into one sorted valid eventlog.
+joinCapEvents :: IM.IntMap [Event] -> [Event]
+joinCapEvents eventMap = go capEventsByStartTime
   where
-    sz = fromIntegral . BL.length $ P.runPut $ mapM_ putEvent evts
-    startTime = case sortedEvts of
-      (x:_) -> evTime x
-      [] -> error "Cannot add block marker to an empty list of events"
-    sortedEvts = sortEvents evts
-    endTime = evTime $ last sortedEvts
+    capEvents :: [[Event]]
+    capEvents = map snd $ IM.toList eventMap
+    -- Create a map keyed by start time
+    capEventsByStartTime = IM.fromList [(fromIntegral (evTime x), x:xs) | (x:xs) <- capEvents]
+    insertEvs (e:evs) evMap = IM.insert (fromIntegral (evTime e)) (e:evs) evMap
+    insertEvs [] evMap = evMap
+    go :: IM.IntMap [Event] -> [Event]
+    go events =
+      -- Pop the capability with the earliest event
+      case IM.minView events of
+        Nothing -> []
+        Just (evs, events') ->
+          let (chunk, rest) = splitEventBlock evs
+          in chunk ++ go (insertEvs rest events') -- place the remaining chunk back into the map
+
+-- | Split a block of events out from a stream of events.
+-- Invariant: The first event is of type EventBlock
+splitEventBlock :: [Event] -> ([Event], [Event])
+splitEventBlock [] = ([],[])
+splitEventBlock (ev@Event{evSpec = EventBlock{end_time = end}}:evs) = (ev:ls, rs)
+  where
+    (ls, rs) = span (\e -> evTime e <= end) evs
+splitEventBlock xs = error "Each block of events must start with an EventBlock event but one wasn't found"
 
 -- -----------------------------------------------------------------------------
 -- Utilities
@@ -206,7 +220,7 @@ buildEventInfo spec' =
     case spec' of
         EventBlock end_time cap _block_events ->
           "event block: cap " <> TB.decimal cap
-          <> ", end time: " <> TB.decimal end_time <> "\n"
+          <> ", end time: " <> buildTime RawTime end_time <> "\n"
         Startup n_caps ->
           "startup: " <> TB.decimal n_caps <> " capabilities"
         CreateThread thread ->

@@ -57,6 +57,10 @@ Event Types:
 164: Heap profile string sample (size variable)
 
 Events:
+125082: event block: cap 65535, end time: 5008074669
+
+126199: cap 0: event block: cap 0, end time: 5008070199
+
 130320: created capset 0 of type CapsetOsProcess
 132904: created capset 1 of type CapsetClockDomain
 151342: created cap 0

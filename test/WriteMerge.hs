@@ -32,8 +32,8 @@ testFile f = do
   case e of
     Left m -> oops m
     Right log -> do
-      let old = ppEventLog log
-      let new = ppEventLog $ rewriteLog log
+      let old = ppEventLog RawTime log
+      let new = ppEventLog RawTime $ rewriteLog log
       if old == new
         then putStrLn (f ++ ": success") >> return True
         else do
