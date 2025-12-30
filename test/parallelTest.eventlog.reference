@@ -66,6 +66,10 @@ Event Types:
 
 Events:
 965: creating machine 2 at 143714457434916300
+1016685948: event block: cap 65535, end time: 1038027965
+
+1016686389: cap 0: event block: cap 0, end time: 1037995887
+
 1016690453: startup: 1 capabilities
 1016695409: compiler version is 7.10.20150612
 1016698802: program invocation: /opt/Eden/test/./jost=ChainDep 2 3 +RTS -l -RTS

@@ -78,11 +78,19 @@ Event Types:
 212: Ticky-ticky entry counter begin sample (size 0)
 
 Events:
+16507: cap 0: event block: cap 0, end time: 104991
+
+71577: event block: cap 65535, end time: 103639
+
 101786: capset 1: wall clock time 1723223845s 324076000ns (unix epoch)
 102167: capset 0: pid 1828277
 102377: capset 0: parent pid 74621
 103208: capset 0: RTS version "GHC-9.11.20240805 rts_v"
 103419: capset 0: args: ["nofib/shootout/binary-trees/Main","15","11","+RTS","-xn","-l-an"]
+104951: event block: cap 65535, end time: 253628994
+
+105712: cap 0: event block: cap 0, end time: 253582257
+
 2555721: Starting nonmoving GC preparation
 2557364: Marking roots for nonmoving GC
 2557755: Finished marking roots for nonmoving GC
