@@ -564,7 +564,7 @@ buildCostCentreStack = VU.ifoldl' go ""
 
 showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
-showThreadStopStatus StackOverflow  = "stack overflow"
+showThreadStopStatus (StackOverflow i) = "stack overflow, size " ++ show i
 showThreadStopStatus ThreadYielding = "thread yielding"
 showThreadStopStatus ThreadBlocked  = "thread blocked"
 showThreadStopStatus ThreadFinished = "thread finished"

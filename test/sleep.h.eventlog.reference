@@ -184,7 +184,7 @@ Events:
 672901: task 0x7ff358a2b740 created on cap 0 with OS kernel thread 30086
 680374: cap 0: creating thread 1
 685123: cap 0: running thread 1
-762644: cap 0: stopping thread 1 (stack overflow)
+762644: cap 0: stopping thread 1 (stack overflow, size 0)
 769698: cap 0: running thread 1
 798262: cap 0: creating thread 2
 812929: cap 0: stopping thread 1 (thread yielding)

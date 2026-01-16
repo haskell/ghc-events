@@ -1033,7 +1033,7 @@ putEventSpec (StopThread t s) = do
     putE $ case s of
             NoStatus -> 0 :: Word16
             HeapOverflow -> 1
-            StackOverflow -> 2
+            StackOverflow _ -> 2
             ThreadYielding -> 3
             ThreadBlocked -> 4
             ThreadFinished -> 5
@@ -1053,6 +1053,7 @@ putEventSpec (StopThread t s) = do
             ThreadMigrating -> 17
             BlockedOnMsgGlobalise -> 18
     putE $ case s of
+            StackOverflow i -> i
             BlockedOnBlackHoleOwnedBy i -> i
             _                           -> 0
 

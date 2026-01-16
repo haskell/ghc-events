@@ -71,7 +71,7 @@ Events:
 1119300: task 0x10630a0 created on cap 0 with OS kernel thread 16112
 1124800: cap 0: creating thread 1
 1130000: cap 0: running thread 1
-1660500: cap 0: stopping thread 1 (stack overflow)
+1660500: cap 0: stopping thread 1 (stack overflow, size 0)
 1667600: cap 0: running thread 1
 1718400: cap 0: stopping thread 1 (blocked on I/O write)
 2132500: cap 0: running thread 1
