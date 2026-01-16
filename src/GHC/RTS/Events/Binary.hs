@@ -445,19 +445,13 @@ standardParsers = [
 
  (FixedSizeParser EVENT_STOP_THREAD (sz_tid + sz_th_stop_status + sz_tid)
     (do
-      -- (thread, status, info)
+      -- (thread, status, info, tot_stack_size)
       t <- get
       s <- get :: Get RawThreadStopStatus
-      i <- get :: Get ThreadId
+      i <- get :: Get Word32
       return StopThread{thread = t,
-                        status = case () of
-                                  _ | s > maxThreadStopStatus
-                                    -> NoStatus
-                                    | s == 8 {- XXX yeuch -}
-                                      -- post-7.8.2: 8==BlockedOnBlackhole
-                                    -> BlockedOnBlackHoleOwnedBy i
-                                    | otherwise
-                                    -> mkStopStatus s}
+                        status = mkStopStatus s i
+                       }
     ))
  ]
 
