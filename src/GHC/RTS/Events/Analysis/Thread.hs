@@ -41,7 +41,7 @@ threadMachine = Machine
   threadDelta ThreadQueued (RunThread _)      = Just ThreadRunning
   threadDelta ThreadQueued (WakeupThread _ _) = Just ThreadQueued
   -- ThreadRunning
-  threadDelta ThreadRunning (StopThread _ StackOverflow)  = Just ThreadQueued
+  threadDelta ThreadRunning (StopThread _ (StackOverflow _))  = Just ThreadQueued
   threadDelta ThreadRunning (StopThread _ HeapOverflow)   = Just ThreadQueued
   threadDelta ThreadRunning (StopThread _ ForeignCall)    = Just ThreadQueued
   threadDelta ThreadRunning (StopThread _ ThreadFinished) = Just ThreadFinal

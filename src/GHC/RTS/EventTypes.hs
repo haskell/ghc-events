@@ -491,7 +491,7 @@ data EventInfo
 data ThreadStopStatus
  = NoStatus
  | HeapOverflow
- | StackOverflow
+ | StackOverflow {-# UNPACK #-}!Word32
  | ThreadYielding
  | ThreadBlocked
  | ThreadFinished
@@ -516,7 +516,7 @@ mkStopStatus :: RawThreadStopStatus -> Word32 -> ThreadStopStatus
 mkStopStatus n i = case n of
  0  ->  NoStatus
  1  ->  HeapOverflow
- 2  ->  StackOverflow
+ 2  ->  StackOverflow i
  3  ->  ThreadYielding
  4  ->  ThreadBlocked
  5  ->  ThreadFinished

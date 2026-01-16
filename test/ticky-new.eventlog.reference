@@ -91,7 +91,7 @@ Events:
 238400: task 0x11f1570 created on cap 0 with OS kernel thread 2347594
 241377: cap 0: creating thread 1
 243300: cap 0: running thread 1
-319024: cap 0: stopping thread 1 (stack overflow)
+319024: cap 0: stopping thread 1 (stack overflow, size 110)
 322100: cap 0: running thread 1
 4056085: cap 0: stopping thread 1 (heap overflow)
 4060404: cap 0: starting GC
