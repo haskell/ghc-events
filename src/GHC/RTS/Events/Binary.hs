@@ -33,7 +33,7 @@ import Data.Maybe
 import Data.Int
 import Prelude hiding (gcd, rem, id)
 
-import Data.Vector ((!))
+import Data.Vector ((!?))
 import Data.Binary
 import Data.Binary.Put
 import qualified Data.Binary.Get as G
@@ -100,7 +100,8 @@ getEvent (EventParsers parsers) = do
   if etRef == EVENT_DATA_END
      then return Nothing
      else do !evTime   <- get
-             evSpec <- parsers ! fromIntegral etRef
+             evSpec <- fromMaybe (fail $ "Unrecognized event type: " ++ show etRef) $
+               parsers !? fromIntegral etRef
              return $ Just Event { evCap = undefined, .. }
 
 --
