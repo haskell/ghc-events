@@ -592,7 +592,6 @@ showThreadStopStatus BlockedOnDelay = "blocked on threadDelay"
 showThreadStopStatus BlockedOnSTM = "blocked in STM retry"
 showThreadStopStatus BlockedOnDoProc = "blocked on asyncDoProc"
 showThreadStopStatus BlockedOnMsgThrowTo = "blocked in throwTo"
-showThreadStopStatus ThreadMigrating = "thread migrating"
 showThreadStopStatus (BlockedOnBlackHoleOwnedBy target) =
           "blocked on black hole owned by thread " ++ show target
 showThreadStopStatus NoStatus = "No stop thread status"

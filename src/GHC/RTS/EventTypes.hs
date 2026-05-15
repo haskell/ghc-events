@@ -505,7 +505,6 @@ data ThreadStopStatus
  | BlockedOnSTM
  | BlockedOnDoProc
  | BlockedOnMsgThrowTo
- | ThreadMigrating
  | BlockedOnBlackHoleOwnedBy {-# UNPACK #-}!ThreadId
  deriving (Show)
 
@@ -525,7 +524,6 @@ mkStopStatus n i = case n of
  11 ->  BlockedOnDelay
  12 ->  BlockedOnSTM
  13 ->  BlockedOnDoProc
- 17 ->  ThreadMigrating
  18 ->  BlockedOnMsgThrowTo
  19 ->  NoStatus -- yeuch... this one does not actually exist in GHC event logs
  20 ->  BlockedOnMVarRead -- since GHC-7.8.3
