@@ -29,6 +29,7 @@ module GHC.RTS.Events.Binary
 import Control.Exception (assert)
 import Control.Monad
 import Data.List (intersperse)
+import Data.Bits (countLeadingZeros)
 import Data.Maybe
 import Data.Int
 import Prelude hiding (gcd, rem, id)
@@ -352,6 +353,7 @@ standardParsers = [
       nonmovingCensusActiveSegs <- get :: Get Word32
       nonmovingCensusFilledSegs <- get :: Get Word32
       nonmovingCensusLiveBlocks <- get :: Get Word32
+      let encodedAsLog = True
       return NonmovingHeapCensus{..}
     )),
  (FixedSizeParser EVENT_NONMOVING_HEAP_CENSUS 14 (do -- (blk_size, active_segs, filled_segs, live_blks)
@@ -359,6 +361,7 @@ standardParsers = [
       nonmovingCensusActiveSegs <- get :: Get Word32
       nonmovingCensusFilledSegs <- get :: Get Word32
       nonmovingCensusLiveBlocks <- get :: Get Word32
+      let encodedAsLog = False
       return NonmovingHeapCensus{..}
     )),
  (FixedSizeParser EVENT_NONMOVING_PRUNED_SEGMENTS 8 (do -- (pruned_segments, free_segments)
@@ -1444,7 +1447,16 @@ putEventSpec ConcSweepBegin = return ()
 putEventSpec ConcSweepEnd = return ()
 putEventSpec ConcUpdRemSetFlush {..} = do
     putCap cap
-putEventSpec NonmovingHeapCensus {..} = do
+putEventSpec NonmovingHeapCensus {encodedAsLog = True, ..} = do
+    -- See: Note[Encoding of NonmovingHeapCensus]
+    let
+      log2 :: Word16 -> Word8
+      log2 x = 15 - fromIntegral @Int @Word8 (countLeadingZeros x)
+    putE $ log2 nonmovingCensusBlkSize
+    putE nonmovingCensusActiveSegs
+    putE nonmovingCensusFilledSegs
+    putE nonmovingCensusLiveBlocks
+putEventSpec NonmovingHeapCensus {encodedAsLog = False, ..} = do
     putE nonmovingCensusBlkSize
     putE nonmovingCensusActiveSegs
     putE nonmovingCensusFilledSegs
