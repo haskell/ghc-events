@@ -1050,7 +1050,7 @@ putEventSpec (StopThread t s) = do
             BlockedOnDoProc -> 13
             BlockedOnCCall -> 14
             BlockedOnCCall_NoUnblockExc -> 15
-            BlockedOnMsgThrowTo -> 16
+            BlockedOnMsgThrowTo -> 18
             ThreadMigrating -> 17
     putE $ case s of
             StackOverflow i -> i
