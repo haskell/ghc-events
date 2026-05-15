@@ -1048,8 +1048,6 @@ putEventSpec (StopThread t s) = do
             BlockedOnDelay -> 11
             BlockedOnSTM -> 12
             BlockedOnDoProc -> 13
-            BlockedOnCCall -> 14
-            BlockedOnCCall_NoUnblockExc -> 15
             BlockedOnMsgThrowTo -> 18
             ThreadMigrating -> 17
     putE $ case s of
