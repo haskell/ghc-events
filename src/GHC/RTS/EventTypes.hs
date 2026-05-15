@@ -457,10 +457,13 @@ data EventInfo
   | ConcUpdRemSetFlush { cap    :: {-# UNPACK #-}!Int
                        }
   | NonmovingHeapCensus
-                       { nonmovingCensusBlkSize :: !Word16
+                       { -- | Block size
+                         nonmovingCensusBlkSize :: !Word16
                        , nonmovingCensusActiveSegs :: !Word32
                        , nonmovingCensusFilledSegs :: !Word32
                        , nonmovingCensusLiveBlocks :: !Word32
+                       -- See: Note [Encoding of NonmovingHeapCensus]
+                       , encodedAsLog :: !Bool
                        }
   | NonmovingPrunedSegments
                        { -- | The number of pruned segments.
@@ -486,6 +489,13 @@ data EventInfo
                        }
   | TickyBeginSample
   deriving Show
+
+-- Note [Encoding of NonmovingHeapCensus]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--
+-- Before GHC-9.10, block size was encoded as the base-2 logarithm.
+-- Since GHC-9.10, it is now just written directly as the block size and is not necessarily a power of 2.
+-- We need to record this information in order to roundtrips events, but otherwise it shouldn't matter to users.
 
 --sync with ghc/includes/Constants.h
 data ThreadStopStatus
