@@ -1052,7 +1052,6 @@ putEventSpec (StopThread t s) = do
             BlockedOnCCall_NoUnblockExc -> 15
             BlockedOnMsgThrowTo -> 16
             ThreadMigrating -> 17
-            BlockedOnMsgGlobalise -> 18
     putE $ case s of
             StackOverflow i -> i
             BlockedOnBlackHoleOwnedBy i -> i
