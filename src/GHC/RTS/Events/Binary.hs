@@ -1036,7 +1036,6 @@ putEventSpec (StopThread t s) = do
             HeapOverflow -> 1
             StackOverflow _ -> 2
             ThreadYielding -> 3
-            ThreadBlocked -> 4
             ThreadFinished -> 5
             ForeignCall -> 6
             BlockedOnMVar -> 7

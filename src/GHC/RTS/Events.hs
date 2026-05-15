@@ -580,7 +580,6 @@ showThreadStopStatus :: ThreadStopStatus -> String
 showThreadStopStatus HeapOverflow   = "heap overflow"
 showThreadStopStatus (StackOverflow i) = "stack overflow, size " ++ show i
 showThreadStopStatus ThreadYielding = "thread yielding"
-showThreadStopStatus ThreadBlocked  = "thread blocked"
 showThreadStopStatus ThreadFinished = "thread finished"
 showThreadStopStatus ForeignCall    = "making a foreign call"
 showThreadStopStatus BlockedOnMVar  = "blocked on an MVar"

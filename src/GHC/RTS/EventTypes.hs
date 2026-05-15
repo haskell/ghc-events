@@ -493,7 +493,6 @@ data ThreadStopStatus
  | HeapOverflow
  | StackOverflow {-# UNPACK #-}!Word32
  | ThreadYielding
- | ThreadBlocked
  | ThreadFinished
  | ForeignCall
  | BlockedOnMVar
@@ -514,7 +513,6 @@ mkStopStatus n i = case n of
  1  ->  HeapOverflow
  2  ->  StackOverflow i
  3  ->  ThreadYielding
- 4  ->  ThreadBlocked
  5  ->  ThreadFinished
  6  ->  ForeignCall
  7  ->  BlockedOnMVar
