@@ -156,104 +156,170 @@ data EventInfo
   | Shutdown           { }
 
   -- thread scheduling
+  -- | Marks the creation of a Haskell thread.
   | CreateThread       { thread :: {-# UNPACK #-}!ThreadId
                        }
+  -- | The indicated thread has started running.
   | RunThread          { thread :: {-# UNPACK #-}!ThreadId
                        }
+  -- | The indicated thread has stopped running for the reason given by status.
   | StopThread         { thread :: {-# UNPACK #-}!ThreadId,
                          status :: !ThreadStopStatus
                        }
+  -- | The indicated thread has been marked as ready to run.
   | ThreadRunnable     { thread :: {-# UNPACK #-}!ThreadId
                        }
+  -- | The indicated thread has been migrated to a new capability.
   | MigrateThread      { thread :: {-# UNPACK #-}!ThreadId,
                          newCap :: {-# UNPACK #-}!Int
                        }
+  -- TODO: Called "THREAD_WAKEUP" in GHC user guide
+  -- | The indicated thread has been woken up on another capability.
   | WakeupThread       { thread :: {-# UNPACK #-}!ThreadId,
                          otherCap :: {-# UNPACK #-}!Int
                        }
+  -- | The indicated thread has been given a label (e.g. with GHC.Conc.labelThread).
   | ThreadLabel        { thread :: {-# UNPACK #-}!ThreadId,
                          threadlabel :: !Text
                        }
 
   -- par sparks
+  -- | A thread has been created to perform spark evaluation.
   | CreateSparkThread  { sparkThread :: {-# UNPACK #-}!ThreadId
                        }
-  | SparkCounters      { sparksCreated, sparksDud, sparksOverflowed,
-                         sparksConverted, sparksFizzled, sparksGCd,
-                         sparksRemaining :: {-# UNPACK #-} !Word64
+  -- | A periodic reporting of various statistics of spark evaluation.
+  | SparkCounters      { sparksCreated    :: {-# UNPACK #-} !Word64, 
+                         sparksDud        :: {-# UNPACK #-} !Word64, 
+                         sparksOverflowed :: {-# UNPACK #-} !Word64,
+                         sparksConverted  :: {-# UNPACK #-} !Word64, 
+                         sparksFizzled    :: {-# UNPACK #-} !Word64, 
+                         sparksGCd        :: {-# UNPACK #-} !Word64,
+                         sparksRemaining  :: {-# UNPACK #-} !Word64
                        }
+  -- | A spark has been added to the spark pool.
   | SparkCreate        { }
   | SparkDud           { }
   | SparkOverflow      { }
+  -- | Evaluation has started on a spark.
   | SparkRun           { }
-  | SparkSteal         { victimCap :: {-# UNPACK #-}!Int }
+  -- | A spark has been stolen from another capability for evaluation.
+  | SparkSteal         { -- | Capability from which the spark was stolen
+                         victimCap :: {-# UNPACK #-}!Int }
+  -- | A spark has been GC’d before being evaluated.
   | SparkFizzle        { }
+  -- | An unevaluated spark has been garbage collected.
   | SparkGC            { }
 
   -- tasks
+  -- | Marks the creation of a task.
   | TaskCreate         { taskId :: TaskId,
                          cap :: {-# UNPACK #-}!Int,
+                         -- | The thread-id of the kernel thread which created the task.
                          tid :: {-# UNPACK #-}!KernelThreadId
                        }
+  -- | Marks the migration of a task to a new capability.
   | TaskMigrate        { taskId :: TaskId,
+                         -- | Old capability
                          cap :: {-# UNPACK #-}!Int,
+                         -- | New capability 
                          new_cap :: {-# UNPACK #-}!Int
                        }
   | TaskDelete         { taskId :: TaskId }
 
   -- garbage collection
+  -- | A sequential garbage collection has been requested by a capability.
   | RequestSeqGC       { }
+  -- | A parallel garbage collection has been requested by a capability.
   | RequestParGC       { }
+  -- TODO: Called GC_START in GHC user guide
+  -- | A garbage collection pass has been started.
   | StartGC            { }
+  -- | Marks the start of concurrent scavenging.
   | GCWork             { }
+  -- | An idle-time garbage collection has been started.
   | GCIdle             { }
+  -- | Marks the end of concurrent scavenging.
   | GCDone             { }
+  -- TODO: Called GC_END in GHC user guide
+  -- | A garbage collection pass has been finished.
   | EndGC              { }
   | GlobalSyncGC       { }
+  -- | Report various information about a major collection.
   | GCStatsGHC         { heapCapset   :: {-# UNPACK #-}!Capset
+                         -- | Generation of collection
                        , gen          :: {-# UNPACK #-}!Int
+                         -- | Bytes copied
                        , copied       :: {-# UNPACK #-}!Word64
+                         -- | Bytes of slop found
                        , slop         :: {-# UNPACK #-}!Word64
+                         -- | Bytes of fragmentation, the difference between total mblock size and total block size.
+                         --   When all mblocks are full of full blocks, this number is 0.
                        , frag         :: {-# UNPACK #-}!Word64
+                         -- | Number of parallel garbage collection threads
                        , parNThreads  :: {-# UNPACK #-}!Int
+                         -- | Maximum number of bytes copied by any single collector thread
                        , parMaxCopied :: {-# UNPACK #-}!Word64
+                         -- | Total bytes copied by all collector threads
                        , parTotCopied :: {-# UNPACK #-}!Word64
                        , parBalancedCopied :: !(Maybe Word64)
                        }
+  -- | Report information about currently allocation megablocks and attempts made to return them to the operating system.
+  --   If your heap is fragmented then the current value will be greater than needed value but returned will be less than the difference between the two.
   | MemReturn          { heapCapset :: !Capset
+                         -- | Currently allocated mblocks
                        , current :: !Word32
+                         -- | The number of mblocks we would like to retain
                        , needed :: !Word32
+                         -- | The number of mblocks which we returned to the OS
                        , returned :: !Word32
                        }
 
   -- heap statistics
+  -- | A new chunk of heap has been allocated by the indicated capability set.
   | HeapAllocated      { heapCapset  :: {-# UNPACK #-}!Capset
+                         -- | Allocated bytes
                        , allocBytes  :: {-# UNPACK #-}!Word64
                        }
+  -- | Report the heap size, calculated by the number of megablocks currently allocated.
   | HeapSize           { heapCapset  :: {-# UNPACK #-}!Capset
+                         -- | Heap size in bytes
                        , sizeBytes   :: {-# UNPACK #-}!Word64
                        }
+  -- | Report the heap size, calculated by the number of blocks currently allocated.
   | BlocksSize         { heapCapset  :: {-# UNPACK #-}!Capset
+                         -- | Heap size in bytes
                        , blocksSize  :: {-# UNPACK #-}!Word64
                        }
+  -- | Report the live heap size.
   | HeapLive           { heapCapset  :: {-# UNPACK #-}!Capset
+                         -- | Heap size in bytes
                        , liveBytes   :: {-# UNPACK #-}!Word64
                        }
+  -- | Report various information about the heap configuration. Typically produced during RTS initialization.
   | HeapInfoGHC        { heapCapset    :: {-# UNPACK #-}!Capset
+                         -- | Number of garbage collection generations
                        , gens          :: {-# UNPACK #-}!Int
+                         -- | Maximum heap size
                        , maxHeapSize   :: {-# UNPACK #-}!Word64
+                         -- | Allocation area size
                        , allocAreaSize :: {-# UNPACK #-}!Word64
+                         -- | MBlock size
                        , mblockSize    :: {-# UNPACK #-}!Word64
+                         -- | Block size
                        , blockSize     :: {-# UNPACK #-}!Word64
                        }
 
   -- adjusting the number of capabilities on the fly
+  -- | A capability has been started.
   | CapCreate          { cap :: {-# UNPACK #-}!Int
                        }
+  -- | A capability has been deleted.
   | CapDelete          { cap :: {-# UNPACK #-}!Int
                        }
+  -- | A capability has been disabled.
   | CapDisable         { cap :: {-# UNPACK #-}!Int
                        }
+  -- | A capability has been enabled.
   | CapEnable          { cap :: {-# UNPACK #-}!Int
                        }
 
@@ -271,12 +337,15 @@ data EventInfo
                        }
 
   -- program/process info
+  -- | Describes the name and version of the runtime system responsible for the indicated capability set.
   | RtsIdentifier      { capset :: {-# UNPACK #-}!Capset
                        , rtsident :: !Text
                        }
+  -- | Describes the command-line used to start the program.
   | ProgramArgs        { capset :: {-# UNPACK #-}!Capset
                        , args   :: [Text]
                        }
+  -- | Describes the environment variables present in the program’s environment.
   | ProgramEnv         { capset :: {-# UNPACK #-}!Capset
                        , env    :: [Text]
                        }
@@ -292,8 +361,11 @@ data EventInfo
                        }
 
   -- messages
+  -- | A log message from the runtime system.
   | Message            { msg :: !Text }
+  -- | A user log message (from, e.g., Control.Concurrent.traceEvent).
   | UserMessage        { msg :: !Text }
+  -- | A user marker (from Debug.Trace.traceMarker).
   | UserMarker         { markername :: !Text }
 
   -- Events emitted by a parallel RTS
@@ -387,21 +459,38 @@ data EventInfo
   | PerfTracepoint     { perfNum :: {-# UNPACK #-}!PerfEventTypeNum
                        , tid     :: {-# UNPACK #-}!KernelThreadId
                        }
-  | HeapProfBegin      { heapProfId :: !Word8
+  -- | A single fixed-width event emitted during program start-up describing the samples that follow.
+  | HeapProfBegin      { -- | Profile ID
+                         heapProfId :: !Word8
+                         -- | Sampling period in nanoseconds
                        , heapProfSamplingPeriod :: !Word64
+                         -- | Sample breakdown type
                        , heapProfBreakdown :: !HeapProfBreakdown
+                         -- | Module filter
                        , heapProfModuleFilter :: !Text
+                         -- | Closure description filter
                        , heapProfClosureDescrFilter :: !Text
+                         -- | Type description filter
                        , heapProfTypeDescrFilter :: !Text
+                         -- | Cost centre filter
                        , heapProfCostCentreFilter :: !Text
+                         -- | Cost centre stack filter
                        , heapProfCostCentreStackFilter :: !Text
+                         -- | Retainer filter
                        , heapProfRetainerFilter :: !Text
+                         -- | Biography filter
                        , heapProfBiographyFilter :: !Text
                        }
-  | HeapProfCostCentre { heapProfCostCentreId :: !Word32
+  -- | A variable-length packet produced once for each cost centre,
+  | HeapProfCostCentre { -- | Cost centre number
+                         heapProfCostCentreId :: !Word32
+                         -- | Label
                        , heapProfLabel :: !Text
+                         -- | Module
                        , heapProfModule :: !Text
+                         -- | Source location
                        , heapProfSrcLoc :: !Text
+                         -- | bit 0: is the cost-centre a CAF?
                        , heapProfFlags :: !HeapProfFlags
                        }
   | InfoTableProv      { itInfo :: !Word64
