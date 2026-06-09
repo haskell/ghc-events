@@ -129,7 +129,7 @@ data Event =
     evTime  :: {-# UNPACK #-}!Timestamp,
     evSpec  :: EventInfo,
     evCap :: Maybe Int
-  } deriving Show
+  } deriving (Eq, Show)
 
 {-# DEPRECATED time "The field is now called evTime" #-}
 time :: Event -> Timestamp
@@ -488,7 +488,7 @@ data EventInfo
                        , tickyCtrSampleAllocd     :: !Word64
                        }
   | TickyBeginSample
-  deriving Show
+  deriving (Eq, Show)
 
 -- Note [Encoding of NonmovingHeapCensus]
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -520,7 +520,7 @@ data ThreadStopStatus
  | ThreadMigrating
  | BlockedOnMsgGlobalise
  | BlockedOnBlackHoleOwnedBy {-# UNPACK #-}!ThreadId
- deriving (Show)
+ deriving (Eq, Show)
 
 mkStopStatus :: RawThreadStopStatus -> Word32 -> ThreadStopStatus
 mkStopStatus n i = case n of
@@ -555,7 +555,7 @@ data CapsetType
  | CapsetOsProcess
  | CapsetClockDomain
  | CapsetUnknown
- deriving Show
+ deriving (Eq, Show)
 
 mkCapsetType :: Word16 -> CapsetType
 mkCapsetType n = case n of
@@ -583,7 +583,7 @@ data MessageTag
   -- with GUM and its variants, add:
   -- ...| Fetch | Resume | Ack
   -- ...| Fish | Schedule | Free | Reval | Shark
-  deriving (Enum, Show)
+  deriving (Eq, Enum, Show)
 offset :: RawMsgTag
 offset = 0x50
 
@@ -605,7 +605,7 @@ data HeapProfBreakdown
   | HeapProfBreakdownClosureType
   | HeapProfBreakdownInfoTable
   | HeapProfBreakdownEra
-  deriving Show
+  deriving (Eq, Show)
 
 instance Binary HeapProfBreakdown where
   get = do
@@ -635,7 +635,7 @@ instance Binary HeapProfBreakdown where
 
 
 newtype HeapProfFlags = HeapProfFlags Word8
-  deriving (Show, Binary)
+  deriving (Eq, Show, Binary)
 
 isCaf :: HeapProfFlags -> Bool
 isCaf (HeapProfFlags w8) = testBit w8 0

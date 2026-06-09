@@ -87,6 +87,13 @@ executable ghc-events
   other-modules:    Paths_ghc_events
   autogen-modules:  Paths_ghc_events
 
+test-suite unit-tests
+  import:           default
+  type:             exitcode-stdio-1.0
+  main-is:          Unit.hs
+  hs-source-dirs:   test
+  build-depends:    ghc-events, base, binary, hspec, bytestring
+
 test-suite test-versions
   import:           default
   type:             exitcode-stdio-1.0
