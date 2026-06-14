@@ -129,7 +129,7 @@ data Event =
     evTime  :: {-# UNPACK #-}!Timestamp,
     evSpec  :: EventInfo,
     evCap :: Maybe Int
-  } deriving Show
+  } deriving (Eq, Show)
 
 {-# DEPRECATED time "The field is now called evTime" #-}
 time :: Event -> Timestamp
@@ -457,10 +457,13 @@ data EventInfo
   | ConcUpdRemSetFlush { cap    :: {-# UNPACK #-}!Int
                        }
   | NonmovingHeapCensus
-                       { nonmovingCensusBlkSize :: !Word16
+                       { -- | Block size
+                         nonmovingCensusBlkSize :: !Word16
                        , nonmovingCensusActiveSegs :: !Word32
                        , nonmovingCensusFilledSegs :: !Word32
                        , nonmovingCensusLiveBlocks :: !Word32
+                       -- See: Note [Encoding of NonmovingHeapCensus]
+                       , encodedAsLog :: !Bool
                        }
   | NonmovingPrunedSegments
                        { -- | The number of pruned segments.
@@ -485,7 +488,14 @@ data EventInfo
                        , tickyCtrSampleAllocd     :: !Word64
                        }
   | TickyBeginSample
-  deriving Show
+  deriving (Eq, Show)
+
+-- Note [Encoding of NonmovingHeapCensus]
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--
+-- Before GHC-9.10, block size was encoded as the base-2 logarithm.
+-- Since GHC-9.10, it is now just written directly as the block size and is not necessarily a power of 2.
+-- We need to record this information in order to roundtrips events, but otherwise it shouldn't matter to users.
 
 --sync with ghc/includes/Constants.h
 data ThreadStopStatus
@@ -505,7 +515,7 @@ data ThreadStopStatus
  | BlockedOnDoProc
  | BlockedOnMsgThrowTo
  | BlockedOnBlackHoleOwnedBy {-# UNPACK #-}!ThreadId
- deriving (Show)
+ deriving (Eq, Show)
 
 mkStopStatus :: RawThreadStopStatus -> Word32 -> ThreadStopStatus
 mkStopStatus n i = case n of
@@ -535,7 +545,7 @@ data CapsetType
  | CapsetOsProcess
  | CapsetClockDomain
  | CapsetUnknown
- deriving Show
+ deriving (Eq, Show)
 
 mkCapsetType :: Word16 -> CapsetType
 mkCapsetType n = case n of
@@ -563,7 +573,7 @@ data MessageTag
   -- with GUM and its variants, add:
   -- ...| Fetch | Resume | Ack
   -- ...| Fish | Schedule | Free | Reval | Shark
-  deriving (Enum, Show)
+  deriving (Eq, Enum, Show)
 offset :: RawMsgTag
 offset = 0x50
 
@@ -585,7 +595,7 @@ data HeapProfBreakdown
   | HeapProfBreakdownClosureType
   | HeapProfBreakdownInfoTable
   | HeapProfBreakdownEra
-  deriving Show
+  deriving (Eq, Show)
 
 instance Binary HeapProfBreakdown where
   get = do
@@ -615,7 +625,7 @@ instance Binary HeapProfBreakdown where
 
 
 newtype HeapProfFlags = HeapProfFlags Word8
-  deriving (Show, Binary)
+  deriving (Eq, Show, Binary)
 
 isCaf :: HeapProfFlags -> Bool
 isCaf (HeapProfFlags w8) = testBit w8 0

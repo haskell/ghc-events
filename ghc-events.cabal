@@ -70,9 +70,9 @@ library
                     GHC.RTS.Events.Analysis.Capability
                     GHC.RTS.Events.Analysis.SparkThread
                     GHC.RTS.Events.Analysis.Thread
+                    GHC.RTS.Events.Binary
   other-modules:    GHC.RTS.EventParserUtils,
                     GHC.RTS.EventTypes
-                    GHC.RTS.Events.Binary
                     Paths_ghc_events
   autogen-modules:  Paths_ghc_events
   hs-source-dirs:   src
@@ -86,6 +86,13 @@ executable ghc-events
   build-depends:    ghc-events, base, containers, bytestring
   other-modules:    Paths_ghc_events
   autogen-modules:  Paths_ghc_events
+
+test-suite unit-tests
+  import:           default
+  type:             exitcode-stdio-1.0
+  main-is:          Unit.hs
+  hs-source-dirs:   test
+  build-depends:    ghc-events, base, binary, hspec, bytestring
 
 test-suite test-versions
   import:           default
