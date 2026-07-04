@@ -9,6 +9,8 @@ import GHC.RTS.Events.Analysis.Thread
 import GHC.RTS.Events.Analysis.Capability
 
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text.Lazy.IO as TL
+import qualified Data.Text.Lazy.Builder as TB
 
 import System.Environment (getArgs)
 import Data.Either (rights)
@@ -33,11 +35,11 @@ command ["inc", "force", file] = printEventsIncremental True file
 
 command ["show", "--pretty-time", file] = do
     evtLog <- readLogOrDie file
-    putStrLn $ ppEventLog PrettyTime evtLog
+    TL.hPutStrLn stdout $ TB.toLazyText $ buildEventLog PrettyTime evtLog
 
 command ["show", file] = do
     evtLog <- readLogOrDie file
-    putStrLn $ ppEventLog RawTime evtLog
+    TL.hPutStrLn stdout $ TB.toLazyText $ buildEventLog RawTime evtLog
 
 command ["show", "threads", file] = do
     eventLog <- readLogOrDie file
