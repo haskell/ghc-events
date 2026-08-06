@@ -83,7 +83,7 @@ library
 executable ghc-events
   import:           default
   main-is:          GhcEvents.hs
-  build-depends:    ghc-events, base, containers, bytestring
+  build-depends:    ghc-events, base, containers, text, bytestring
   other-modules:    Paths_ghc_events
   autogen-modules:  Paths_ghc_events
 

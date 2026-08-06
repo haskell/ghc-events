@@ -56,7 +56,7 @@ module GHC.RTS.Events (
        printEventsIncremental,
        showEventInfo, buildEventInfo,
        showThreadStopStatus,
-       ppEventLog, ppEventType,
+       ppEventLog, buildEventLog, ppEventType,
        ppEvent, buildEvent, buildEvent',
 
        -- * Perf events
